@@ -206,3 +206,26 @@ mode files driving rc/marker sequences) and asserts classification, retry/stop r
 waiting, chain continuation and guard refusal: **36/36 checks pass** against the deployed
 copies. It also pinned a useful property: a missing step script (rc=127) is `other`, so real
 deployment mistakes still stop the chain after 3 attempts.
+
+## D16 — S1 gate (iv) is a depth trend, not per-layer monotonicity; FD frees the scoring model
+
+`s1_score.py` is the first thing the chain runs after S1's fit and had never executed on the
+server. Reviewing it against the brief exposed two defects in the gate code itself:
+
+1. Check (iv) ("fidelity improves with depth") was implemented as *strict* per-layer
+   monotonicity of the mean true-token rank across the last 16 layers. A single wobble of
+   0.01 rank - routine on a finite held-out shard - would have failed the go/no-go
+   spuriously. It is now a trend (the last layer must beat the depth midpoint, `depth_checks`)
+   with the monotone flag and the count of non-monotone steps kept in the JSON as diagnostics.
+2. The fp32 finite-difference model (~29 GiB) loaded while the bf16 scoring model (~15 GiB)
+   was still resident, so the FD check fell back to CPU (minutes) on every run. The scoring
+   model is now freed first (`del model; gc.collect(); torch.cuda.empty_cache()`).
+
+Also recorded for the report: gate (ii) passes at a max per-layer mean relative error <= 5%
+(the brief's 1-2% is the expected value, not the bar), and (i) demands exact (0.0) agreement
+between the J=I lens and the logit-lens baseline - the paper's own identity check, so a
+nonzero value means a real scoring-path bug.
+
+Verified: `code/test_analysis_logic.py` (9/9 checks over clean / wobble / last-layer
+regression / flat profiles) passes locally and on the server's `vlm_truth_py313` python;
+`py_compile` clean; the server suite is green (`PYTHONPATH=src pytest`, rc=0).

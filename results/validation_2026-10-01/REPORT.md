@@ -100,8 +100,9 @@ mask), all 31 layers, bf16, 100 prompts. Scored with `code/s1_score.py` on the 3
 prompts, tag `text`:
 
 * (a) rank / KL / top-1 vs the model ceiling; (b) logit-lens baseline and identity check
-  (J = I reproduces the logit lens exactly); (iii) last-layer agreement; (iv) depth
-  monotonicity; (v) unigram frequency control; (ii) finite-difference check in fp32
+  (J = I reproduces the logit lens exactly); (iii) last-layer agreement; (iv) depth trend
+  (last layer beats the midpoint; monotonicity kept as a diagnostic, D16); (v) unigram
+  frequency control; (ii) finite-difference check in fp32
   (`eps=1e-2`, 4 top-norm rows at layers 0/8/16/24/30) — the FD model runs fp32 because
   bf16 cannot resolve the perturbation.
 
@@ -174,6 +175,8 @@ bash results/validation_2026-10-01/code/run_step0.sh
 
 # 0b. supervisor/guard logic regression test (no GPU; run on the server)
 bash results/validation_2026-10-01/code/test_supervisors.sh
+# 0c. analysis check logic (needs torch, no GPU/model): S1 gate (iv) trend rule
+python results/validation_2026-10-01/code/test_analysis_logic.py
 # 1. equivalence gate + X6 bf16 leg (8 samples)
 bash results/validation_2026-10-01/code/run_step1.sh
 # 1b. X6 fp32/TF32 leg - memory-guarded and opportunistic (waits for campaign idle)
