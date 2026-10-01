@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vlm-lens"
+version = "0.1.0"
+description = "Jacobian lenses for vision-language models (LLaVA-1.5-7B first)"
+requires-python = ">=3.10"
+license = "Apache-2.0"
+dependencies = [
+    "torch",
+    "transformers>=5.5",
+    "huggingface_hub",
+    "numpy",
+    "pillow",
+]
+
+[project.optional-dependencies]
+dev = ["pytest", "matplotlib", "datasets", "ruff"]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+packages = ["vlm_lens", "vlm_lens.models", "vlm_lens.data"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+extend-exclude = ["third_party"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP"]
+ignore = ["E501", "E741"]  # long lines are line-length-checked by review; l/I are names
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

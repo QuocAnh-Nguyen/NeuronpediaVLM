@@ -1,0 +1,28 @@
+# Conda environment for vlm-lens.
+#
+#   conda env create -f environment.yml && conda activate vlm-lens
+#
+# CPU-only by default (the local dry-run path). On the H100 server, install a CUDA
+# build of torch afterwards, e.g.:
+#
+#   pip install --upgrade --index-url https://download.pytorch.org/whl/cu124 torch
+#
+# See README.md for the fitting workflow.
+name: vlm-lens
+channels:
+  - conda-forge
+dependencies:
+  - python=3.12
+  - pip
+  - pip:
+      - -e .
+      - torch>=2.6
+      - transformers>=5.5
+      - huggingface_hub
+      - numpy
+      - pillow
+      # dev extras
+      - pytest
+      - matplotlib
+      - datasets
+      - ruff
