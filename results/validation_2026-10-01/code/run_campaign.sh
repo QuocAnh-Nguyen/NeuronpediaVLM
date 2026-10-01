@@ -4,8 +4,11 @@
 # at 2026-10-01T~04:50 when S1's fit OOMed under a growing co-tenant - D12).
 #
 # Every step waits for a free-memory window (polled every 30 s, since free VRAM on this
-# shared box is first-come-first-served) and is retried only on OutOfMemory: a non-OOM
-# failure means a real bug and stops the chain. Fits are resumable via fit_masked's
+# shared box is first-come-first-served). Failures we do not control (CUDA OOM, a SIGKILL
+# from a co-tenant reclaiming the GPU - observed at 07:16 S1 and 07:28 X6 - or a stray
+# CUDA error) are retried with no fixed attempt cap (MAX_ROUNDS); only 3 consecutive
+# non-transient failures stop the chain, so a real bug still fails fast and identically.
+# Fits are resumable via fit_masked's
 # checkpoint; note the checkpoint's settings fingerprint includes dim_batch, so a step must
 # always use the same dim_batch across retries:
 #   * s1: dim_batch 8 to resume the existing 20-sample checkpoint from the old chain's fit
@@ -46,12 +49,10 @@ need_free() {  # $1 = MiB threshold, $2 = label; waits up to 6 h
 run_guarded() {  # $1 = MiB threshold, $2 = label, rest = command
     local need=$1 label=$2
     shift 2
-    local attempt rc reason
-    # The box is shared: a fit can die from things we do not control (CUDA OOM, a
-    # SIGKILL from a neighbour's cleanup, a stray CUDA error). Any failure is retried
-    # (up to 3 attempts) because every step is checkpoint-resumable; a real bug simply
-    # fails three times fast. The reason is recorded per attempt.
-    for attempt in 1 2 3; do
+    local attempt=0 rc reason other_failures=0
+    local max_rounds=${MAX_ROUNDS:-60}
+    while [ "$attempt" -lt "$max_rounds" ]; do
+        attempt=$((attempt + 1))
         need_free "$need" "$label" || return 1
         "$@" >"$LOGS/${label}_attempt${attempt}.log" 2>&1
         rc=$?
@@ -68,10 +69,19 @@ run_guarded() {  # $1 = MiB threshold, $2 = label, rest = command
         else
             reason=other
         fi
-        echo "[$label] attempt $attempt failed rc=$rc reason=$reason (new window in 60 s)"
+        if [ "$reason" = other ]; then
+            other_failures=$((other_failures + 1))
+        else
+            other_failures=0
+        fi
+        echo "[$label] attempt $attempt failed rc=$rc reason=$reason other=$other_failures/3 (next in 60 s)"
+        if [ "$other_failures" -ge 3 ]; then
+            echo "[$label] giving up: 3 consecutive non-transient failures"
+            return 1
+        fi
         sleep 60
     done
-    echo "[$label] failed after 3 attempts"
+    echo "[$label] giving up after $max_rounds rounds"
     return 1
 }
 

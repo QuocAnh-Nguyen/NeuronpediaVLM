@@ -171,3 +171,38 @@ Also fixed: `tests/test_data_captions.py` used `Any` in annotations without impo
 State at 14:5x: everything of ours is stopped (as instructed - the GPU is held by a
 neighbour's vLLM EngineCore, 65.7 GiB). Nothing is relaunched until the user says so; all
 fixes are shipped so the next launch picks them up.
+
+## D15 — Supervisor follow-up: transient retries uncapped, reclaim guarded, both regression-tested
+
+Follow-up on D14 with fresh server evidence (recon at 16:1x UTC):
+
+* The co-tenant's `VLLM::EngineCore` pid `3351112` started `Thu Oct 1 07:28:33 2026`, 13 s
+  after our X6 fp32 leg's `Killed` (retry log mtime 07:28:21) - and that leg had started at
+  07:27:20 on an empty GPU (`free=81000MiB`). The account `nvidia-lab` is shared by several
+  people (our tree `~/ai4life/phuongnh/`, the co-tenant's `~/data_mount/tritd/`), so the
+  [inference] source of both SIGKILLs is a reclaim-then-launch step in whoever needs the GPU
+  next. Nothing in our logs shows a code fault.
+* `run_campaign.log` contains exactly one run (started 06:52:57) with a single
+  `s1_attempt1.log`: the failed chain used the *pre-fix* single-attempt supervisor, i.e. D14's
+  retry logic had never executed on the server when it was shipped.
+
+Three defects fixed (all shipped to `code/`):
+
+1. **Transient retries were capped at 3 attempts.** With a co-tenant that SIGKILLs fits, S1
+   (a ~4 h fit) would stop after three kills although each kill costs at most
+   `checkpoint_every=5` samples. `run_guarded` now retries transient reasons (OOM / CUDA
+   error / SIGKILL) with no fixed attempt cap, bounded by `MAX_ROUNDS=${MAX_ROUNDS:-60}`, and
+   stops only after 3 *consecutive* non-transient failures - the same rule as
+   `run_x6_retry.sh`.
+2. **`reclaim_and_launch.sh` would kill a live chain.** Its `PAT` matches `run_campaign.sh`,
+   `run_step*.sh` and `fit_llava.py`, so re-running it while a chain is alive would kill that
+   chain and start a duplicate supervisor. It now refuses unless `FORCE=1`.
+3. **`reclaim_and_launch.sh` called an undefined `free_mib`** (its header printed
+   `free=MiB`); now defined.
+
+Verification (no GPU): `code/test_supervisors.sh` drives both supervisors and the reclaim
+guard with stubbed externals (PATH-stubbed `nvidia-smi`/`sleep`, per-scenario fake `$HOME`,
+mode files driving rc/marker sequences) and asserts classification, retry/stop rules, window
+waiting, chain continuation and guard refusal: **36/36 checks pass** against the deployed
+copies. It also pinned a useful property: a missing step script (rc=127) is `other`, so real
+deployment mistakes still stop the chain after 3 attempts.

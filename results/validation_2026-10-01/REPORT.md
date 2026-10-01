@@ -171,10 +171,13 @@ resumable, and each re-runs the equivalence gate before its first fit.
 ```bash
 # 0. corpus + cost + census  (network needed for WikiText streaming; then HF_HUB_OFFLINE=1)
 bash results/validation_2026-10-01/code/run_step0.sh
+
+# 0b. supervisor/guard logic regression test (no GPU; run on the server)
+bash results/validation_2026-10-01/code/test_supervisors.sh
 # 1. equivalence gate + X6 bf16 leg (8 samples)
 bash results/validation_2026-10-01/code/run_step1.sh
 # 1b. X6 fp32/TF32 leg - memory-guarded and opportunistic (waits for campaign idle)
-bash results/validation_2026-10-01/code/run_x6_fp32.sh    # exits 3 when <45 GiB free
+bash results/validation_2026-10-01/code/run_x6_fp32.sh    # exits 3 when <55 GiB free
 bash results/validation_2026-10-01/code/run_x6_retry.sh   # bounded retry loop + compare
 # 2. S1 text control fit + scoring/gate
 bash results/validation_2026-10-01/code/run_step2.sh
@@ -195,7 +198,7 @@ python results/validation_2026-10-01/code/x7_x9_interventions.py \
 
 ## 11. Operational incidents (mid-campaign)
 
-Two environment-driven failures shaped the launch mechanics (details in DECISIONS.md):
+Environment-driven failures shaped the launch mechanics (details in DECISIONS.md):
 
 1. **S1 OOM under a growing co-tenant** (D12, ~04:50): the former supervisor `run_rest.sh`
    held a 27.9 GiB bf16 fit while the co-tenant grew to ~45 GiB across several jobs; the
@@ -214,6 +217,17 @@ Two environment-driven failures shaped the launch mechanics (details in DECISION
    guard too low. Fixed: guard 55 GiB, transient-aware retry loops in both supervisors,
    checkpoint every 5 samples (was 20/25), and a latent `Any` import bug in
    `tests/test_data_captions.py` (ruff F821). Everything of ours was left stopped.
+4. **External kills identified, supervisors hardened and regression-tested** (D15, recon at
+   16:1x): the co-tenant's `VLLM::EngineCore` (pid 3351112) started 07:28:33, 13 s after our
+   X6 leg was `Killed` (07:28:21) on a GPU that had been empty when the leg started (07:27:20,
+   free=81000 MiB); the shared `nvidia-lab` account hosts several people, so a
+   reclaim-then-launch step in the co-tenant's tooling is the [inference] source of both
+   SIGKILLs. The 06:52:57 chain ran the pre-fix supervisor (only `s1_attempt1.log` exists), so
+   D14's retries had never executed. Fixed: transient retries are no longer capped at 3
+   attempts (kill storms keep resuming from the checkpoint), `reclaim_and_launch.sh` refuses
+   to kill a live chain without `FORCE=1`, and its undefined `free_mib` is defined.
+   `code/test_supervisors.sh` (stub-based, no GPU) asserts all of it: 36/36 checks pass on the
+   deployed copies.
 
 Measured GPU-sharing volatility (nvidia-smi compute apps, 2026-10-01): 02:5x ~10 GiB
 co-tenant; 04:1x 2.0 + 30.7 + 12.1 GiB; 06:5x 12.1 GiB + a fresh 19.0 GiB job; free VRAM
@@ -225,6 +239,6 @@ that import `jlens` directly must `import vlm_lens` first (D8); reserve
 `PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True` on the shared GPU.
 
 `code/run_campaign.sh` drives steps 2–4 and the intervention sweep unattended: it gates
-each step on a free-VRAM window (D12) and retries transient failures (D14), so it coexists
+each step on a free-VRAM window (D12) and retries transient failures (D14/D15), so it coexists
 with the shared GPU. The retired `code/run_rest.sh`, `code/run_x6_fp32.sh`'s old guard and
 the old X6 leg live on only as history.

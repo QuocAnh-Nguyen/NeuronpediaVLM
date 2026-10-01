@@ -16,9 +16,20 @@ CODE=$REPO/results/validation_2026-10-01/code
 LOGS=$REPO/results/validation_2026-10-01/logs
 mkdir -p "$LOGS"
 SELF=$$
+free_mib() { nvidia-smi --query-gpu=memory.free --format=csv,noheader,nounits | head -1; }
 # Campaign-specific patterns only (no co-tenant processes, no run_x6_retry.sh).
 PAT='fit_llav[a].py|run_res[t].sh|run_ste[p][0-9].sh|run_campaign[.]sh|s1_scor[e].py|s2_ev[a]l.py|split_halve[s].py|x1_comp[a]re.py|x6_comp[a]re.py|x7_x9_interve[n]tions.py'
 
+# Live-campaign guard: this script exists to clean up a *dead* chain. Killing a live
+# supervisor (and its resumable fit) would throw away GPU progress, so it refuses unless
+# FORCE=1 is set explicitly.
+FORCE=${FORCE:-0}
+live=$(pgrep -f 'run_campaign[.]sh|run_res[t].sh' | grep -v "^${SELF}$" || true)
+if [ -n "$live" ] && [ "$FORCE" != "1" ]; then
+    echo "refusing to reclaim: campaign supervisor(s) alive: $(echo $live | tr '\n' ' ')"
+    echo "re-run with FORCE=1 to kill them and relaunch, or wait for the chain to exit."
+    exit 1
+fi
 echo "=== reclaim_and_launch $(date -Is) free=$(free_mib)MiB ==="
 victims=$(pgrep -f "$PAT" | grep -v "^${SELF}$" || true)
 if [ -n "$victims" ]; then
