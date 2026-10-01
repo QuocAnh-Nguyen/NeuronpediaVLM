@@ -245,3 +245,33 @@ that import `jlens` directly must `import vlm_lens` first (D8); reserve
 each step on a free-VRAM window (D12) and retries transient failures (D14/D15), so it coexists
 with the shared GPU. The retired `code/run_rest.sh`, `code/run_x6_fp32.sh`'s old guard and
 the old X6 leg live on only as history.
+
+## 12. Recommended production settings (provisional)
+
+Current best answers from the real checkpoint. Inputs marked ⏳ are not measured yet (X6's
+fp32 verdict, the S1 gate, S2's held-out fidelity rows); everything else is measured in this
+run. Re-check when those land.
+
+| Knob | Recommended | Basis |
+| --- | --- | --- |
+| `dtype` | **bf16** for all fits | [measured] bf16 X6 leg: 8/8 samples, 2205.8 s, images at dim_batch 8; fp32 weights are ~29 GiB and the TF32 leg OOMed at 47.65 GiB allocated under a co-tenant. ⏳ switch to fp32/TF32 iff `step1/x6_dtype.json` shows median relative Frobenius Δ > 3% (max > 10%). |
+| `dim_batch` | 8 (text), 4-8 (image) | [measured] peak 19.9 GiB (text, 190 tok) and 36.4 GiB (image, 660 tok) at dim_batch 8; pure memory knob, but it is part of the checkpoint fingerprint, so keep it fixed per run (D13). |
+| `skip_first` | 1 (multimodal), 16 (text-only control) | [measured] X3 census: positions 1-16 are not sink-like (`pos_1_16_sink_like=false`); BOS is the massive-activation outlier (D5). |
+| `target_layer` | 31 (final residual) | [derived] the lens lives on the pre-norm residual stream; 31 is the last fitted source layer. X5 (31 vs 30) was not run. |
+| masks | `text` = primary readout; `image`/`all` descriptive only | [derived] mask semantics (V4/E3): a readout at an image position is a first-order disposition to verbalize, not a next-token prediction. |
+| prompts | 100 fit / 30 held-out per corpus | [measured] cost model: text 85.9 s/sample (~2.4 h/100), image 288.2 s/sample (~8.0 h/100) at dim_batch 8; scale n by the budget rule and keep the 10% report reserve. |
+| checkpoint cadence | every 5 samples | [measured] an external SIGKILL then costs at most 5 samples; fits are resumable and the supervisor retries transients up to `MAX_ROUNDS=60` (D14/D15). |
+| memory guards | ≥28 GiB free (text fit), ≥32 GiB (image fits), ≥55 GiB (fp32 leg) | [measured] peaks above plus the fp32 OOM at 47.65 GiB allocated; `run_campaign.sh` polls every 30 s. |
+| environment | `HF_HUB_OFFLINE=1`, `PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True`, greedy decoding, `torch.compile` off | [measured] the box is first-come-first-served; 65.7 GiB observed held by a co-tenant, and our fits have been SIGKILLed twice by external reclaims (D14/D15). |
+
+Claims this setup can and cannot support:
+
+* Can: token-level disposition of the *text* residual after multimodal fusion ("what is this
+  state disposed to say"), per layer, on the fit corpus and its held-out shard - once the S1
+  gate passes and S2's held-out fidelity rows are in.
+* Can: comparative statements across layers, masks and corpora (J-lens vs logit lens, text vs
+  image rows, WikiText vs captions) - those are the S2 A4/X8 rows.
+* Cannot (yet): causal claims from lens numbers alone (X7/X9 are the causal probe and they are
+  qualitative); "the model sees X in the image" from an image-position readout; absolute rate
+  claims ("hallucinates N%") from rank/KL values, which are corpus- and
+  instruction-conditional.
