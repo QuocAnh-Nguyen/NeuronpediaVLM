@@ -69,7 +69,7 @@ image block, first 16 patches, patches 17…end, text after the block
 | 31 | **633.7** | 139.7 | 151.8 | 136.0 | 155.0 | 205.0 |
 
 Script verdict: `pos_1_16_sink_like=false`, `recommended_skip_first=1`. BOS is a
-massive-activation outlier at depth (E5) but its dominant dimensions are disjoint from every
+massive-activation outlier at depth (M14; V2/V6) but its dominant dimensions are disjoint from every
 other group (Jaccard 0.111), and positions 1–16 track the ordinary text/patch groups.
 Consequences: the multimodal fits keep `skip_first=1` (D5 in the register), the text control
 keeps the paper's 16, and the conditional **X4 boundary sweep was not run** (trigger absent,
@@ -157,8 +157,32 @@ masks `text,image,all`, `skip_first=1`, bf16, then merged into the 100-sample le
 
 ## 8. Register updates
 
-<!-- PENDING: status flips for V1/V2/V3/V5/V6, E5/E6, F1, and X1–X9 verdicts; each with the
-one-line evidence pointer (JSON path + row). -->
+`docs/jlens-vlm-assumptions.md` is the REGISTER. Flips carry an evidence pointer; items whose
+verdict needs the fits stay ⏳ (they gate on S1/S2/X1-X9).
+
+| Item | Status | Evidence |
+| --- | --- | --- |
+| V6 (`skip_first=1` vs 16) | ✅ D5 stands | [measured] X3 census M14: positions 1-16 track the ordinary text/patch groups, `pos_1_16_sink_like=false` (`step1/x3_norms.json`) |
+| V8 (prompt-format dependence) | ✅ hash recorded | [measured] `x6-bf16/artifacts/provenance.json` → `corpus.prompt_template_sha256=1cf033c0…` (mirrored in `extra`) |
+| V12 (over-length truncation bias) | ✅ rate recorded | [measured] same provenance: `corpus.n_dropped_over_length=0`, `extra.drop_rate=0.0` |
+| V10 / F6 (§0 facts; fail-open guard) | ✅ closed | code + tests (step-0 hygiene): a missing `image_seq_length` is derived from (image_size/patch_size)² and the resolved vision config is in provenance (`model.vision_*`: layer −2, select `default`, 336/14 → 576 tokens) |
+| V2 (block positional norm gradient) | ⏳ X2 | census M11/M14 shows the gradient at L0; per-quarter fidelity decides whether it matters |
+| V1, V3, V4, V5 | ⏳ S2 / X1 | implementation ready (`include_placeholders`, quarter tags, target-mask variant); verdicts need the fits |
+| E5 (α units per mode) | ⏳ X7 | residual-relative α from the X3 norms, once a lens exists |
+| E6 (holding out) | ⏳ S2 | S1's held-out shard is disjoint by construction; S2 adds the cross-corpus rows |
+| F1 §5 (bf16 gradients) | ⏳ X6 fp32 leg | verdict rule: median rel Δ > 3% ⇒ switch production to fp32/TF32 |
+| F1-F7 §0 (upstream-code facts) | ✅ verified | pinned to the vendored commit; re-checked against `jlens/fitting.py` for this campaign |
+| X1-X9 | per-section verdicts | X3/X6 have their verdicts (sections 2.3, 3); X1/X2/X4/X5/X7/X9 wait for the fits |
+
+Discrepancy log (the brief requires logging register/code mismatches):
+
+* The REGISTER reuses IDs across sections: `F1`-`F7` appear both as §0 upstream-code facts and
+  as §5 engine assumptions. The "F1" flip above is the §5 engine item (bf16 gradients), not
+  the §0 fact.
+* This report's earlier "(E5)" citation for the BOS massive-activation finding was wrong (E5 is
+  the α-units item); it now points at M14/V2/V6.
+* `positions.py`'s docstring points at `vlm_lens.evaluate` for image-mask validation, and that
+  module is implemented - not a stale pointer any more.
 
 ## 9. Budget accounting
 
