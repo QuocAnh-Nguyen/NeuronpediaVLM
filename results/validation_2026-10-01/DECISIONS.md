@@ -229,3 +229,17 @@ nonzero value means a real scoring-path bug.
 Verified: `code/test_analysis_logic.py` (9/9 checks over clean / wobble / last-layer
 regression / flat profiles) passes locally and on the server's `vlm_truth_py313` python;
 `py_compile` clean; the server suite is green (`PYTHONPATH=src pytest`, rc=0).
+
+## D17 — Budget unit read as GPU time; X6 runner logs live in `~/.vlm-lens-setup/`
+
+1. The task CONFIG asks for a "total GPU budget" (24 h, 21.6 h usable after the 10% report
+   reserve). Read as GPU time: ~3.5 h spent so far and ~12 h projected for S1 + S2 + X1 +
+   X7/X9 (report section 9), so S2 keeps n=100 images. [inference] If the 24 h was meant as
+   wall-clock, the budget is already spent; then shrink n via the env overrides
+   (`N_PROMPTS`, the S2 `--limit`) rather than skipping a step.
+2. Correction of a chat-level claim: the X6 retry runner's stdout *is* persisted - at
+   `~/.vlm-lens-setup/x6_retry.log`, not under `results/.../logs/`. It shows the 07:02 runner
+   was the pre-fix version ("retry 3: leg failed with rc=1 ... - giving up" after two guard
+   skips), i.e. the give-up-after-one-failure behaviour that D14/D15 replaced. When the leg is
+   relaunched, pipe the runner's stdout into `results/.../logs/x6_retry.log` so one directory
+   holds the whole chain's logs.

@@ -162,7 +162,37 @@ one-line evidence pointer (JSON path + row). -->
 
 ## 9. Budget accounting
 
-<!-- PENDING: planned vs actual per step, from the chain logs' timestamps. -->
+Accounting unit: **GPU time** (the task CONFIG asked for a "total GPU budget": 24 h with 2.4 h
+reserved for this report → 21.6 h usable). Caveat [inference]: if the 24 h was meant as
+wall-clock, the elapsed wall (~22 h since 2026-09-30T18:4x, mostly spent waiting for a free
+GPU) already exceeds it; then S2's `n` must shrink to the largest multiple of 10 that fits the
+remaining time (autonomy rule 3) instead of skipping a step - the step scripts take `n` from
+the environment for exactly this.
+
+Spent so far ([measured] from provenance and the chain logs in `~/.vlm-lens-setup/`):
+
+| Step | GPU time | Evidence |
+| --- | --- | --- |
+| Step 0 corpus + cost + X3 census | ~0.9 h | `step0_chain.log` 23:36:05 → closed 00:30 (includes the `jlens`-import re-run, D8) |
+| Equivalence gate (real checkpoint, bf16) | minutes | `step1_chain.log` 00:00:29, `[PASS]` LM stack max abs diff = 0 |
+| X6 bf16 leg (8 samples) | 0.61 h | `x6-bf16/artifacts/provenance.json`: `wall_seconds=2205.8` |
+| X6 fp32 attempts (true fp32, then TF32) | ~1.1 h | `step1_chain.log` closed 02:20 (`X6_FP32_FAILED`); the 06:48 retry OOMed; the 07:27 attempt was killed after 1 min |
+| S1 bf16 fit attempts (20 samples, then ~23 min) | ~0.85 h | 04:45 checkpoint (20 samples at 85.9 s/sample [derived]); 06:52:57 → 07:16:47 external kill |
+| **Total** | **≈ 3.5 h** | [derived] sum of the rows |
+
+Projection for the remaining campaign at the measured costs ([measured] seconds/sample,
+dim_batch 8, checkpoint every 5):
+
+| Step | Projected | Basis |
+| --- | --- | --- |
+| S1 fit 100 prompts + scoring + FD | 2.4 h + ~0.2 h | 85.9 s/sample; FD is minutes (CPU fallback possible, D16) |
+| S2 two 50-image halves at dim_batch 4 + merge + eval | ~8 h + ~0.3 h | 288.2 s/sample |
+| X1 shard pair (20 images, 6 layers each) | ~0.3 h | [inference] 288.2 s/sample × (6/31 layers) × 20 |
+| X7 conditioning + X9 edit sweep | ~0.3 h | [inference] 10 short generations + swap math |
+| **Total remaining** | **≈ 12 h** | fits the 21.6 h usable under the GPU-time reading, reserve intact |
+
+Steps 2-4 actuals are ⏳ (not completed); the failed attempts above are all the GPU time they
+have consumed so far.
 
 ## 10. Reproduction appendix
 
