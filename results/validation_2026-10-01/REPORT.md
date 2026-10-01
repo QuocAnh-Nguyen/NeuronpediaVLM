@@ -125,6 +125,16 @@ masks `text,image,all`, `skip_first=1`, bf16, then merged into the 100-sample le
 * A4/E6: cross-corpus transfer both ways (caption lens → held-out WikiText at
   `skip_first=16`; text lens → held-out captions at `skip_first=1`).
 
+Prerequisites pre-verified on the frozen corpora (CPU only, 2026-10-01T18:52Z,
+`code/split_halves.py`): the halves are 50/50 samples and 50/50 images, sample keys and
+images are disjoint, the union equals the fit manifest, the questions partition the
+10-question bank (5+5) with half A equal to `corpus-split.json`'s list, the template hash is
+propagated into both half headers, both halves preserve the parent manifest's sample order,
+and the payload lines are byte-identical across re-runs (only the header's `created_utc`
+changes). Since the checkpoint fingerprint excludes the manifest and resume walks
+`next_idx` over that stable order, re-running the split on every attempt cannot disturb a
+half-fit.
+
 <!-- PENDING: s2_eval.json — per-tag layer tables, quarter spread, halves grid, transfer rows. -->
 
 ## 6. Step 4 — X1 target-mask, X7 conditioning, X9 edits ⛔⏳
