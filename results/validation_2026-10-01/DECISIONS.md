@@ -1,0 +1,173 @@
+# Autonomous decisions — J-lens validation campaign
+
+Task: "Run the prioritized validation experiments for the J-lens port to LLaVA-1.5". The
+task template's CONFIG block was not filled in; every value below was resolved from the
+environment and the repository, never by asking. Rule references are to the task text.
+
+## D0 — CONFIG resolution (autonomy rule 1)
+
+| CONFIG field | Resolved value | Reason |
+| --- | --- | --- |
+| REGISTER path | `docs/jlens-vlm-assumptions.md` | The only file with A/V/E/F/G/D/X identifiers |
+| Checkpoint | `llava-hf/llava-1.5-7b-hf` (HF cache, offline) | Pinned by the repo (`AGENTS.md`); gate already passed on it |
+| GPU | 1× H100 80 GB (shared; co-tenant used 10.3 GB at start) | `nvidia-smi` |
+| **Total GPU budget** | **24 h wall** (10 % / 2.4 h reserved for the report) | Unstated in the task; the plan below fits with ~3.6 h slack |
+| COCO images | `<vlm-truth>/data/coco2014/val2014/val2014` (40 504 jpg) | Only COCO copy on the box |
+| WikiText | HF Hub `Salesforce/wikitext` `wikitext-103-raw-v1`, network allowed for this step | No local copy; box has internet (HTTP 200 to HF API) |
+| Output dir | `results/validation_2026-10-01/` in the repo + `/data/vlm-lens/validation` for artifacts | Deliverables must be committed; big artifacts must not be |
+
+Planned budget spend (projection from measured 355 s/sample at bf16, 3 masks, all layers):
+X6 16 samples ≈ 1.6 h · S1 100 text prompts ≈ 2.6 h · S2 100 image samples ≈ 10 h ·
+X1 30-sample target-mask shard ≈ 3 h · X4 (only if X3 triggers it) 4 × 8-sample shards ≈ 3.2 h ·
+X7/X9 generation-only ≈ 0.3 h → ≈ 20.7 h. Each step re-projects from its *measured* per-sample
+time and shrinks `n_samples` (never the budget) if it would not fit (rule 3).
+
+## D1 — WikiText needs network (Step 2)
+
+`data/text.py` streams `Salesforce/wikitext`. The fit runs with `HF_HUB_OFFLINE=1` for the
+model; the text-corpus build unsets it for the streaming download, then the manifest is
+frozen on disk so the fit itself is offline and reproducible.
+
+## D2 — X1 target-mask variant implemented inside `vlm_lens`
+
+Upstream's estimator uses one position mask as source *and* target set (register F1). The
+variant therefore lives in `vlm_lens.fitting.jacobian_for_sample(..., target_mask=...)`:
+the cotangent is seeded only at positions of the requested mask. No vendored file is
+touched (rule 5). `target_mask` is part of the checkpoint fingerprint.
+
+## D3 — Text rows in X1: what "unchanged" can mean (register V1)
+
+V1 argues text sources *after the image block* can only causally reach text targets, so
+their rows must be bit-identical between `target_mask=all` and `target_mask=text`. Text
+sources *before* the block (`USER:` tokens) do reach placeholder targets and therefore
+change. The aggregate `text` row is a mixture of the two, so the campaign reports:
+(a) a bit-identity unit test on the causally-disjoint subset (tiny fixture + one real
+sample), (b) per-mask relative Frobenius difference plus the best-fit scale factor and
+cosine similarity on the real shard, to separate "normalization" from "structural" change.
+
+## D4 — Corpus splits (S2)
+
+- Images: `select_images(..., seed=0)` over the COCO pool; first 100 → fit, next 30 → held
+  out (never fit). Disjointness is by construction and recorded in the manifest headers.
+- Instruction halves (A4/X8): the 10-question bank cycles, so each question has exactly 10
+  samples. Half A = questions 1-5, half B = 6-10; lens A is fit on half-A samples, lens B
+  on half-B samples; cross-half scoring uses the held-out images, whose manifest carries
+  all 10 questions (300 captions).
+- Corpus builder gained `image_list=` so the driver (not the builder's internal sampling)
+  owns the split.
+
+## D5 — Measured costs (Step 0d) replace the 355 s projection
+
+`cost.json` (dim_batch=8, bf16, all layers below the target, 3 masks): image sample
+(660 tokens = 82 text + 576 image) **288.2 s, peak 36.4 GiB**; text sample (190 tokens)
+**85.9 s, peak 19.9 GiB**. Re-projected: X6 8+8 samples ≈ 2.2 h · S1 100 text ≈ 2.4 h ·
+S2 100 image ≈ 8.0 h · X1 20-sample shard ×2 ≈ 3.2 h · X7/X9 ≈ 0.3 h → ≈ 16.1 h of the
+21.6 h usable, so S1 keeps all 100 prompts (no shrink needed, rule 3 not triggered).
+Fits ran with `HF_HUB_OFFLINE=1`; `PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True` set
+because the GPU is shared with a 10.3 GiB co-tenant.
+
+## D6 — X3 verdict: `skip_first=1` stands, X4 not triggered
+
+`x3_norms.json` (50 real samples, layers 0/16/31): BOS is a large-norm outlier at depth
+(mean ‖h‖ 1569 at L16 and 634 at L31 vs 30–205 for every other group), but its dominant
+dims are disjoint from every other group (Jaccard 0.111) and positions 1–16 track the
+patch/text groups, not BOS. Script verdict `pos_1_16_sink_like=false`,
+`recommended_skip_first=1`. The conditional X4 boundary sweep (4 × 10 samples ≈ 4 h) is
+therefore **not run**; its chain is committed as `code/run_step5_x4.sh` with the trigger
+recorded in the report. Freed budget stays as rerun reserve.
+
+## D7 — S2 = two 50-sample half-fits, then merge (extends D4)
+
+`--merge` weights J by `n_prompts`, and each sample carries exactly one question, so the
+merged A+B lens is bit-equivalent to a single 100-sample run while giving the A4/X8
+cross-half table for free. Half-fits are also image-disjoint, so the cross-half cells have
+no image leakage. `split_halves.py` writes both manifests from `corpus-split.json`.
+
+## D8 — `import vlm_lens` must precede `import jlens`
+
+X3 first died with `ModuleNotFoundError: No module named 'jlens'`: the vendored path is
+installed as a side effect of importing `vlm_lens` (repo convention). Campaign scripts
+that import `jlens` directly now carry an explicit `import vlm_lens  # noqa: F401` above
+it; the sharp edge is already documented in the README ("Import `vlm_lens` before `jlens`").
+
+## D9 — Launch mechanics: ship code before launching
+
+The first `run_step1.sh` launch died instantly ("No such file or directory") because it
+was started in the same breath as the first code `rsync`; the code must be synced first,
+then launched. All campaign launches: `rsync` repo → `nohup bash ... &` via the shared
+SSH control socket, then verify with `pgrep -af`.
+
+## D10 — True-fp32 fit is infeasible; X6's fp32 leg re-run with TF32
+
+The first fp32 leg ran 2 h 10 min without finishing 4 samples (no checkpoint) because
+torch defaults `allow_tf32=False`: true-fp32 cuBLAS on H100 uses CUDA cores, ~15x slower
+than bf16 tensor cores at these shapes (~10 min/sample → ~9 h for 8 samples). The leg was
+killed and re-run with **TF32** (`allow_tf32=True`, 10-bit mantissa, fp32 storage and
+accumulation) — the register's D20/X6 wording ("fp32/tf32") already anticipates this.
+Implemented as `vlm_lens.fitting.configure_tf32` + `scripts/fit_llava.py --allow-tf32`
+(recorded in provenance; guarded by `tests/test_precision.py` so the flag cannot silently
+no-op across torch's `allow_tf32` → `fp32_precision` migration). The bf16 leg
+(`x6-bf16`, 37 min for 8 samples) is unchanged, so X6 now compares bf16 against TF32-fp32.
+
+## D11 — X6 fp32/TF32 leg: CUDA OOM under the co-tenant, moved to an opportunistic retry
+
+The re-run with TF32 died during model load with `torch.OutOfMemoryError` (112.75 MiB free
+of 79.11 GiB): the box's co-tenant held ~57-61 GiB (measured: 2 GiB + 26.7 GiB +
+30.7 GiB compute processes), so fp32 weights (~30 GiB) could not fit, let alone
+activations. Nothing to do with the TF32 switch — `model ready: ... tf32=True` printed
+before the failure. The campaign's own fits also leave no room for a co-running fp32
+model, so `run_x6_retry.sh` waits for all campaign launchers to exit and then retries the
+leg in a 2 h loop, gated on >=42 GiB free (`run_x6_fp32.sh` exits 3 and retries when the
+GPU is too full). If no window opens, X6's fp32 row is reported as environmentally
+infeasible with this evidence instead of a fabricated number.
+
+## D12 — S1 OOMed under live GPU sharing; chain replaced by a memory-guarded supervisor
+
+The old `run_rest.sh` chain died shortly after 04:45: its S1 fit (bf16, dim_batch 8,
+27.9 GiB resident) hit `torch.OutOfMemoryError` (70 MiB free) while the co-tenant grew to
+four jobs (~2 + 30.7 + 12.1 GiB and later a fresh 19 GiB job). The OOM'd fit process then
+stayed resident holding ~28 GiB instead of exiting. `code/reclaim_and_launch.sh` kills
+campaign leftovers (X6 retry runner excluded, verified by pattern), waits for nvidia-smi
+to confirm the release, and launches `code/run_campaign.sh`: same step order, but each step
+waits for a free-memory window (polled every 30 s; 28/32/16/22 GiB for S1/S2/X1/X7X9) and
+is retried only on OutOfMemory. Big fresh fits run at dim_batch 4 to keep windows reachable.
+
+## D13 — A checkpoint's settings fingerprint includes dim_batch
+
+The first guarded S1 attempt (04:59:51) hard-failed non-OOM: `ValueError: checkpoint at
+.../s1-text/checkpoint.pt was fitted with different settings: {'dim_batch': (8, 4)}`. The
+old chain's fit had reached 20/100 samples (2.08 GB checkpoint, 04:45) and the fingerprint
+treats dim_batch as a fit setting even though it is mathematically inert (`dim_batch` only
+splits backward passes). S1 was therefore relaunched with `DIMBATCH=8` to *resume* those 20
+samples (relaunch at 06:52:57, free=49.4 GiB, fit resident 22.8 GiB, no resume error);
+S2's fresh fits stay at dim_batch 4. Follow-up for the repo (not done mid-campaign): the
+fingerprint could ignore dim_batch, or the docs could say resume requires the same value.
+
+## D14 — Neighbours SIGKILL our fits; guards, retries and checkpoint cadence hardened
+
+Between 07:16 and 07:28 both of our running fits were killed by an external actor (`Killed`
+in the shell's job report, no traceback):
+
+* S1's resumed fit (`3328912`, free window 49.4 GiB) died at ~07:16 after ~23 min, before
+  its next checkpoint, so the 04:45 checkpoint (20/100 samples) is all that survived;
+  `run_campaign.sh` classified it non-OOM and stopped (CAMPAIGN_S1_FAILED).
+* The X6 fp32 leg (`3350091`, free window 81.0 GiB — the GPU was empty) died ~1 min in.
+
+Diagnosis (worker request: "check whether everything ran smoothly"): the logs show no code
+fault in either kill. Two genuine defects were exposed and fixed:
+
+1. **X6 fp32 leg memory guard too low.** The 06:48 attempt OOMed at 47.65 GiB allocated by
+   PyTorch (222 MiB request, 119 MiB free); the guard said 45 GiB so the leg could start in
+   windows too small for it. `MIN_FREE_MIB` is now 55 GiB (`run_x6_fp32.sh`).
+2. **Transient-failure handling.** Both supervisors treated a SIGKILL as fatal. The retry
+   runner now retries on any non-deterministic failure (guard skip / OOM / CUDA error /
+   SIGKILL) and gives up only after 3 consecutive `other` failures; `run_campaign.sh` got the
+   same classification. The two heavy fits also checkpoint every 5 samples now (was 20/25),
+   so an external kill costs minutes, not half an hour, once a chain is relaunched.
+
+Also fixed: `tests/test_data_captions.py` used `Any` in annotations without importing it
+(ruff F821; latent only because `from __future__ import annotations` defers evaluation).
+
+State at 14:5x: everything of ours is stopped (as instructed - the GPU is held by a
+neighbour's vLLM EngineCore, 65.7 GiB). Nothing is relaunched until the user says so; all
+fixes are shipped so the next launch picks them up.
