@@ -111,9 +111,11 @@ printf '#!/bin/sh\nexec %s/stub.sh %s/okmodes %s/c1\n' "$T" "$E" "$E" > $CODE/ru
 printf '#!/bin/sh\nexec %s/stub.sh %s/okmodes %s/c2\n' "$T" "$E" "$E" > $CODE/run_step3.sh
 printf '#!/bin/sh\nexec %s/stub.sh %s/okmodes %s/c3\n' "$T" "$E" "$E" > $CODE/run_step4.sh
 chmod +x $CODE/run_step2.sh $CODE/run_step3.sh $CODE/run_step4.sh
+printf '#!/bin/sh\nexec %s/stub.sh %s/okmodes %s/c4\n' "$T" "$E" "$E" > $CODE/run_fd.sh
+chmod +x $CODE/run_fd.sh
 HOME=$E/home PATH=$T/bin:$PATH bash $E/run_campaign.sh > $E/out.txt 2>&1
 check_rc "E exit 0" $? 0
-check "E waited for the window" $E/out.txt "free=99999MiB >= 28000MiB - starting" 1
+check "E waited for the window" $E/out.txt "free=99999MiB >= 24000MiB - starting" 1
 check "E campaign done"         $E/out.txt "campaign done" 1
 
 # ============ F) campaign: 5 SIGKILLs then success (transient cap removed) =====
@@ -124,10 +126,13 @@ printf '#!/bin/sh\nexec %s/stub.sh %s/s1modes %s/s1count\n' "$T" "$F" "$F" > $CO
 printf '#!/bin/sh\nexec %s/stub.sh %s/s1modes %s/scount\n' "$T" "$F" "$F" > $CODE/run_step3.sh
 printf '#!/bin/sh\nexec %s/stub.sh %s/s1modes %s/xcount\n' "$T" "$F" "$F" > $CODE/run_step4.sh
 chmod +x $CODE/run_step2.sh $CODE/run_step3.sh $CODE/run_step4.sh
+printf '#!/bin/sh\nexit 1\n' > $CODE/run_fd.sh
+chmod +x $CODE/run_fd.sh
 HOME=$F/home PATH=$T/bin:$PATH bash $F/run_campaign.sh > $F/out.txt 2>&1
 check_rc "F exit 0 after 5 kills" $? 0
 check "F s1 ok on attempt 6"      $F/out.txt "\[s1\] ok (attempt 6)" 1
-check "F no give-up"              $F/out.txt "giving up" 0
+check "F s1 never gives up"       $F/out.txt "\[s1\] giving up" 0
+check "F fd skipped, chain continues" $F/out.txt "CAMPAIGN_FD_SKIPPED" 1
 check "F campaign done"           $F/out.txt "campaign done" 1
 
 # ============ G) reclaim guard: refuse with a live supervisor, FORCE kills =====
