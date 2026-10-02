@@ -136,8 +136,9 @@ equal the model's (0.450 / 27.3, frequency control). The J-lens beats the plain 
 L2-16 (L14: 1101.2 vs 5178.4) and L26-30 (L30: 46.5 vs 75.2) but loses at L17, 20, 21, 23, 24
 (+379, +813, +331, +99, +271 against the 16032.5 chance level) - so the gate verdict is FAIL
 on the strict per-layer middle criterion only; the diagnosis and the decision to proceed are
-D19/D20: the finite-difference rows (ii) are measured by a decoupled watcher (D20: serialized
-behind this scoring pass, GPU if a ≥32 GiB window opens within 2 h, else a reduced CPU pass).
+D19/D22: the finite-difference row (ii) is the chain's optional `fd` step (`run_fd.sh` under a
+36 GiB guard, fp32 estimator on GPU, published by rename only when the row is present); it
+replaces D20's decoupled watcher, whose CPU fallback the 2026-10-02 GPU-only directive retired.
 
 ## 5. Step 3 — S2: on-policy caption pilot (100 images) ✅⏳
 
@@ -275,21 +276,22 @@ dim_batch 8, checkpoint every 5):
 Steps 2-4 actuals are ⏳ (not completed); the S1 and X6 rows above are measured, and every
 failed attempt's GPU time is included in its row.
 
-State 2026-10-02T12:45Z [measured]: S1's fit is complete and the L24 census is published
-(`layers [0, 16, 24, 31]`). The co-tenant has grown to four jobs holding ~57 GiB (5.4 GiB
-free at 12:34Z), so the chain was restarted in place on v3 with memory-only reductions (D21:
-S1 ≥24 GiB, S2/X1 ≥36 GiB at dim_batch 1) - the restart was free because the supervisor was
-asleep in `need_free` with no GPU held and no partial work. Elapsed since the first relaunch:
-5.9 h, of which the campaign held the GPU ~2 min (the fit resume and the failed scoring's
-model load).
+State 2026-10-02T17:40Z [measured]: S1's fit and scoring are complete (gate FAIL on the strict
+per-layer middle clause only, D19) and the L24 census is published. In the 15:16Z window S2 ran
+at dim_batch 1 for 2.05 h but produced <5 samples: the co-tenant (three ~10 GiB jobs at ~99%
+CPU, two arriving 15:14Z/15:30Z) pins util at 100% and derates TF32 matmuls to ~41-49 TFLOPS
+(~10% of peak; clocks at max, no throttle) - ~5-10x the X6-era 311 s/sample. The chain was
+stopped at 17:24Z (the uncheckpointed <=5-sample partial was lost, ~25 quiet-minutes), the FD
+watcher's CPU fallback was killed (GPU-only directive), and `gpu_guard.sh` (D22) now owns the
+schedule: it starts the campaign only when the box probes >=150 TFLOPS TF32 with >=24 GiB free,
+and kills the chain when a running fit lands no checkpoint for 90 min. GPU-occupied time to
+date ~8.4 h (~6.5 h quiet-equivalent at the 311 s/sample cost model) of the 24 h budget.
 
-Schedule contingency [inference]: if no ≥36 GiB window appears either, S2/X1/X7/X9 are
-*window-blocked*, not failed, and the pre-registered n-shrinking rule (autonomy rule 3) does
-not help - peak VRAM is set by dtype and model size, not sample count. Options in order:
-(a) done - dim_batch 1 with 36 GiB guards, no math change (D21); (b) bf16 S2/X1 (~16 GiB,
-≥24 GiB guard), which trades the pre-registered X6 verdict for schedule and is the last
-resort, so it is the user's call. With the chain needing ≈13 h of GPU, option (b) comes due
-if no ≥36 GiB window opens by ≈18:00Z.
+Schedule contingency [inference]: at the current derate the box is *speed*-blocked, not
+window-blocked - the guard waits rather than burns budget, so the pre-registered n-shrinking
+rule (autonomy rule 3) is not invoked (waiting costs no GPU-work). If the co-tenant never
+yields, options in order: (a) wait (current); (b) bf16 S2/X1 (~16 GiB, >=24 GiB guard), which
+trades the pre-registered X6 verdict for speed and stays the user's call.
 
 ## 10. Reproduction appendix
 
@@ -318,13 +320,13 @@ bash results/validation_2026-10-01/code/run_step3.sh
 bash results/validation_2026-10-01/code/run_step4.sh
 # 5. (conditional) X4 skip_first sweep - not triggered, X3 found pos_1_16 not sink-like
 bash results/validation_2026-10-01/code/run_step5_x4.sh
-# 5b. X3 re-census including L24 (feeds the X7/X9 alpha units; the live campaign's in-memory
-#     script predates this insertion, so it runs out-of-band: 22 GiB guard, 3 attempts,
-#     atomic publish by rename)
-bash /tmp/x3_recensus_watch.sh
-# 5c. S1's finite-difference row (ii), decoupled (D20): serialized behind the scoring's JSON
-#     rewrite; full GPU run if a >=32 GiB window opens within 2 h, else a reduced CPU pass
-bash /tmp/s1_fd_watch.sh
+# 5b. X3 re-census including L24 (feeds the X7/X9 alpha units) - the campaign runs it
+#     natively after X1; manual rerun if needed:
+python results/validation_2026-10-01/code/x3_census.py \
+    --manifest /data/vlm-lens/validation/step0/manifest-fit.jsonl --n-samples 50 \
+    --out /data/vlm-lens/validation/step1/x3_norms.json
+# 5c. S1's finite-difference row (ii): the chain's `fd` step (D22; GPU-only, run_fd.sh under a
+#     36 GiB guard; publishes step2/s1_score.json by rename when the row is present)
 # 6. X7 conditioning + X9 edit sweep (needs a fitted lens dir + X3 norms)
 python results/validation_2026-10-01/code/x7_x9_interventions.py \
     --lens-dir /data/vlm-lens/validation/s2-merged/artifacts \
@@ -407,7 +409,7 @@ run. Re-check when those land.
 | masks | `text` = primary readout; `image`/`all` descriptive only | [derived] mask semantics (V4/E3): a readout at an image position is a first-order disposition to verbalize, not a next-token prediction. |
 | prompts | 100 fit / 30 held-out per corpus | [measured] cost model: text 85.9 s/sample (~2.4 h/100); image 288.2 s/sample bf16, ~326 s/sample fp32+TF32 (~9.1 h/100) at dim_batch 4-8; scale n by the budget rule and keep the 10 % report reserve. |
 | checkpoint cadence | every 5 samples | [measured] an external SIGKILL then costs at most 5 samples; fits are resumable and the supervisor retries transients up to `MAX_ROUNDS=60` (D14/D15). |
-| memory guards | ≥24 GiB free (S1 step), ≥36 GiB (S2/X1, fp32 at dim_batch 1), ≥22 GiB (census/X7/X9), ≥32 GiB for the fp32 FD model | [measured] 36.4 GiB peak at dim_batch 8 (step 0) scales down with dim_batch (memory-only knob, D13/D21); the fp32 OOM at 47.65 GiB allocated motivated the dim_batch-1 guards while the co-tenant held 57-73 GiB; `run_campaign.sh` polls every 30 s, and `s1_score.py` waits for a window before loading its fp32 FD model instead of falling back to a multi-hour CPU run (D19). |
+| memory guards | ≥24 GiB free (S1 step), ≥36 GiB (S2/X1/fd, fp32 at dim_batch 1), ≥22 GiB (census/X7/X9) | [measured] 36.4 GiB peak at dim_batch 8 (step 0) scales down with dim_batch (memory-only knob, D13/D21); the fp32 OOM at 47.65 GiB allocated motivated the dim_batch-1 guards while the co-tenant held 57-73 GiB; `run_campaign.sh` polls every 30 s per step, and since D22 the chain starts only when `gpu_guard.sh` probes ≥150 TFLOPS TF32 - a memory-free window can still be ~10x SM-derated (measured 2026-10-02T17:05Z), and the retired FD CPU fallback violated the GPU-only directive. |
 | environment | `HF_HUB_OFFLINE=1`, `PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True`, greedy decoding, `torch.compile` off | [measured] the box is first-come-first-served; 65.7 GiB observed held by a co-tenant, and our fits have been SIGKILLed twice by external reclaims (D14/D15). |
 
 Claims this setup can and cannot support:

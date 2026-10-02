@@ -14,6 +14,10 @@
 #   * s1: dim_batch 8 to resume the existing 20-sample checkpoint from the old chain's fit
 #     (run_step2.sh's own default is 8; it resumed nothing at 4 and hard-failed, D13)
 #   * s2: dim_batch 4, fresh fits (halves activation memory; math is identical).
+# D22: windows are speed-checked too. gpu_guard.sh (a separate process) starts this chain
+# only when the box probes >=150 TFLOPS TF32 (the co-tenant can pin the SMs at ~8% of peak
+# while leaving memory free) and kills the whole chain when a running fit lands no new *.pt
+# for 90 min. These free-memory guards remain the per-step gates.
 set -u
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 REPO=$HOME/ai4life/phuongnh/vlm-lens
@@ -98,6 +102,11 @@ run_guarded 24000 s1 env DIMBATCH=8 bash "$CODE/run_step2.sh" || { echo CAMPAIGN
 # so dim_batch 1 drops the peak to ~31 GiB: the guard is 36 GiB, not 55, which is what the
 # 2026-10-02 co-tenant (57-73 GiB held for hours) makes decisive.
 run_guarded 36000 s2 env DIMBATCH=1 bash "$CODE/run_step3.sh" || { echo CAMPAIGN_S2_FAILED; exit 1; }
+
+# FD: S1's finite-difference row (ii) on GPU (D22; replaces the decoupled s1_fd_watch.sh,
+# whose CPU fallback is retired). Needs 36 GiB - the FD model is the fp32 estimator.
+# Optional: on failure the chain proceeds; the s1 JSON keeps ii as not_measured.
+run_guarded 36000 fd bash "$CODE/run_fd.sh" || echo CAMPAIGN_FD_SKIPPED
 
 # X1: 20-image shard pair, 6 recorded layers each, fp32+TF32 like S2, dim_batch 1 (~31 GiB).
 run_guarded 36000 x1 env DIMBATCH=1 bash "$CODE/run_step4.sh" || { echo CAMPAIGN_X1_FAILED; exit 1; }

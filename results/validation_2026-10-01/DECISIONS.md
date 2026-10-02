@@ -330,3 +330,24 @@ supervisor was restarted in place (v3, 12:43:53Z) while it slept inside `need_fr
 was held and no partial work existed, so nothing was lost. The bf16 fallback in the report's
 schedule contingency is demoted to a last resort: it would trade the pre-registered dtype
 verdict, which dim_batch does not.
+
+## D22 — GPU windows are speed-gated, not just memory-gated; the FD CPU fallback is retired
+
+Measured 2026-10-02T17:05Z: the co-tenant (three ~10 GiB jobs at ~99% CPU; one since 09:33Z,
+two arrived 15:14Z/15:30Z) pins `utilization.gpu` at 100% while leaving 14.8-38 GiB free.
+TF32 20x4096^3 matmuls then measure 41 TFLOPS (~8% of the H100 PCIe's 494 TFLOPS peak;
+SM clock at max, no throttle reason) against the ~311 s/sample the X6 fp32 leg measured on a
+quiet box (03:21Z). S2, launched 15:16:39Z into a 58.9 GiB window the co-tenant refilled
+within minutes, produced <5 samples by 17:24Z (>25 min/sample, ~10x derate) and checkpoint 5
+never landed; the run was killed (uncheckpointed partials lost, ~25 quiet-minutes) and S2
+restarts from scratch in the next fast window. D12/D21 guards check free memory only -
+necessary, not sufficient. `gpu_guard.sh` now (a) probes before starting the campaign
+(>=150 TFLOPS TF32 and >=24 GiB free; the campaign's per-step guards handle each step's real
+appetite) and (b) kills the whole chain when a running fit lands no new `*.pt` for 90 min
+(restarts re-run S1's ~3 min scoring and resume every fit; the campaign has no skip markers).
+The 2026-10-02 user directive (results on GPU only; CPU for quick checks only) also retires
+D20's CPU fallback: the FD row is now the chain's optional `fd` step (`run_fd.sh`, 36 GiB
+guard, fp32 estimator on GPU, `step2/s1_score.json` published by rename only when
+`check_ii_finite_difference` is present), and `/tmp/s1_fd_watch.sh` is disabled. The FD
+watcher's in-flight CPU run (PID 53431, 9 cores, 48 GiB RSS) was killed and its partial
+`s1_score.new.json` removed.
