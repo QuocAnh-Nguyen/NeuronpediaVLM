@@ -133,8 +133,10 @@ mask `all` - the corpus has no image tokens, so `text` ≡ `all` - lens `s1-atte
 check exact `0.0`; held-out mean true-token rank 885.54
 at L16 against 27.31 at L31 (the model's own 27.31); last-layer top-1-in-top-50 and mean rank
 equal the model's (0.450 / 27.3, frequency control). The J-lens beats the plain logit lens at
-L2-16 (L14: 1101.2 vs 5178.4) and L26-30 (L30: 46.5 vs 75.2) but loses at L17, 20, 21, 23, 24
-(+379, +813, +331, +99, +271 against the 16032.5 chance level) - so the gate verdict is FAIL
+L2-16 (L14: 1101.2 vs 5178.4, ~4.7x) and L26-30 (L30: 46.5 vs 75.2) by mean rank - but by KL
+and top-1 agreement the untrained logit lens leads from L17 through L30 (L30 top-1: 0.762 vs
+0.718), so the late rank edge is tail-sensitive; the rank deltas at L17, 20, 21, 23, 24 are
++379, +813, +331, +99, +271 (J-lens minus logit lens; chance 16032.5) - so the gate verdict is FAIL
 on the strict per-layer middle criterion only; the diagnosis and the decision to proceed are
 D19/D22: the finite-difference row (ii) is the chain's optional `fd` step (`run_fd.sh` under a
 36 GiB guard, fp32 estimator on GPU, published by rename only when the row is present); it
