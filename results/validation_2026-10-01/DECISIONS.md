@@ -3,6 +3,9 @@
 Task: "Run the prioritized validation experiments for the J-lens port to LLaVA-1.5". The
 task template's CONFIG block was not filled in; every value below was resolved from the
 environment and the repository, never by asking. Rule references are to the task text.
+Numbering note: the D-numbers below are campaign-local to this directory. The repository
+register (`docs/jlens-vlm-assumptions.md`) has its own, unrelated D-table of design
+decisions; cite this file's D-numbers only for decisions recorded here (the report does).
 
 ## D0 — CONFIG resolution (autonomy rule 1)
 
