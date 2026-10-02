@@ -157,8 +157,8 @@ masks (registered, has a pending experiment X1), (c) paper-default target-layer 
   "transpose guard" compares `lens_vectors` against autograd of the same stored `J`
   (`test_readout_interventions.py:95-109`) — a self-consistency check that **cannot catch a
   globally transposed fit**. The finite-difference row (column-wise, vs perturbed sources) is
-  the check that can; it is decoupled from the standard run (D20) and not yet measured on the
-  real model. [fact + inference]
+  the check that can; it ran decoupled from the standard run (D20) and is now the chain's
+  optional `fd` step (D22; GPU-only), still unmeasured on the real model. [fact + inference]
 - No test covers: real-checkpoint numerics, bf16, the HF layout under generation, resume-after-
   skip, or the causal `t'>=t` relation beyond autograd's own zeros. [fact]
 
@@ -167,8 +167,8 @@ masks (registered, has a pending experiment X1), (c) paper-default target-layer 
 - Equivalence gate passes (tiny exact; real within 1e-5): validates the **forward fork** and the
   final-layer readout chain (`unembed(residual) == HF logits`), not intermediate-layer Jacobians.
   [fact, scope-inference]
-- X6 dtype comparison and X3 census are measured; S1's fit is complete; S1's scoring and FD row
-  are pending on a GPU window. [fact]
+- X6 dtype comparison and X3 census are measured; S1's fit and scoring are measured (15:16Z;
+ gate FAIL on the strict middle clause only, D19); S1's FD row is pending a fast GPU window. [fact]
 - **Gate row (iii) is vacuous** [verified by me against `evaluate.py:186` + `:146-153` and
   `s1_score.py:291-296`]: because the scored set always includes layer 31 and its J-lens row is
   replaced by the model's own logits, while the logit-lens row at 31 equals the model logits
@@ -184,9 +184,9 @@ masks (registered, has a pending experiment X1), (c) paper-default target-layer 
   trend 885.54 → 27.31 mean true-token rank; `iii_last_layer_rank_diff` exactly `0.0`
   (confirms the vacuity in practice); frequency control equals the model at L31; the gate
   reports `PASS=false` on the strict middle clause (D19: diagnosed, S2 proceeds). The FD row
-  (ii) remains unmeasured — decoupled to a watcher (D20). The earlier note that the published
-  `s1_score.json` predates the gate code is now historical: this artifact carries the gate
-  dict with `ii` reported as `not_measured`. [fact]
+  (ii) remains unmeasured — decoupled (D20), now the chain's optional `fd` step (D22). The
+  earlier note that the published `s1_score.json` predates the gate code is now historical:
+  this artifact carries the gate dict with `ii` reported as `not_measured`. [fact]
 
 ---
 
@@ -268,7 +268,7 @@ masks (registered, has a pending experiment X1), (c) paper-default target-layer 
 2. Is the image block internally structured (quarters) in lens terms? → X2, pending.
 3. Does targeting layer 30 (paper default) change lens quality on LLaVA? → X5 (deferred; run a
    small paired fit).
-4. Does the FD row confirm the fitted J at 7B scale? → FD watcher (D20), pending GPU window.
+4. Does the FD row confirm the fitted J at 7B scale? → the `fd` step (D22), pending a fast GPU window.
 5. Is next-token fidelity (rank/KL/top-1) even the right sanity metric for J-lenses? → The paper
    judges lenses by *intermediate recovery + causal effect*, and says the J-lens is deliberately
    worst at next-token prediction near the output ("motor regime"). The repo's S1 gate is a
