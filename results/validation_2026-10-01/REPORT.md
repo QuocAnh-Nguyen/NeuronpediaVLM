@@ -283,6 +283,16 @@ window opens within 2 h, else a reduced 3-layer CPU pass) - D20. Elapsed since t
 3.3 h, of which the campaign actually held the GPU ~2 min (the fit resume plus the failed
 scoring's model load).
 
+Schedule contingency [inference]: if no ≥55 GiB window appears, S2/X1/X7/X9 are
+*window-blocked*, not failed, and the pre-registered n-shrinking rule (autonomy rule 3) does
+not help - peak VRAM is set by dtype and model size, not sample count. The mechanical
+fallback would be to run S2/X1 in bf16 (the S1 deviation of D18, ~16 GiB instead of ~29)
+under a ≥34 GiB guard, attaching X6's dtype caveat (L0 up to 49 % relative difference, ≤1.5 %
+medians from L16, section 3) to every artifact so produced. That trades the pre-registered
+dtype verdict for schedule, so it is the user's call. With the chain needing ≈13 h of GPU on
+the current cost model and the 24 h budget running from the 06:50Z relaunch, the fallback
+decision comes due if no window opens by ≈18:00Z.
+
 ## 10. Reproduction appendix
 
 Every step is a committed shell script under `code/`; all of them are idempotent and
