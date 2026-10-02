@@ -66,10 +66,10 @@ while :; do
                 log "new output file seen; clock reset"
             elif [ $((now - work_seen_at)) -ge "$TRIP_S" ]; then
                 log "TRIP: no new output in $((now - work_seen_at))s (free=${free}MiB) - killing chain for a fast window"
-                pkill -f "$WORK_RE" 2>/dev/null; pkill -f "$STEP_RE" 2>/dev/null; pkill -f "$CAMPAIGN_RE" 2>/dev/null
+                pkill -f "$CAMPAIGN_RE" 2>/dev/null; pkill -f "$STEP_RE" 2>/dev/null; pkill -f "$WORK_RE" 2>/dev/null
                 sleep 15
                 if pgrep -f "$WORK_RE" >/dev/null 2>&1 || pgrep -f "$CAMPAIGN_RE" >/dev/null 2>&1; then
-                    pkill -9 -f "$WORK_RE" 2>/dev/null; pkill -9 -f "$CAMPAIGN_RE" 2>/dev/null; sleep 5
+                    pkill -9 -f "$CAMPAIGN_RE" 2>/dev/null; pkill -9 -f "$WORK_RE" 2>/dev/null; sleep 5
                 fi
                 work_seen_at=0; last_seen=0
             fi
