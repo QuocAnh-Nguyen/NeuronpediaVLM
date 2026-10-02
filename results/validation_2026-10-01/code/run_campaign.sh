@@ -29,7 +29,8 @@ cd "$REPO" || exit 1
 
 free_mib() { nvidia-smi --query-gpu=memory.free --format=csv,noheader,nounits | head -1; }
 
-need_free() {  # $1 = MiB threshold, $2 = label; waits up to 6 h
+need_free() {  # $1 = MiB threshold, $2 = label; waits up to 16 h (the 2026-10-02 co-tenant
+              #           held 72 GiB for >2 h at a stretch; a 6 h cap let the chain exit)
     local need=$1 label=$2 waited=0 free
     while :; do
         free=$(free_mib)
@@ -37,8 +38,8 @@ need_free() {  # $1 = MiB threshold, $2 = label; waits up to 6 h
             echo "[$label] free=${free}MiB >= ${need}MiB - starting $(date -Is)"
             return 0
         fi
-        if [ "$waited" -ge 21600 ]; then
-            echo "[$label] GAVE UP after 6 h: free=${free}MiB < ${need}MiB"
+        if [ "$waited" -ge 57600 ]; then
+            echo "[$label] GAVE UP after 16 h: free=${free}MiB < ${need}MiB"
             return 1
         fi
         sleep 30
