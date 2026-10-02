@@ -176,16 +176,25 @@ masks (registered, has a pending experiment X1), (c) paper-default target-layer 
   criterion "J-lens and logit lens agree closely in the last layers" has therefore never been
   tested by that row (the last *fitted* layer, 30, would test it). Companion mismatch:
   `j_not_worse_in_middle` spans all layers below 31, including the noisy first third the
-  docstring exempts (`s1_score.py:8-14,292-298`). [fact]
-- The published `step2/s1_score.json` predates the gate/FD code (no `gate`, no `check_ii`);
-  the FD watcher will republish. [fact]
+  docstring exempts (`s1_score.py:8-14,292-298`); it did fail on 5 late-band layers (D19) —
+  i.e. the one genuinely-evaluated clause is the one whose semantics contradict the docstring.
+  [fact]
+- S1's scoring is measured (2026-10-02T15:16Z; `step2/s1_score.json`, local copy
+  `results/validation_2026-10-01/raw/s1_score_2026-10-02.json`): identity exact `0.0`; depth
+  trend 885.54 → 27.31 mean true-token rank; `iii_last_layer_rank_diff` exactly `0.0`
+  (confirms the vacuity in practice); frequency control equals the model at L31; the gate
+  reports `PASS=false` on the strict middle clause (D19: diagnosed, S2 proceeds). The FD row
+  (ii) remains unmeasured — decoupled to a watcher (D20). The earlier note that the published
+  `s1_score.json` predates the gate code is now historical: this artifact carries the gate
+  dict with `ii` reported as `not_measured`. [fact]
 
 ---
 
 ## 5. Defect register (severity-ranked; "fixable" = theoretically, not patched here)
 
 **correctness**
-1. `s1_score` check (iii) vacuous (Section 4). Fixable: test at the last fitted layer.
+1. `s1_score` check (iii) vacuous (Section 4; measured `0.0` in the 15:16Z run — reported as a
+   PASS). Fixable: test at the last *fitted* layer (30).
 2. `interventions._vectors_for` caches a layer's token→vector table from the *first* edit at
    that layer; a second edit at the same layer with a different token raises `KeyError`
    (`interventions.py:153-169`). Latent — current callers pass one edit per layer. Fixable.
