@@ -108,7 +108,14 @@ prompts, tag `text`:
   runs died on an all-dims perturbation `IndexError`, D18) — the FD model runs fp32 because
   bf16 cannot resolve the perturbation.
 
-<!-- PENDING: s1_score.json tables + gate dict (i–vi) + the logit-vs-J comparison. -->
+**Measured** (2026-10-02, `step2/s1_score.json`, 30-sample held-out WikiText shard, tag
+`text`, lens `s1-attempt1`): identity check exact `0.0`; held-out mean true-token rank 885.54
+at L16 against 27.31 at L31 (the model's own 27.31); last-layer top-1-in-top-50 and mean rank
+equal the model's (0.450 / 27.3, frequency control). The J-lens beats the plain logit lens at
+L2-16 (L14: 1101.2 vs 5178.4) and L26-30 (L30: 46.5 vs 75.2) but loses at L17, 20, 21, 23, 24
+(+379, +813, +331, +99, +271 against the 16032.5 chance level) - so the gate verdict is FAIL
+on the strict per-layer middle criterion only; the diagnosis and the decision to proceed are
+D19. The finite-difference rows (ii) land after the fp32 FD model finds a window (D19).
 
 ## 5. Step 3 — S2: on-policy caption pilot (100 images) ✅⏳
 

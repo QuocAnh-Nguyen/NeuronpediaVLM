@@ -98,6 +98,14 @@ run_guarded 55000 s2 bash "$CODE/run_step3.sh" || { echo CAMPAIGN_S2_FAILED; exi
 # X1: 20-image shard pair, 6 recorded layers each, fp32+TF32 like S2 (~29 GiB weights).
 run_guarded 55000 x1 bash "$CODE/run_step4.sh" || { echo CAMPAIGN_X1_FAILED; exit 1; }
 
+# X3 re-census with L24 (X7/X9's upper edit layer): forwards only, so it fits a narrower window
+# than any fit. The L0/L16/L31 rows are recomputed identically (same manifest, same 50
+# samples), so earlier citations stay valid; the new L24 row gives the X9 alpha grid its
+# measured units instead of the auto-fallback.
+run_guarded 22000 x3 "$P" "$CODE/x3_census.py" --manifest "$RUN/step0/manifest-fit.jsonl" \
+    --n-samples 50 --out "$RUN/step1/x3_norms.json" \
+    || { echo CAMPAIGN_X3_RECENSUS_FAILED; exit 1; }
+
 # X7 conditioning + X9 edit sweep against the merged caption lens.
 run_guarded 22000 x7x9 "$P" "$CODE/x7_x9_interventions.py" --lens-dir "$RUN/s2-merged/artifacts" \
     --manifest "$RUN/step0/manifest-heldout.jsonl" --n-samples 10 \

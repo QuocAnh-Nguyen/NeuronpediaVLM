@@ -34,7 +34,7 @@ from vlm_lens._batch import as_batch  # noqa: E402
 from vlm_lens.data.manifest import read_manifest  # noqa: E402
 from vlm_lens.models.llava import LlavaLensModel  # noqa: E402
 
-LAYERS = (0, 16, 31)
+LAYERS = (0, 16, 24, 31)  # 24 = X7/X9's upper edit layer: its row gives alpha measured units
 SKIP_CANDIDATES = (8, 16, 32)
 
 
