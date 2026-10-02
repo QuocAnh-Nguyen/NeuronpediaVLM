@@ -304,7 +304,12 @@ occupancy gating only). Sample 1 verified legible: seq=609 = 576 image + 33 text
 text 31 + image 576 = all 607 (skip_first/exclude_last exact), 3431 s wall-consistent; the
 line's `rel_change=nan` is the explicit first-sample branch in `fitting.py` (`n_done[mask]==0`
 -> no running mean), not a NaN lens - finiteness is re-checked at checkpoint 5. Projection at
-the measured pace: checkpoint-5 ~00:35Z, half A ~47.5 h, both under `TRIP_S`.
+the measured pace: checkpoint-5 ~23:40Z, half A ~47.5 h, both under `TRIP_S`.
+
+Sample 2 (20:42:32Z, 3437 s) closed the sample-1 check: `rel_change` finite at all masks
+(text 0.80, image 0.40, all 0.51 at n=2; max-over-layers of ||J_n - mean_(n-1)|| / (n*||mean||))
+- the sample-1 `nan` was the documented first-sample branch, not a poisoned accumulator. Pace
+steady (3431, 3437 s); masks exact again (39 + 576 = 615 = 617 - 2).
 
 ## 10. Reproduction appendix
 

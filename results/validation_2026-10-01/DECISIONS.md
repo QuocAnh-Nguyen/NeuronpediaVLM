@@ -366,4 +366,4 @@ logging-only) and the 10 h no-new-output-checkpoint trip (TRIP_S=36000). S2 samp
 (19:45:11Z) verified: seq=609 = 576 image + 33 text, masks text 31 + image 576 = all 607,
 3431 s; its `rel_change=nan` is the explicit `n_done[mask]==0` branch in fitting.py (first
 sample has no running mean), not a NaN tensor. Measured pace 3431 s/sample (vs 311-326 s
-quiet) => checkpoint-5 ~00:35Z, half A ~47.5 h [projection].
+quiet) => checkpoint-5 ~23:40Z, half A ~47.5 h [projection].
