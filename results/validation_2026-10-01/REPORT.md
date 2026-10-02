@@ -102,8 +102,10 @@ prompts, tag `text`:
 * (a) rank / KL / top-1 vs the model ceiling; (b) logit-lens baseline and identity check
   (J = I reproduces the logit lens exactly); (iii) last-layer agreement; (iv) depth trend
   (last layer beats the midpoint; monotonicity kept as a diagnostic, D16); (v) unigram
-  frequency control; (ii) finite-difference check in fp32
-  (`eps=1e-2`, 4 top-norm rows at layers 0/8/16/24/30) — the FD model runs fp32 because
+  frequency control; (ii) finite-difference check in fp32 (`eps=1e-2`, 4 top-norm
+  *columns* - source dims - at layers 0/8/16/24/30; `J_l` is stored output-dim-major, so
+  perturbing a source dim reproduces a column `J_l[:, i]`, not a row; the first two server
+  runs died on an all-dims perturbation `IndexError`, D18) — the FD model runs fp32 because
   bf16 cannot resolve the perturbation.
 
 <!-- PENDING: s1_score.json tables + gate dict (i–vi) + the logit-vs-J comparison. -->
@@ -180,7 +182,7 @@ verdict needs the fits stay ⏳ (they gate on S1/S2/X1-X9).
 | V1, V3, V4, V5 | ⏳ S2 / X1 | implementation ready (`include_placeholders`, quarter tags, target-mask variant); verdicts need the fits |
 | E5 (α units per mode) | ⏳ X7 | residual-relative α from the X3 norms, once a lens exists |
 | E6 (holding out) | ⏳ S2 | S1's held-out shard is disjoint by construction; S2 adds the cross-corpus rows |
-| F1 §5 (bf16 gradients) | ⏳ X6 fp32 leg | verdict rule: median rel Δ > 3% ⇒ switch production to fp32/TF32 |
+| F1 §5 (bf16 gradients) | ✅ flipped - production lens moves to fp32+TF32 | [measured] `step1/x6_dtype.json`: medians 1.2-1.5 % but L0 max 49 % (text) ⇒ `use_fp32: true` under the pre-registered rule; the fp32+TF32 leg cost 2486.5 s vs 2205.8 s bf16 (1.13×), so S2/X1 now fit `--dtype float32 --allow-tf32` (D18); S1's existing bf16 lens stays, recorded as a deviation |
 | F1-F7 §0 (upstream-code facts) | ✅ verified | pinned to the vendored commit; re-checked against `jlens/fitting.py` for this campaign |
 | X1-X9 | per-section verdicts | X3/X6 have their verdicts (sections 2.3, 3); X1/X2/X4/X5/X7/X9 wait for the fits |
 
@@ -193,6 +195,20 @@ Discrepancy log (the brief requires logging register/code mismatches):
   the α-units item); it now points at M14/V2/V6.
 * `positions.py`'s docstring points at `vlm_lens.evaluate` for image-mask validation, and that
   module is implemented - not a stale pointer any more.
+
+* X6's price tag was mis-stated in the earlier reports: "true fp32 is ~15× slower" is the
+  *un-flagged* cuBLAS path (D10). With `--allow-tf32` the fp32-weight leg costs 1.13× bf16
+  (2486.5 s vs 2205.8 s for the same 8 image samples), so obeying the pre-registered dtype
+  rule is cheap; the "fp32" leg is TF32-backed (a bf16-vs-TF32 comparison, TF32's mantissa
+  being 4× finer).
+* The S1 finite-difference check had never run: both server attempts died in it with
+  `IndexError` (the hook wrote 176 positions × 4 dims through a broadcasting index) and,
+  once that was fixed, the comparison was *transposed* — perturbing source dim `i` yields
+  the estimator column `J_l[:, i]`, while the check compared against row `J_l[i, :]`
+  (the estimator stores output-dim-major, `jlens/fitting.py`). Fixed and re-verified:
+  independent autograd through the same hook path matches the estimator to 6.7e-08; the
+  repaired check gives worst per-layer mean 4.4e-04 at `eps=1e-5` on the tiny CPU fixture
+  (gate bar 0.05). The scoring rows are now written before the FD model loads (D18).
 
 ## 9. Budget accounting
 

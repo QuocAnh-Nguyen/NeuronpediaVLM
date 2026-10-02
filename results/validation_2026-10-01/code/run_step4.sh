@@ -14,10 +14,13 @@ export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 mkdir -p "$RUN/step4"
 cd "$REPO" || exit 1
 
+# fp32+TF32 for both target-mask legs: same dtype as S2's production lens (X6 verdict) so
+# the text-row comparison cannot be read as a dtype artefact; the shard costs 1.13x bf16.
 for variant in all text; do
     echo "=== X1 fit target_mask=$variant $(date -Is) ==="
     "$P" scripts/fit_llava.py --backend hf-llava --manifest "$RUN/step3/manifest-half-a.jsonl" \
-        --limit "$N_SHARD" --layers "$LAYERS" --masks text,image,all --dim-batch 8 --dtype bfloat16 \
+        --limit "$N_SHARD" --layers "$LAYERS" --masks text,image,all --dim-batch 8 \
+        --dtype float32 --allow-tf32 \
         --skip-first 1 --target-mask "$variant" --checkpoint-every 10 \
         --out "$RUN/x1-$variant" --notes "X1 shard $N_SHARD, target_mask=$variant" \
         || { echo X1_${variant}_FAILED; exit 1; }

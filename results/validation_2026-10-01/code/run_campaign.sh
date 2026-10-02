@@ -91,11 +91,12 @@ echo "=== run_campaign started $(date -Is) free=$(free_mib)MiB dim_batch_default
 # checkpoint left by the old chain; ~28 GiB peak).
 run_guarded 28000 s1 env DIMBATCH=8 bash "$CODE/run_step2.sh" || { echo CAMPAIGN_S1_FAILED; exit 1; }
 
-# S2: two 50-sample caption half-fits + merge + held-out evaluation (~28 GiB at dim_batch 4).
-run_guarded 32000 s2 bash "$CODE/run_step3.sh" || { echo CAMPAIGN_S2_FAILED; exit 1; }
+# S2: two 50-sample caption half-fits + merge + held-out evaluation. fp32+TF32 weights are
+# ~29 GiB (X6 verdict use_fp32), so the guard is the fp32 leg's validated 55 GiB.
+run_guarded 55000 s2 bash "$CODE/run_step3.sh" || { echo CAMPAIGN_S2_FAILED; exit 1; }
 
-# X1: 20-image shard pair, 6 recorded layers each (small).
-run_guarded 16000 x1 bash "$CODE/run_step4.sh" || { echo CAMPAIGN_X1_FAILED; exit 1; }
+# X1: 20-image shard pair, 6 recorded layers each, fp32+TF32 like S2 (~29 GiB weights).
+run_guarded 55000 x1 bash "$CODE/run_step4.sh" || { echo CAMPAIGN_X1_FAILED; exit 1; }
 
 # X7 conditioning + X9 edit sweep against the merged caption lens.
 run_guarded 22000 x7x9 "$P" "$CODE/x7_x9_interventions.py" --lens-dir "$RUN/s2-merged/artifacts" \

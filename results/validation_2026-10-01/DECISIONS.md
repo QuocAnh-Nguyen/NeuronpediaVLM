@@ -243,3 +243,36 @@ regression / flat profiles) passes locally and on the server's `vlm_truth_py313`
    skips), i.e. the give-up-after-one-failure behaviour that D14/D15 replaced. When the leg is
    relaunched, pipe the runner's stdout into `results/.../logs/x6_retry.log` so one directory
    holds the whole chain's logs.
+
+## D18 — X6 verdict: S2/X1 move to fp32+TF32; S1's lens stays bf16; the S1 FD check repaired
+
+1. X6's verdict is in (`step1/x6_dtype.json`): per-layer relative Frobenius medians are
+   1.2-1.5 % (below the 3 % median bar) but the `text`/L0 max is 49 % (bar: 10 %), so the
+   pre-registered rule (`x6_compare.py`: fp32 if median > 0.03 or max > 0.1) is
+   `use_fp32: true`. Followed: `run_step3.sh` (both S2 halves) and `run_step4.sh` (both X1
+   legs) fit with `--dtype float32 --allow-tf32`, and `run_campaign.sh` guards both steps at
+   the fp32 leg's validated 55000 MiB.
+2. Cost correction: "true fp32 is ~15x slower" (D10) is the *un-flagged* cuBLAS path. The
+   measured fp32+TF32 leg took 2486.5 s for 8 image samples against 2205.8 s for bf16
+   (1.13x), so the rule costs S2 ~13 % wall time, not 7-15x. The leg is TF32-backed, so the
+   comparator is really bf16 vs TF32; TF32's mantissa is 4x finer than bf16's, which bounds
+   bf16's error but does not make the reference exact fp32.
+3. S1's fitted lens stays bf16 - a deliberate deviation from the rule's "production"
+   reading: the 100-sample WikiText lens already exists, the fired branch is the L0 anomaly
+   while the medians sit at 1.5 %, and S1's gate claim is a ranking claim that a 1.5 % J
+   perturbation cannot flip. [inference] Re-fitting S1 in TF32 is a cheap follow-up
+   (~2.3 h) if the gate verdict comes out marginal.
+4. The S1 finite-difference check had two real bugs, both found by reading the first server
+   run's log: (a) the perturbation hook wrote `hidden[:, positions, dims]` with 176 positions
+   x 4 dims - a broadcasting `IndexError` that killed both score attempts before the JSON
+   was written; (b) behind it, the hook perturbed *all* top-norm dims at once while the
+   comparison expected one, and the comparison used `J_l[i, :]` although the estimator
+   stores output-dim-major (`jlens/fitting.py` assigns `grad[:, positions, :].mean(1)` into
+   `jacobians[layer][dims, :]`), so the FD column `J_l[:, i]` was being compared against the
+   row `J_l[i, :]`. Fixed: one source dim per pass, column comparison against
+   `J_l[:, i]`, an `eps`/`--fd-eps` parameter (the tiny CPU fixture's residual RMS is 0.01,
+   the real model's is O(10)), and the scoring rows are written to JSON before the FD model
+   loads so an environmental OOM/SIGKILL cannot lose them. [measured] Verified locally:
+   independent autograd through the same hook path matches the estimator to 6.7e-08, and the
+   repaired check gives worst per-layer mean 4.4e-04 at eps=1e-5 on the tiny fixture (gate
+   bar 0.05).

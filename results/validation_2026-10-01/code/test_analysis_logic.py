@@ -1,11 +1,13 @@
 #!/usr/bin/env python
 # SPDX-License-Identifier: Apache-2.0
-"""Regression test for the analysis scripts' pure check logic (no model, no GPU).
+"""Regression test for the analysis scripts' check logic: gate check (iv) plus the
+finite-difference check (ii) on the tiny CPU fixture (no GPU, no downloads).
 
-Covers ``s1_score.depth_checks`` (gate check (iv)): the depth-trend rule that decides the S1
-go/no-go, plus the monotonicity diagnostics. Run anywhere with torch installed:
+Covers ``s1_score.depth_checks`` (the depth-trend rule that decides the S1 go/no-go, plus
+its monotonicity diagnostics) and ``s1_score.finite_difference_check`` against the tiny
+random-weight LLaVA model. Run from the repo root with the package importable:
 
-    python results/validation_2026-10-01/code/test_analysis_logic.py
+    PYTHONPATH=src python results/validation_2026-10-01/code/test_analysis_logic.py
 """
 
 from __future__ import annotations
@@ -15,7 +17,52 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from s1_score import depth_checks  # noqa: E402
+from s1_score import depth_checks, finite_difference_check  # noqa: E402
+
+
+def finite_difference_case() -> list[tuple[str, bool]]:
+    """Check (ii) must reproduce the estimator's *columns* on the tiny fixture.
+
+    Three bug classes push the reported error to O(1) and are excluded here: perturbing
+    several source dims in one pass (a row/column sum - the original server crash),
+    comparing against the row ``J_l[i, :]`` of a transposed reading (the estimator stores
+    output-dim-major), and any path that leaves the perturbation out of the graph. A
+    correct check lands at numerical-noise level (measured 4.4e-04 at ``eps=1e-5``).
+    """
+    from vlm_lens.models.llava import LlavaLensModel
+    from vlm_lens.models.tiny_llava import TinyLlavaConfig, build_tiny_llava, random_image
+
+    config = TinyLlavaConfig(
+        d_model=16,
+        n_layers=3,
+        n_heads=2,
+        vision_hidden=16,
+        vision_layers=1,
+        image_size=56,
+        patch_size=14,
+        vocab_size=64,
+        image_token_id=50,
+        seed=0,
+    )
+    hf, processor = build_tiny_llava(config)
+    model = LlavaLensModel(hf, processor)
+    prompt = "USER: <image>\nDescribe this image.\nASSISTANT:"
+    batch = model.encode_mm(prompt, random_image(0, image_size=config.image_size), max_length=128)
+    out = finite_difference_check(
+        model,
+        [batch],
+        layers=[0, 1],
+        n_rows=3,
+        max_seq_len=128,
+        skip_first=1,
+        eps=1e-5,  # the fixture's residual RMS is ~0.01; the real model uses 1e-2
+    )
+    worst = max(out["per_layer_mean"].values())
+    return [
+        (f"FD columns reproduce the estimator (worst {worst:.2e} <= 0.05)", worst <= 0.05),
+        (f"FD worst at noise level ({worst:.2e} < 0.01)", worst < 0.01),
+        (f"FD reports one entry per column ({len(out['per_col'])} == 6)", len(out["per_col"]) == 6),
+    ]
 
 
 def _rows(rank_at) -> list[dict]:
@@ -54,6 +101,7 @@ def main() -> int:
             depth_checks(_rows(lambda layer: 10.0), 32)["iv_rank_improves_with_depth"] is False,
         ),
     ]
+    checks += finite_difference_case()
 
     failed = [name for name, ok in checks if not ok]
     for name, ok in checks:

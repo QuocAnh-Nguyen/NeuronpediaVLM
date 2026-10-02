@@ -55,6 +55,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--fd-samples", type=int, default=1)
     parser.add_argument("--fd-dtype", default="float32", help="FD dtype (bf16 cannot resolve eps=1e-2)")
     parser.add_argument("--fd-device", default="cuda", help="FD device; falls back to cpu on CUDA OOM")
+    parser.add_argument(
+        "--fd-eps",
+        type=float,
+        default=1e-2,
+        help="absolute FD step; keep small against the model's residual RMS",
+    )
     parser.add_argument("--max-seq-len", type=int, default=1536)
     parser.add_argument("--skip-fd", action="store_true")
     return parser.parse_args()
@@ -65,15 +71,25 @@ def jacobian_lens_identity(d_model: int, layers: list[int]) -> JacobianLens:
     return JacobianLens(jacobians={layer: eye.clone() for layer in layers}, n_prompts=1, d_model=d_model)
 
 
-def finite_difference_check(model, samples, *, layers, n_rows, max_seq_len, skip_first=SKIP_FIRST):
-    """Check (ii): compare estimator rows against a central-difference of the same functional.
+def finite_difference_check(
+    model, samples, *, layers, n_rows, max_seq_len, skip_first=SKIP_FIRST, eps=1e-2
+):
+    """Check (ii): compare estimator columns against a central-difference of the same functional.
 
-    The estimator's row ``i`` at layer ``l`` is
-    ``(1/n_src) * d( sum_{p' in targets} h_final[p', j] ) / d h_l[p, i]`` summed over sources.
-    Perturbing ``h_l[p, i] += eps`` at *all* source positions and differencing the summed
-    final residuals reproduces ``n_src * J_l[i, :]``.
+    ``J_l`` is stored output-dim-major (``J_l[j, i] = d h_final[target, j] / d h_l[src, i]``,
+    the layout ``unembed(J @ h)`` and the intervention directions need). The estimator's
+    entry ``[j, i]`` at layer ``l`` is the mean over source positions ``p`` of
+    ``d( sum_{p' in targets} h_final[p', j] ) / d h_l[p, i]``. Perturbing ``h_l[p, i] += eps``
+    along one *source* dimension ``i`` at all source positions and differencing the summed
+    final residuals therefore reproduces a *column*: ``n_src * J_l[:, i]``. Perturbing
+    several source dimensions at once would difference the sum of their columns and cannot
+    be compared against one column.
+
+    ``eps`` is an absolute step on the residual: it must stay small against the residual
+    RMS of the model under test (the real checkpoint's pre-norm residuals are O(10) at
+    layer 0; the tiny CPU fixture's are O(0.01) and needs ~1e-5 for the same relative step).
     """
-    layer_rows: dict[str, list[float]] = {}
+    layer_cols: dict[str, list[float]] = {}
     stats: dict[str, dict[str, float]] = {}
     for sample in samples:
         batch = as_batch(model, sample, max_seq_len)
@@ -89,43 +105,45 @@ def finite_difference_check(model, samples, *, layers, n_rows, max_seq_len, skip
             model, batch, source_layers=layers, dim_batch=8, skip_first=skip_first, masks=("text",)
         )
         for layer in layers:
-            rows = sorted(
-                set(torch.topk(estimated["text"][layer].norm(dim=1), k=n_rows).indices.tolist())
+            # Highest-norm columns = the most influential source dimensions.
+            cols = sorted(
+                set(torch.topk(estimated["text"][layer].norm(dim=0), k=n_rows).indices.tolist())
             )
             handle = None
 
             def perturb(
-                module, inputs, output, *, dims=rows, positions=source_positions, delta=0.0
+                module, inputs, output, *, dim=0, positions=source_positions, delta=0.0
             ):
                 hidden = output[0] if isinstance(output, tuple) else output
                 hidden = hidden.clone()
-                hidden[:, positions.to(hidden.device), dims] += delta
+                hidden[:, positions.to(hidden.device), dim] += delta
                 return (hidden, *output[1:]) if isinstance(output, tuple) else hidden
 
-            for dim in rows:
+            for dim in cols:
                 deltas = {}
                 for sign, key in ((1.0, "plus"), (-1.0, "minus")):
-                    eps = 1e-2 * sign
+                    delta = eps * sign
                     handle = model.layers[layer].register_forward_hook(
-                        lambda module, inputs, output, s=sign, e=eps: perturb(
-                            module, inputs, output, delta=e
+                        lambda module, inputs, output, e=delta, d=dim: perturb(
+                            module, inputs, output, dim=d, delta=e
                         )
                     )
                     try:
                         with torch.no_grad():
+                            # [0]: batch 1, drop the leading axis -> [seq, d_model]
                             residual = model.forward_residual(batch)[0].float()
                     finally:
                         handle.remove()
                     deltas[key] = residual[target_positions.to(residual.device)].sum(dim=0)
-                fd_row = (deltas["plus"] - deltas["minus"]) / (2 * 1e-2 * n_src)
-                reference = estimated["text"][layer][dim]
-                relative = float((fd_row.cpu() - reference).norm() / (reference.norm() + 1e-30))
-                stats[f"L{layer}_row{dim}"] = {
+                fd_col = (deltas["plus"] - deltas["minus"]) / (2 * eps * n_src)
+                reference = estimated["text"][layer][:, dim]
+                relative = float((fd_col.cpu() - reference).norm() / (reference.norm() + 1e-30))
+                stats[f"L{layer}_col{dim}"] = {
                     "relative_error": round(relative, 5),
                     "n_src": n_src,
                 }
-                layer_rows.setdefault(f"L{layer}", []).append(round(relative, 5))
-    return {"per_row": stats, "per_layer_mean": {k: sum(v) / len(v) for k, v in layer_rows.items()}}
+                layer_cols.setdefault(f"L{layer}", []).append(round(relative, 5))
+    return {"per_col": stats, "per_layer_mean": {k: sum(v) / len(v) for k, v in layer_cols.items()}}
 
 
 
@@ -263,6 +281,11 @@ def main() -> int:
             f"unigram_rank={row.unigram_mean_rank_true:.0f} lens_rank={row.lens_mean_rank_true:.0f} "
             f"model_rank={row.model_mean_rank_true:.0f} unigram_agree={row.unigram_top1_agreement:.3f}"
         )
+    # Snapshot the scoring rows before the FD model loads: the FD pass is the last step and
+    # the only one that can still be killed (OOM/SIGKILL) after nearly all the work is done,
+    # and the gate must not lose the fidelity rows to an environmental failure. The final
+    # write below overwrites this with the complete report.
+    Path(args.json).write_text(json.dumps(report, indent=2), encoding="utf-8")
 
 
     # Free the bf16 scoring model before the FD model loads: they would otherwise coexist on
@@ -289,6 +312,7 @@ def main() -> int:
                 layers=fd_layers,
                 n_rows=args.fd_rows,
                 max_seq_len=args.max_seq_len,
+                eps=args.fd_eps,
             )
         except torch.OutOfMemoryError:
             print(f"CUDA OOM for the {args.fd_dtype} FD model - retrying on CPU")
@@ -303,6 +327,7 @@ def main() -> int:
                 layers=fd_layers,
                 n_rows=args.fd_rows,
                 max_seq_len=args.max_seq_len,
+                eps=args.fd_eps,
             )
         report["check_ii_finite_difference"] = fd
         report["check_ii_device"] = fd_device

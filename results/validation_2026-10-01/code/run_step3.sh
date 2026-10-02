@@ -17,12 +17,16 @@ echo "=== split halves $(date -Is) ==="
 "$P" "$CODE/split_halves.py" --manifest "$RUN/step0/manifest-fit.jsonl" \
     --split-json "$RUN/step0/corpus-split.json" --out-dir "$RUN/step3" || { echo SPLIT_FAILED; exit 1; }
 
+# Dtype: fp32 weights + TF32 matmuls (D10/D18). The X6 verdict (step1/x6_dtype.json) is
+# use_fp32: true - per-layer medians are 1.2-1.5 % but L0's max is 49 % - and the fp32+TF32
+# leg cost 2486.5 s for 8 samples against 2205.8 s for bf16 (1.13x), so the pre-registered
+# rule is affordable on the production caption lens.
 for half in a b; do
     echo "=== S2 fit half $half $(date -Is) ==="
     "$P" scripts/fit_llava.py --backend hf-llava --manifest "$RUN/step3/manifest-half-$half.jsonl" \
-        --layers all --masks text,image,all --dim-batch "$DIMBATCH" --dtype bfloat16 --skip-first 1 \
+        --layers all --masks text,image,all --dim-batch "$DIMBATCH" --dtype float32 --allow-tf32 \
         --checkpoint-every 5 --out "$RUN/s2-half-$half" \
-        --notes "S2 caption pilot, question half $half, 50 samples, skip_first=1" \
+        --notes "S2 caption pilot, question half $half, 50 samples, skip_first=1, fp32+TF32 (X6)" \
         || { echo S2_HALF_${half}_FAILED; exit 1; }
 done
 
