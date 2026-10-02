@@ -1,0 +1,81 @@
+=== S1 fit 2026-10-02T07:44:25+00:00 dim_batch=8 n_prompts=100 ===
+loading llava-hf/llava-1.5-7b-hf (device=cuda, dtype=torch.bfloat16)
+Loading weights:   0%|          | 0/686 [00:00<?, ?it/s]Loading weights:   6%|▋         | 44/686 [00:00<00:01, 423.97it/s]Loading weights:  13%|█▎        | 87/686 [00:00<00:01, 387.02it/s]Loading weights:  19%|█▊        | 128/686 [00:00<00:01, 390.61it/s]Loading weights:  24%|██▍       | 168/686 [00:00<00:01, 372.55it/s]Loading weights:  30%|███       | 206/686 [00:00<00:01, 374.42it/s]Loading weights:  36%|███▌      | 244/686 [00:00<00:01, 356.08it/s]Loading weights:  41%|████      | 280/686 [00:00<00:01, 349.26it/s]Loading weights: 100%|██████████| 686/686 [00:00<00:00, 799.55it/s]
+model ready: n_layers=32 d_model=4096 image_seq_length=576 tf32=False
+fitting 100 samples: backend=hf-llava layers=all below target target=31 dim_batch=8 skip_first=16 masks=['all'] target_mask=all shard=(0, 1)
+
+fitted 1 lens(es) from 100 samples in 37.0s; skipped=0
+  all   n_prompts=100   layers=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30] -> /data/vlm-lens/validation/s1-text/artifacts/lens-all.pt
+provenance: /data/vlm-lens/validation/s1-text/artifacts/provenance.json
+=== S1 score 2026-10-02T07:45:06+00:00 ===
+Loading weights:   0%|          | 0/686 [00:00<?, ?it/s]Loading weights:   8%|▊         | 56/686 [00:00<00:01, 526.37it/s]Loading weights:  16%|█▌        | 109/686 [00:00<00:01, 449.78it/s]Loading weights:  23%|██▎       | 155/686 [00:00<00:01, 411.73it/s]Loading weights:  29%|██▊       | 197/686 [00:00<00:01, 410.24it/s]Loading weights:  35%|███▍      | 239/686 [00:00<00:01, 383.28it/s]Loading weights:  41%|████      | 278/686 [00:00<00:01, 378.39it/s]Loading weights: 100%|██████████| 686/686 [00:00<00:00, 863.83it/s]
+Traceback (most recent call last):
+  File "/home/nvidia-lab/ai4life/phuongnh/vlm-lens/results/validation_2026-10-01/code/s1_score.py", line 389, in <module>
+    raise SystemExit(main())
+                     ~~~~^^
+  File "/home/nvidia-lab/ai4life/phuongnh/vlm-lens/results/validation_2026-10-01/code/s1_score.py", line 217, in main
+    scores = score_lens(model, lens, heldout, tags=(args.tag,), skip_first=SKIP_FIRST)
+  File "/home/nvidia-lab/ai4life/phuongnh/vlm-lens/src/vlm_lens/evaluate.py", line 191, in score_lens
+    for tag, model_chunk, lens_chunks, chunk_targets in _iter_scored_batches(
+                                                        ~~~~~~~~~~~~~~~~~~~~^
+        model,
+        ^^^^^^
+    ...<8 lines>...
+        chunk_size=chunk_size,
+        ^^^^^^^^^^^^^^^^^^^^^^
+    ):
+    ^
+  File "/home/nvidia-lab/ai4life/phuongnh/vlm-lens/src/vlm_lens/evaluate.py", line 117, in _iter_scored_batches
+    readout = lens_readout(
+        model,
+    ...<5 lines>...
+        max_seq_len=max_seq_len,
+    )
+  File "/home/nvidia-lab/miniconda3/envs/vlm_truth_py313/lib/python3.13/site-packages/torch/utils/_contextlib.py", line 116, in decorate_context
+    return func(*args, **kwargs)
+  File "/home/nvidia-lab/ai4life/phuongnh/vlm-lens/src/vlm_lens/readout.py", line 122, in lens_readout
+    model.forward_mm(batch)
+    ~~~~~~~~~~~~~~~~^^^^^^^
+  File "/home/nvidia-lab/ai4life/phuongnh/vlm-lens/src/vlm_lens/models/llava.py", line 316, in forward_mm
+    output = self.hf_model.model(
+        **batch.hf_kwargs(),
+        use_cache=False,
+    )
+  File "/home/nvidia-lab/miniconda3/envs/vlm_truth_py313/lib/python3.13/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/home/nvidia-lab/miniconda3/envs/vlm_truth_py313/lib/python3.13/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/nvidia-lab/miniconda3/envs/vlm_truth_py313/lib/python3.13/site-packages/transformers/utils/generic.py", line 939, in wrapper
+    output = func(self, *args, **kwargs)
+  File "/home/nvidia-lab/miniconda3/envs/vlm_truth_py313/lib/python3.13/site-packages/transformers/models/llava/modeling_llava.py", line 250, in forward
+    outputs = self.language_model(
+        attention_mask=attention_mask,
+    ...<3 lines>...
+        **kwargs,
+    )
+  File "/home/nvidia-lab/miniconda3/envs/vlm_truth_py313/lib/python3.13/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/home/nvidia-lab/miniconda3/envs/vlm_truth_py313/lib/python3.13/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/nvidia-lab/miniconda3/envs/vlm_truth_py313/lib/python3.13/site-packages/transformers/utils/generic.py", line 1068, in wrapper
+    output = func(self, *args, **kwargs)
+  File "/home/nvidia-lab/miniconda3/envs/vlm_truth_py313/lib/python3.13/site-packages/transformers/utils/output_capturing.py", line 286, in wrapper
+    outputs = func(self, *args, **kwargs)
+  File "/home/nvidia-lab/miniconda3/envs/vlm_truth_py313/lib/python3.13/site-packages/transformers/models/llama/modeling_llama.py", line 400, in forward
+    position_embeddings = self.rotary_emb(hidden_states, position_ids=position_ids)
+  File "/home/nvidia-lab/miniconda3/envs/vlm_truth_py313/lib/python3.13/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/home/nvidia-lab/miniconda3/envs/vlm_truth_py313/lib/python3.13/site-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/nvidia-lab/miniconda3/envs/vlm_truth_py313/lib/python3.13/site-packages/torch/utils/_contextlib.py", line 116, in decorate_context
+    return func(*args, **kwargs)
+  File "/home/nvidia-lab/miniconda3/envs/vlm_truth_py313/lib/python3.13/site-packages/transformers/modeling_rope_utils.py", line 128, in wrapper
+    return rope_forward(self, x, position_ids, **kwargs)
+  File "/home/nvidia-lab/miniconda3/envs/vlm_truth_py313/lib/python3.13/site-packages/transformers/models/llama/modeling_llama.py", line 122, in forward
+    freqs = (inv_freq_expanded @ position_ids_expanded).transpose(1, 2)
+             ~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~
+RuntimeError: CUDA error: CUBLAS_STATUS_ALLOC_FAILED when calling `cublasCreate(handle)`
+S1_SCORE_FAILED

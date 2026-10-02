@@ -274,11 +274,11 @@ dim_batch 8, checkpoint every 5):
 Steps 2-4 actuals are ⏳ (not completed); the S1 and X6 rows above are measured, and every
 failed attempt's GPU time is included in its row.
 
-State 2026-10-02T07:35Z [measured]: S1's bf16 fit is complete; its step now needs the scoring
-re-run (with the repaired FD check) and the fp32 FD model's window wait. X6's verdict moved
-S2/X1 to fp32+TF32. The relaunched campaign (06:50Z) is waiting for a ≥28 GiB window; free
-VRAM has held at 17.75 GiB for hours, and an out-of-band watcher holds the L24 census for the
-first ≥22 GiB window (it publishes by rename, so X7/X9 only ever read a complete file).
+State 2026-10-02T07:50Z [measured]: S1's fit is complete (`fitted 1 lens(es) from 100 samples
+in 37.0s` on the 07:44 window) and the L24 census published at 07:45:26; the window was too
+tight for both at once (see §11, the 07:45 memory race), so the S1 step is requeued for its
+scoring re-run after the transient `cuda-error`, and free VRAM is back to 17.75 GiB. X6's
+verdict moved S2/X1 to fp32+TF32. Everything else waits on the next window.
 
 ## 10. Reproduction appendix
 
@@ -366,10 +366,21 @@ each step on a free-VRAM window (D12) and retries transient failures (D14/D15), 
 with the shared GPU. The retired `code/run_rest.sh`, `code/run_x6_fp32.sh`'s old guard and
 the old X6 leg live on only as history.
 
+A self-inflicted memory race worth recording (07:45Z): the L24 census watcher and the
+campaign's S1 step woke on the same 32.9 GiB window (07:44:25). The census (16.3 GiB) plus the
+bf16 scoring model (15.5 GiB) left ~0.6 GiB, and the first scoring forward died in
+`cublasCreate(handle)` (`CUBLAS_STATUS_ALLOC_FAILED`, `s1_attempt1.log`). Both parts did real
+work first - the fit resumed and finished (`fitted 1 lens(es) from 100 samples in 37.0s`,
+skipped=0) and the census published its L24 rows at 07:45:26 - and the supervisor classified
+the failure as a transient `cuda-error` (`other=0/3`) and requeued the step 60 s later. The
+race cannot recur (the census is finished); the transferable rule for shared-GPU runs is that
+a co-scheduled 16 GiB watcher must not share one window with a fit step - a 28 GiB guard
+leaves no headroom for a second model.
+
 ## 12. Recommended production settings (provisional)
 
-Current best answers from the real checkpoint. Inputs marked ⏳ are not measured yet (X6's
-fp32 verdict, the S1 gate, S2's held-out fidelity rows); everything else is measured in this
+Current best answers from the real checkpoint. Inputs marked ⏳ are not measured yet (S2's
+held-out fidelity rows and the S1 finite-difference row); everything else is measured in this
 run. Re-check when those land.
 
 | Knob | Recommended | Basis |

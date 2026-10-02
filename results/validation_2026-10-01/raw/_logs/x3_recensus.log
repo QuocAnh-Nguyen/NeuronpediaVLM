@@ -1,0 +1,38 @@
+attempt 1 window 32861 MiB at 2026-10-02T07:44:28+00:00
+Loading weights:   0%|          | 0/686 [00:00<?, ?it/s]Loading weights:   5%|▌         | 37/686 [00:00<00:01, 364.04it/s]Loading weights:  11%|█         | 74/686 [00:00<00:01, 326.86it/s]Loading weights:  16%|█▌        | 107/686 [00:00<00:01, 303.59it/s]Loading weights:  20%|██        | 138/686 [00:00<00:01, 290.77it/s]Loading weights:  24%|██▍       | 168/686 [00:00<00:01, 269.94it/s]Loading weights:  29%|██▊       | 196/686 [00:00<00:01, 264.86it/s]Loading weights:  33%|███▎      | 224/686 [00:00<00:01, 265.05it/s]Loading weights:  37%|███▋      | 251/686 [00:00<00:01, 264.01it/s]Loading weights:  41%|████      | 278/686 [00:01<00:01, 261.49it/s]Loading weights:  80%|████████  | 552/686 [00:01<00:00, 983.75it/s]Loading weights: 100%|██████████| 686/686 [00:01<00:00, 603.07it/s]
+model ready: layers=32 image_seq_length=576
+  10/50 samples
+  20/50 samples
+  30/50 samples
+  40/50 samples
+  50/50 samples
+
+layer  group         mean_norm  max_norm  top_dims
+0      bos                8.32      8.32  d2298:50, d1512:50, d3124:50, d310:50, d356:50
+0      pos_1_16          29.80    100.47  d1512:49, d3135:48, d1076:42, d4051:40, d2944:35
+0      text_pre           3.11      3.84  d2298:50, d1512:50, d1415:50, d310:50, d2944:50
+0      patch_1_16        38.62    100.47  d1512:50, d3135:49, d1076:45, d4051:43, d2944:37
+0      patch_17_end      39.40    830.88  d982:50, d2494:50, d2173:50, d3262:50, d2533:47
+0      text_post          2.15      4.34  d2298:50, d1512:50, d310:50, d3135:46, d2281:33
+16     bos             1568.83   1568.83  d2533:50, d1415:50, d1076:50, d1512:50, d2789:50
+16     pos_1_16          34.69    247.44  d1076:45, d3135:41, d257:37, d3431:32, d490:29
+16     text_pre          29.97     32.00  d1512:50, d2533:50, d2298:50, d257:50, d3431:50
+16     patch_1_16        35.81    247.44  d1076:46, d3135:42, d257:36, d3431:31, d490:29
+16     patch_17_end      38.23    809.05  d982:50, d2533:50, d2494:50, d2173:48, d2749:44
+16     text_post         37.39    103.10  d1512:44, d2789:39, d2350:23, d2533:22, d2298:21
+24     bos             1567.43   1567.43  d2533:50, d1415:50, d1076:50, d1512:50, d2789:50
+24     pos_1_16          65.03    251.49  d1512:50, d2533:46, d3431:42, d2789:39, d2298:25
+24     text_pre          66.49     74.80  d1512:50, d2298:50, d2789:50, d2533:50, d3431:50
+24     patch_1_16        64.06    251.49  d1512:50, d2533:40, d3431:40, d1076:39, d2789:35
+24     patch_17_end      67.11    797.61  d982:50, d2533:50, d2494:50, d2749:46, d2173:46
+24     text_post         91.50    127.94  d1512:50, d2789:48, d2883:33, d2298:29, d2533:18
+31     bos              633.65    633.65  d2533:50, d1415:50, d1076:50, d1512:50, d2789:50
+31     pos_1_16         139.73    205.65  d1512:50, d3556:49, d2611:49, d3241:49, d3444:49
+31     text_pre         151.76    201.01  d1512:50, d3556:50, d2611:50, d3241:50, d3444:50
+31     patch_1_16       136.04    205.65  d1512:50, d1360:42, d2660:39, d2002:33, d2042:19
+31     patch_17_end     154.99    790.67  d982:50, d3805:50, d2533:48, d3262:46, d2494:36
+31     text_post        205.03    428.76  d1512:50, d3241:37, d1360:36, d2002:31, d1839:29
+
+verdict: {"layers": {"0": {"ratio_pos_1_16_over_bos": 3.581, "ratio_patch_1_16_over_bos": 4.64, "dominant_dim_jaccard_vs_bos": 0.111}, "16": {"ratio_pos_1_16_over_bos": 0.022, "ratio_patch_1_16_over_bos": 0.023, "dominant_dim_jaccard_vs_bos": 0.111}, "24": {"ratio_pos_1_16_over_bos": 0.041, "ratio_patch_1_16_over_bos": 0.041, "dominant_dim_jaccard_vs_bos": 0.429}, "31": {"ratio_pos_1_16_over_bos": 0.221, "ratio_patch_1_16_over_bos": 0.215, "dominant_dim_jaccard_vs_bos": 0.111}}, "pos_1_16_sink_like": false, "recommended_skip_first": 1, "rule": "register X3: sink-like leading positions -> smallest skip_first in {8,16,32} covering them"}
+wrote /data/vlm-lens/validation/step1/x3_norms.new.json
+published rc=0 at 2026-10-02T07:45:26+00:00
