@@ -276,3 +276,29 @@ regression / flat profiles) passes locally and on the server's `vlm_truth_py313`
    independent autograd through the same hook path matches the estimator to 6.7e-08, and the
    repaired check gives worst per-layer mean 4.4e-04 at eps=1e-5 on the tiny fixture (gate
    bar 0.05).
+
+## D19 — S1's gate: FAIL on the strict middle criterion (diagnosed; S2 proceeds); the FD CPU trap
+
+1. S1's scoring ran to completion on the frozen 30-sample WikiText shard (`step2/s1_score.json`;
+   the repaired finite-difference check follows it). Gate as pre-registered: (i) identity exact
+   `0.0` PASS; (iii) last-layer rank difference `0.0` PASS; (iv) depth trend PASS (mean
+   true-token rank 885.54 at the depth midpoint against 27.31 at the last layer; 5 non-monotone
+   steps kept as a diagnostic); frequency control PASS (at L31 the lens matches the model:
+   top-1-in-top-50 0.450, mean rank 27.3). But `j_not_worse_in_middle` is **False**: the J-lens
+   loses to the plain logit lens at layers 17, 20, 21, 23, 24 (rank deltas +379, +813, +331,
+   +99, +271 against a 16032.5 chance level) while winning at L2-16 (L14: 1101.2 vs 5178.4) and
+   L26-30 (L30: 46.5 vs 75.2). Verdict: FAIL on one of five criteria.
+2. Decision: S2 proceeds. Rationale [inference]: the failing criterion is a comparative nuance
+   ("never worse than the untrained logit lens at any middle layer"), not a validity criterion;
+   the lens's own validity checks (i)/(iii)/(iv) and the frequency control pass on the real
+   checkpoint, and S2's questions (per-tag held-out fidelity, instruction-half cross-scoring,
+   WikiText<->captions transfer) do not depend on per-layer logit-lens dominance. The deficit
+   band is recorded as a finding in the report (§4/§12) instead of being rounded away.
+   Per-position significance of the five deltas was not tested (the scorer returns means only);
+   that is a stated limitation, not a claim.
+3. The FD's CPU fallback is a trap, not a safety net: the estimator's ceil(d_model/dim_batch)
+   chunk-backwards on a 7B fp32 CPU model take hours. The 06:05 attempt entered the fallback
+   under a 90 MiB GPU window and was killed at 06:45 with no FD numbers. `s1_score.py` now waits
+   for `--fd-min-free-mib` (default 32000) up to `--fd-wait-minutes` (default 60) *before* the
+   fallback, printing each poll; only then does it drop to CPU. This supersedes D16's "minutes
+   on the 263 GiB host" claim for the estimator leg (forward-only work would be minutes).

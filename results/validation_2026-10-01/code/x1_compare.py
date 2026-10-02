@@ -4,11 +4,13 @@
 
 Two parts, because the ALD estimator conjoins them:
 
-1. **Bit-level (decisive)** — one real sample. With the image block *before* the text,
-   text sources cannot causally reach image targets, and the estimator seeds cotangents by
-   position, so the ``text`` row block must be *bit-identical* between ``target_mask=all``
-   and ``target_mask=text``; the ``image`` rows must differ. Checked per layer with
-   ``torch.equal``.
+1. **Bit-level (decisive)** — one real sample, on the causally-disjoint *subset* (D3):
+   text sources after the image block cannot causally reach image targets, and the
+   estimator seeds cotangents by position, so their rows must be *bit-identical* between
+   ``target_mask=all`` and ``target_mask=text``; the ``image`` rows must differ. Checked
+   per layer with ``torch.equal``. The library's ``text`` mask also covers the ``USER:``
+   tokens *before* the placeholder, which do reach image targets and legitimately change
+   the aggregate row (D3), so the check trims the prompt to start at ``<image>``.
 2. **Lens-level** — the same 20-sample shard fitted both ways; per mask, relative
    Frobenius distance, cosine and the best-fit scale, to quantify how much the *image*
    rows move (the text rows must reproduce the bit-level result at the aggregate).
@@ -19,6 +21,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+from dataclasses import replace
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[3]
@@ -28,10 +31,11 @@ if str(REPO / "src") not in sys.path:
 import torch  # noqa: E402
 
 import vlm_lens  # noqa: E402, F401  # installs the vendored jlens path: must precede jlens
+from vlm_lens._batch import as_batch  # noqa: E402
 from vlm_lens.artifacts import load_lens_set  # noqa: E402
 from vlm_lens.data.manifest import read_manifest  # noqa: E402
 from vlm_lens.fitting import jacobian_for_sample  # noqa: E402
-from vlm_lens.models.llava import LlavaLensModel  # noqa: E402
+from vlm_lens.models.llava import IMAGE_PLACEHOLDER, LlavaLensModel  # noqa: E402
 from vlm_lens.positions import build_position_masks  # noqa: E402
 
 MASKS = ("text", "image", "all")
@@ -47,6 +51,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--layers", default="0,8,16,24,30")
     parser.add_argument("--dtype", default="bfloat16")
     parser.add_argument("--max-seq-len", type=int, default=1536)
+    parser.add_argument(
+        "--backend", choices=("hf-llava", "tiny"), default="hf-llava",
+        help="model backend: 'hf-llava' (default, CUDA) or the tiny CPU smoke fixture",
+    )
     return parser.parse_args()
 
 
@@ -64,7 +72,7 @@ def _compare(A: torch.Tensor, B: torch.Tensor) -> dict[str, float | bool]:
 
 
 def bit_check(model, sample, layers, max_seq_len: int) -> dict[str, object]:
-    """Per-sample Jacobians under both target masks, per mask and layer."""
+    """Per-sample Jacobians under both target masks; pass the causally-disjoint prompt."""
 
     def compute(target_mask: str) -> dict[int, torch.Tensor]:
         jacobians, _info = jacobian_for_sample(
@@ -115,27 +123,56 @@ def main() -> int:
             "text": {mask: int(lens.n_prompts) for mask, lens in lens_text.items()},
         },
         "provenance_target_mask": {
-            "all": {mask: prov_all.get("target_mask") for mask in prov_all},
-            "text": {mask: prov_text.get("target_mask") for mask in prov_text},
+            "all": {
+                mask: prov_all.get("fit_config", {}).get("target_mask") for mask in lens_all
+            },
+            "text": {
+                mask: prov_text.get("fit_config", {}).get("target_mask") for mask in lens_text
+            },
         },
     }
 
     samples = read_manifest(args.manifest)
     sample = samples[args.sample_index]
     dtype = {"bfloat16": torch.bfloat16, "float32": torch.float32}[args.dtype]
-    model = LlavaLensModel.from_pretrained(dtype=dtype, device="cuda", local_files_only=True)
-    masks = build_position_masks(
-        model.encode_mm(sample, None, max_length=args.max_seq_len).input_ids,
+    if args.backend == "tiny":
+        from vlm_lens.models.tiny_llava import TinyLlavaConfig, build_tiny_llava
+
+        hf_model, processor = build_tiny_llava(TinyLlavaConfig())
+        model = LlavaLensModel(hf_model, processor)
+    else:
+        model = LlavaLensModel.from_pretrained(dtype=dtype, device="cuda", local_files_only=True)
+    full_batch = as_batch(model, sample, args.max_seq_len)
+    full_masks = build_position_masks(
+        full_batch.input_ids, model.image_token_id, skip_first=1, masks=MASKS
+    )
+    first_image = int(
+        (full_batch.input_ids[0] == model.image_token_id).nonzero(as_tuple=True)[0][0]
+    )
+    pre_image_text = int(full_masks["text"][:first_image].sum())
+
+    # D3: trim the prompt to start at the placeholder so the ``text`` mask is exactly the
+    # causally-disjoint block after the image; the pre-image ``USER:`` tokens would
+    # otherwise contaminate the aggregate row (they can reach the image targets).
+    marker = sample.text.find(IMAGE_PLACEHOLDER)
+    causal_sample = replace(sample, text=sample.text[marker:]) if marker > 0 else sample
+    causal_masks = build_position_masks(
+        as_batch(model, causal_sample, args.max_seq_len).input_ids,
         model.image_token_id,
         skip_first=1,
         masks=MASKS,
     )
     report["sample_geometry"] = {
-        "sample": sample.name,
+        "sample": sample.sample_id,
         "question": sample.meta.get("question"),
-        "mask_positions": {name: int(mask.sum()) for name, mask in masks.items()},
+        "mask_positions": {name: int(mask.sum()) for name, mask in causal_masks.items()},
+        "full_prompt_mask_positions": {
+            name: int(mask.sum()) for name, mask in full_masks.items()
+        },
+        "pre_image_text_positions": pre_image_text,
+        "prefix_chars_dropped": max(marker, 0),
     }
-    check = bit_check(model, sample, layers, args.max_seq_len)
+    check = bit_check(model, causal_sample, layers, args.max_seq_len)
     report["bit_check"] = check
     print("== X1 bit-level (one real sample, both target masks) ==")
     for mask, per_layer in check["per_mask"].items():
@@ -146,7 +183,8 @@ def main() -> int:
                 f"cos={entry['cosine']:.6f}"
             )
     print(
-        "VERDICT:",
+        f"VERDICT (causally-disjoint text subset; {pre_image_text} pre-image text "
+        "positions dropped):",
         "text rows bit-identical" if check["text_rows_bit_identical"] else "TEXT ROWS DIFFER",
         "|",
         "image rows bit-identical" if check["image_rows_bit_identical"] else "image rows differ",

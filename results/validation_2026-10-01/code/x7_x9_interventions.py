@@ -56,6 +56,10 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--lens-dir", required=True)
     parser.add_argument("--manifest", required=True)
+    parser.add_argument(
+        "--backend", choices=("hf-llava", "tiny"), default="hf-llava",
+        help="model backend: 'hf-llava' (default, CUDA) or the tiny CPU smoke fixture",
+    )
     parser.add_argument("--n-samples", type=int, default=10)
     parser.add_argument("--layers", default="8,16,24", help="layers for the conditioning census")
     parser.add_argument("--edit-layers", default="16,24")
@@ -136,9 +140,15 @@ def main() -> int:
 
     lenses, provenance = load_lens_set(args.lens_dir)
     lens = lenses["text"]
-    model = LlavaLensModel.from_pretrained(
-        dtype=torch.bfloat16, device="cuda", local_files_only=True
-    )
+    if args.backend == "tiny":
+        from vlm_lens.models.tiny_llava import TinyLlavaConfig, build_tiny_llava
+
+        hf_model, processor = build_tiny_llava(TinyLlavaConfig())
+        model = LlavaLensModel(hf_model, processor)
+    else:
+        model = LlavaLensModel.from_pretrained(
+            dtype=torch.bfloat16, device="cuda", local_files_only=True
+        )
     norms = load_norms(args.norms_json, args.norm_group)
     samples = read_manifest(args.manifest)[: args.n_samples]
 
@@ -172,12 +182,12 @@ def main() -> int:
     baselines: dict[str, dict] = {}
     for sample in samples:
         out = generate_with_edits(model, None, sample, max_new_tokens=args.max_new_tokens)
-        baselines[sample.name] = {"text": out["text"], "token_ids": out["token_ids"]}
+        baselines[sample.sample_id] = {"text": out["text"], "token_ids": out["token_ids"]}
     report["x9_baselines"] = baselines
 
     results: list[dict] = []
     for sample in samples:
-        baseline = baselines[sample.name]["token_ids"]
+        baseline = baselines[sample.sample_id]["token_ids"]
         for layer in edit_layers:
             norm = norms.get(layer, args.fallback_norm)
             for source, target in usable:
@@ -217,9 +227,9 @@ def main() -> int:
                     )
                     results.append(
                         {
-                            "sample": sample.name,
+                            "sample": sample.sample_id,
                             "question": sample.meta.get("question"),
-                            "baseline": baselines[sample.name]["text"],
+                            "baseline": baselines[sample.sample_id]["text"],
                             "pair": f"{source.strip()}->{target.strip()}",
                             "edit": spec.to_json(),
                             "text": out["text"],
@@ -228,7 +238,7 @@ def main() -> int:
                             "n_edit_forwards": out["n_edit_forwards"],
                         }
                     )
-        print(f"  {sample.name}: baseline={baselines[sample.name]['text'][:60]!r}")
+        print(f"  {sample.sample_id}: baseline={baselines[sample.sample_id]['text'][:60]!r}")
 
     report["x9_results"] = results
     changed = sum(1 for row in results if row["changed"])

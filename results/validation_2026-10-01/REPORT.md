@@ -340,23 +340,26 @@ run. Re-check when those land.
 
 | Knob | Recommended | Basis |
 | --- | --- | --- |
-| `dtype` | **bf16** for all fits | [measured] bf16 X6 leg: 8/8 samples, 2205.8 s, images at dim_batch 8; fp32 weights are ~29 GiB and the TF32 leg OOMed at 47.65 GiB allocated under a co-tenant. ⏳ switch to fp32/TF32 iff `step1/x6_dtype.json` shows median relative Frobenius Δ > 3% (max > 10%). |
+| `dtype` | **fp32 weights + TF32 matmuls for production fits (S2, X1)**; bf16 where the lens already exists | [measured] X6 verdict `use_fp32: true` (per-layer medians 1.2-1.5 %, text/L0 max 49 %); the fp32+TF32 leg took 2486.5 s against 2205.8 s for bf16 (1.13×). S1's finished bf16 lens stays (D18). |
 | `dim_batch` | 8 (text), 4-8 (image) | [measured] peak 19.9 GiB (text, 190 tok) and 36.4 GiB (image, 660 tok) at dim_batch 8; pure memory knob, but it is part of the checkpoint fingerprint, so keep it fixed per run (D13). |
 | `skip_first` | 1 (multimodal), 16 (text-only control) | [measured] X3 census: positions 1-16 are not sink-like (`pos_1_16_sink_like=false`); BOS is the massive-activation outlier (D5). |
 | `target_layer` | 31 (final residual) | [derived] the lens lives on the pre-norm residual stream; 31 is the last fitted source layer. X5 (31 vs 30) was not run. |
 | masks | `text` = primary readout; `image`/`all` descriptive only | [derived] mask semantics (V4/E3): a readout at an image position is a first-order disposition to verbalize, not a next-token prediction. |
-| prompts | 100 fit / 30 held-out per corpus | [measured] cost model: text 85.9 s/sample (~2.4 h/100), image 288.2 s/sample (~8.0 h/100) at dim_batch 8; scale n by the budget rule and keep the 10% report reserve. |
+| prompts | 100 fit / 30 held-out per corpus | [measured] cost model: text 85.9 s/sample (~2.4 h/100); image 288.2 s/sample bf16, ~326 s/sample fp32+TF32 (~9.1 h/100) at dim_batch 4-8; scale n by the budget rule and keep the 10 % report reserve. |
 | checkpoint cadence | every 5 samples | [measured] an external SIGKILL then costs at most 5 samples; fits are resumable and the supervisor retries transients up to `MAX_ROUNDS=60` (D14/D15). |
-| memory guards | ≥28 GiB free (text fit), ≥32 GiB (image fits), ≥55 GiB (fp32 leg) | [measured] peaks above plus the fp32 OOM at 47.65 GiB allocated; `run_campaign.sh` polls every 30 s. |
+| memory guards | ≥28 GiB free (text fit), ≥32 GiB bf16 / ≥55 GiB fp32+TF32 image fits, ≥32 GiB for the fp32 FD model | [measured] peaks plus the fp32 OOM at 47.65 GiB allocated; `run_campaign.sh` polls every 30 s, and `s1_score.py` now waits for a window before loading its fp32 FD model instead of falling back to a multi-hour CPU run (D19). |
 | environment | `HF_HUB_OFFLINE=1`, `PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True`, greedy decoding, `torch.compile` off | [measured] the box is first-come-first-served; 65.7 GiB observed held by a co-tenant, and our fits have been SIGKILLed twice by external reclaims (D14/D15). |
 
 Claims this setup can and cannot support:
 
 * Can: token-level disposition of the *text* residual after multimodal fusion ("what is this
-  state disposed to say"), per layer, on the fit corpus and its held-out shard - once the S1
-  gate passes and S2's held-out fidelity rows are in.
+  state disposed to say"), per layer, on the fit corpus and its held-out shard - S1's
+  validity checks pass on the real checkpoint (identity exact 0.0, depth trend 885.5 -> 27.3
+  mean rank, last-layer alignment 0.0, frequency control equal to the model at L31) even
+  though the strict per-layer middle criterion fails (D19); S2's held-out rows are ⏳.
 * Can: comparative statements across layers, masks and corpora (J-lens vs logit lens, text vs
-  image rows, WikiText vs captions) - those are the S2 A4/X8 rows.
+* Cannot: "the J-lens dominates the plain logit lens at every depth" - [measured] S1 shows it
+  wins at L2-16 and L26-30 but loses at L17-24 (+99..+813 ranks, D19).
 * Cannot (yet): causal claims from lens numbers alone (X7/X9 are the causal probe and they are
   qualitative); "the model sees X in the image" from an image-position readout; absolute rate
   claims ("hallucinates N%") from rank/KL values, which are corpus- and

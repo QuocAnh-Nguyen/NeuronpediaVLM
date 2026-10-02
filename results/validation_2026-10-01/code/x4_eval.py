@@ -37,6 +37,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--tags", default="text,image,all")
     parser.add_argument("--json", required=True)
     parser.add_argument("--max-seq-len", type=int, default=1536)
+    parser.add_argument(
+        "--backend", choices=("hf-llava", "tiny"), default="hf-llava",
+        help="model backend: 'hf-llava' (default, CUDA) or the tiny CPU smoke fixture",
+    )
     return parser.parse_args()
 
 
@@ -44,9 +48,15 @@ def main() -> int:
     args = parse_args()
     tags = tuple(part.strip() for part in args.tags.split(",") if part.strip())
     heldout = read_manifest(args.heldout_manifest)
-    model = LlavaLensModel.from_pretrained(
-        dtype=torch.bfloat16, device="cuda", local_files_only=True
-    )
+    if args.backend == "tiny":
+        from vlm_lens.models.tiny_llava import TinyLlavaConfig, build_tiny_llava
+
+        hf_model, processor = build_tiny_llava(TinyLlavaConfig())
+        model = LlavaLensModel(hf_model, processor)
+    else:
+        model = LlavaLensModel.from_pretrained(
+            dtype=torch.bfloat16, device="cuda", local_files_only=True
+        )
     report: dict[str, object] = {"heldout": args.heldout_manifest, "n_heldout": len(heldout)}
     tables: dict[str, list] = {}
     for spec in args.variants:

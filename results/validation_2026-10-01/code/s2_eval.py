@@ -54,7 +54,23 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--max-seq-len", type=int, default=1536)
     parser.add_argument("--composition-samples", type=int, default=3)
     parser.add_argument("--limit", type=int, default=None, help="score only the first N samples (smoke)")
+    parser.add_argument(
+        "--backend", choices=("hf-llava", "tiny"), default="hf-llava",
+        help="model backend: 'hf-llava' (default, CUDA) or the tiny CPU smoke fixture",
+    )
     return parser.parse_args()
+
+
+def load_model(args: argparse.Namespace) -> LlavaLensModel:
+    """The scoring model: the HF checkpoint (default, CUDA) or the tiny CPU fixture."""
+    if args.backend == "tiny":
+        from vlm_lens.models.tiny_llava import TinyLlavaConfig, build_tiny_llava
+
+        hf_model, processor = build_tiny_llava(TinyLlavaConfig())
+        return LlavaLensModel(hf_model, processor)
+    return LlavaLensModel.from_pretrained(
+        dtype=torch.bfloat16, device="cuda", local_files_only=True
+    )
 
 
 def mask_composition(model, samples, tags, skip_first: int, max_seq_len: int) -> dict[str, dict]:
@@ -105,7 +121,7 @@ def main() -> int:
     heldout = read_manifest(args.heldout_manifest)
     if args.limit:
         heldout = heldout[: args.limit]
-    model = LlavaLensModel.from_pretrained(dtype=torch.bfloat16, device="cuda", local_files_only=True)
+    model = load_model(args)
     report: dict[str, object] = {
         "heldout_manifest": args.heldout_manifest,
         "n_heldout_samples": len(heldout),
@@ -165,10 +181,10 @@ def main() -> int:
         for key, entry in halves.items():
             if not isinstance(entry, dict) or "rows" not in entry:
                 continue
-            near = [row for row in entry["rows"] if row["layer"] in (28, 29, 30, 31)]
+            near = sorted(entry["rows"], key=lambda row: row["layer"])[-4:]
             print(
                 f"{key:<18} n_prompts={entry['n_prompts']:<4} "
-                f"L31 rank={[round(r['mean_rank_true'], 1) for r in near][-1]} "
+                f"top rank={[round(r['mean_rank_true'], 1) for r in near][-1]} "
                 f"kl={[round(r['mean_kl'], 3) for r in near][-1]}"
             )
 

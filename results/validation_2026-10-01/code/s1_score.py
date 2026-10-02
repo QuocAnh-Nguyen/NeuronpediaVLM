@@ -21,6 +21,7 @@ import gc
 import json
 import math
 import sys
+import time
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[3]
@@ -60,6 +61,18 @@ def parse_args() -> argparse.Namespace:
         type=float,
         default=1e-2,
         help="absolute FD step; keep small against the model's residual RMS",
+    )
+    parser.add_argument(
+        "--fd-min-free-mib",
+        type=int,
+        default=32000,
+        help="free GPU memory the FD model waits for before falling back to CPU",
+    )
+    parser.add_argument(
+        "--fd-wait-minutes",
+        type=int,
+        default=60,
+        help="how long to wait for that window before the CPU fallback",
     )
     parser.add_argument("--max-seq-len", type=int, default=1536)
     parser.add_argument("--skip-fd", action="store_true")
@@ -298,10 +311,30 @@ def main() -> int:
         print("\n== finite-difference check (ii) ==")
         fd_dtype = torch.float32 if args.fd_dtype == "float32" else torch.bfloat16
         fd_layers = [int(part) for part in args.fd_layers.split(",") if part.strip()]
-        # The fp32 FD model (~29 GiB) does not fit while the box's co-tenant holds most of
-        # the H100. Falling back to CPU keeps the gate honest instead of failing it on
-        # environmental OOM: 1 sample, 4 rows, 5 layers - minutes on the 263 GiB host.
+        # The fp32 FD model (~29 GiB) needs a real window on this shared GPU. Waiting beats
+        # the CPU fallback: the estimator's ceil(d_model/dim_batch) chunk-backwards on a 7B
+        # fp32 CPU model take hours, not the minutes a forward-only check would (measured
+        # 2026-10-02: the CPU path was entered under a 90 MiB window and had to be killed).
         fd_device = args.fd_device
+        if fd_device == "cuda":
+            waited = 0
+            while True:
+                free_mib = torch.cuda.mem_get_info()[0] // (1024 * 1024)
+                if free_mib >= args.fd_min_free_mib:
+                    break
+                if waited >= args.fd_wait_minutes * 60:
+                    print(
+                        f"no {args.fd_min_free_mib} MiB window after {waited // 60} min "
+                        f"(free={free_mib} MiB) - falling back to CPU"
+                    )
+                    fd_device = "cpu"
+                    break
+                print(
+                    f"waiting for GPU memory: free={free_mib} MiB < "
+                    f"{args.fd_min_free_mib} MiB ({waited // 60}/{args.fd_wait_minutes} min)"
+                )
+                time.sleep(30)
+                waited += 30
         try:
             fd_model = LlavaLensModel.from_pretrained(
                 dtype=fd_dtype, device=fd_device, local_files_only=True
