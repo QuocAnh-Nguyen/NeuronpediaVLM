@@ -1,0 +1,43 @@
+{
+  "dim_batch": 8,
+  "masks": "text,image,all",
+  "layers": "all below target",
+  "dtype": "bfloat16",
+  "image_seq_length": 576,
+  "n_layers": 32,
+  "d_model": 4096,
+  "image": {
+    "manifest": "/data/vlm-lens/validation/step0/manifest-fit.jsonl",
+    "n": 1,
+    "skip_first": 1,
+    "seconds_per_sample": [
+      288.2
+    ],
+    "mean_seconds": 288.2,
+    "peak_gib": 36.39,
+    "projection_hours": {
+      "30": 2.4,
+      "50": 4.0,
+      "100": 8.0,
+      "200": 16.01,
+      "500": 40.02
+    }
+  },
+  "text": {
+    "manifest": "/data/vlm-lens/validation/step0/manifest-text-fit.jsonl",
+    "n": 1,
+    "skip_first": 16,
+    "seconds_per_sample": [
+      85.9
+    ],
+    "mean_seconds": 85.9,
+    "peak_gib": 19.88,
+    "projection_hours": {
+      "30": 0.72,
+      "50": 1.19,
+      "100": 2.39,
+      "200": 4.77,
+      "500": 11.93
+    }
+  }
+}

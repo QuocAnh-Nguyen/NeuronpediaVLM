@@ -1,0 +1,312 @@
+{
+  "label": "validation_2026-10-01",
+  "run_dir": "/data/vlm-lens/validation",
+  "code_dir": "/home/nvidia-lab/ai4life/phuongnh/vlm-lens/results/validation_2026-10-01/code",
+  "n_artifacts": 15,
+  "csv_rows": 19267,
+  "artifacts": [
+    {
+      "path": "s1-text/artifacts/provenance.json",
+      "bytes": 3052,
+      "sha256": "9b9899f107fda7937cb93614399805d584834533472655c3c11e159d20b001eb",
+      "parse": "ok",
+      "top_level": [
+        "artifacts",
+        "corpus",
+        "created_utc",
+        "environment",
+        "estimator",
+        "extra",
+        "fit_config",
+        "manifest",
+        "masks",
+        "model",
+        "n_prompts",
+        "notes",
+        "provenance_version",
+        "tasks"
+      ]
+    },
+    {
+      "path": "step0/corpus-split.json",
+      "bytes": 12958,
+      "sha256": "16dec63989c13192d2688431daadc16bf51c543f1afbca725892514d696acf1c",
+      "parse": "ok",
+      "top_level": [
+        "fit_images",
+        "fit_manifest",
+        "fit_meta",
+        "half_a_questions",
+        "half_b_questions",
+        "held_out_images",
+        "heldout_manifest",
+        "heldout_meta",
+        "images_dir",
+        "seed"
+      ]
+    },
+    {
+      "path": "step0/cost.json",
+      "bytes": 855,
+      "sha256": "42f1f4e1582b60ebf3d60fb7cd6fae3e09ef1507072e2c486c4d2b54246127d9",
+      "parse": "ok",
+      "top_level": [
+        "d_model",
+        "dim_batch",
+        "dtype",
+        "image",
+        "image_seq_length",
+        "layers",
+        "masks",
+        "n_layers",
+        "text"
+      ]
+    },
+    {
+      "path": "step0/manifest-fit.jsonl",
+      "bytes": 101213,
+      "sha256": "b4337ec5e41192a5b5980ae7a6992087ce09b619d3dfd40c51172b32acc0a9ee",
+      "parse": "ok",
+      "top_level": "list[101]"
+    },
+    {
+      "path": "step0/manifest-heldout.jsonl",
+      "bytes": 291677,
+      "sha256": "14b7b50009b93e1821773b697efe64e057c87ec213350f92d5c62f083a987784",
+      "parse": "ok",
+      "top_level": "list[301]"
+    },
+    {
+      "path": "step0/manifest-text-fit.jsonl",
+      "bytes": 112877,
+      "sha256": "ca19ae7e73580228bcece5cf7da5bb5a129d5bf8b650c3312ed289242b3804de",
+      "parse": "ok",
+      "top_level": "list[101]"
+    },
+    {
+      "path": "step0/manifest-text-heldout.jsonl",
+      "bytes": 31628,
+      "sha256": "f02a4c163f3174044dd8fd0e84f4c6794cf735cc9d2c4bef6348bfc951dbc0e6",
+      "parse": "ok",
+      "top_level": "list[31]"
+    },
+    {
+      "path": "step0/text-corpus.json",
+      "bytes": 594,
+      "sha256": "ed61ee9c24d72bdc6dd5e16d9c0842d70e0b194fbe2c6f777161654d902156ac",
+      "parse": "ok",
+      "top_level": [
+        "fit",
+        "heldout"
+      ]
+    },
+    {
+      "path": "step1/x3_norms.json",
+      "bytes": 448837,
+      "sha256": "2045fa35ae37fc335cf5104defc4147e6a39e5eb3be8ae1e35ab5aa899b58b15",
+      "parse": "ok",
+      "top_level": [
+        "layers",
+        "n_samples",
+        "per_sample",
+        "verdict"
+      ]
+    },
+    {
+      "path": "step1/x6_dtype.json",
+      "bytes": 3112,
+      "sha256": "71b366eedda632d2cbd84b86fe952412969dd5f41863fe9fee18bb4617c2f371",
+      "parse": "ok",
+      "top_level": [
+        "labels",
+        "masks",
+        "verdict"
+      ]
+    },
+    {
+      "path": "step2/s1_score.json",
+      "bytes": 25759,
+      "sha256": "e11edcf200798de830cb9b807d05db6d6230e1c2a3f39f8620e7f82b410d363c",
+      "parse": "ok",
+      "top_level": [
+        "chance_mean_rank",
+        "check_i_identity_max_abs_diff",
+        "checks",
+        "comparison",
+        "fit_provenance",
+        "frequency_control",
+        "heldout_manifest",
+        "j_lens",
+        "layers",
+        "lens_dir",
+        "logit_lens",
+        "mask",
+        "n_heldout",
+        "n_prompts",
+        "skip_first",
+        "uniform_mean_kl",
+        "vocab_size"
+      ]
+    },
+    {
+      "path": "step3/manifest-half-a.jsonl",
+      "bytes": 45307,
+      "sha256": "a0eea3df54773432ef2d12d23d1b326b78547f8349c4ede61e924258a28d4539",
+      "parse": "ok",
+      "top_level": "list[51]"
+    },
+    {
+      "path": "step3/manifest-half-b.jsonl",
+      "bytes": 53008,
+      "sha256": "91b1e93e9aff53f626a3328c1ffe08fbdd32226feaab0881139ff48fc0dde97f",
+      "parse": "ok",
+      "top_level": "list[51]"
+    },
+    {
+      "path": "x6-bf16/artifacts/provenance.json",
+      "bytes": 7988,
+      "sha256": "0398e0239a0fec28c14a0e09785fbfd96e9003fe05e7b4f1b7d65a640df668a5",
+      "parse": "ok",
+      "top_level": [
+        "artifacts",
+        "corpus",
+        "created_utc",
+        "environment",
+        "estimator",
+        "extra",
+        "fit_config",
+        "manifest",
+        "masks",
+        "model",
+        "n_prompts",
+        "notes",
+        "provenance_version",
+        "tasks"
+      ]
+    },
+    {
+      "path": "x6-fp32/artifacts/provenance.json",
+      "bytes": 8048,
+      "sha256": "5cff094793ad945dfd9e54ac8a597e9732ac3c93feecec400920cc60a662d293",
+      "parse": "ok",
+      "top_level": [
+        "artifacts",
+        "corpus",
+        "created_utc",
+        "environment",
+        "estimator",
+        "extra",
+        "fit_config",
+        "manifest",
+        "masks",
+        "model",
+        "n_prompts",
+        "notes",
+        "provenance_version",
+        "tasks"
+      ]
+    }
+  ],
+  "code": [
+    {
+      "path": "reclaim_and_launch.sh",
+      "sha256": "c6e6764c87b0c9bd64c7808c7abc00bc7bc3903b01bf52816ce23726353bab58"
+    },
+    {
+      "path": "run_campaign.sh",
+      "sha256": "18ce69249b22a41955d24861e6fb0e7f46429240152541e22706ec0d465cfa77"
+    },
+    {
+      "path": "run_rest.sh",
+      "sha256": "c374811a176079b9aca00b44d3d74a1e771857a6db8ff9bb4eebd9c808f511a5"
+    },
+    {
+      "path": "run_step0.sh",
+      "sha256": "96e2a349378412de168805cf247250f77e087759fde94f5c2d0ae5796811a441"
+    },
+    {
+      "path": "run_step1.sh",
+      "sha256": "70c9e27914cbcbc0bfe899944183db0b85600e3b40ec64ae33931b72045d8083"
+    },
+    {
+      "path": "run_step2.sh",
+      "sha256": "51679a4cfaf494f0834625710e79bca32404ee22faf6c852c62900946d50e8cb"
+    },
+    {
+      "path": "run_step3.sh",
+      "sha256": "47c393efefe7e6bb17c0b8c1f595886f45ed5d9a7d2c004ffc0bda3f5133bcf3"
+    },
+    {
+      "path": "run_step4.sh",
+      "sha256": "1d9e16579aa49a9b4744c2bb5e2b66af6db3f0ac4a84b84f4a8f61a7676d256a"
+    },
+    {
+      "path": "run_step5_x4.sh",
+      "sha256": "ee3b7ed614ce2a0060e2dbcd4434ec0517bd3858069e0ceeb0dad958d174dfb4"
+    },
+    {
+      "path": "run_x6_fp32.sh",
+      "sha256": "4f443ddd1a1f5fd83ed31eb967c6dcd254d589ce9bed85ed0f385fe3a68f0a03"
+    },
+    {
+      "path": "run_x6_retry.sh",
+      "sha256": "68bdffbe51e0042e0d90c9e683d420524ffe078dadbea8ff181637cbf2759caf"
+    },
+    {
+      "path": "test_supervisors.sh",
+      "sha256": "c039df5278b56dde4d4f09214e66e23c351524f2f9963251cda125e27ae251ee"
+    },
+    {
+      "path": "measure_cost.py",
+      "sha256": "8de6f3d9b9e95e6fbe4976cbcc424e11d63bacd8ba0bc8f0cda78c2a4061110f"
+    },
+    {
+      "path": "s0_corpus.py",
+      "sha256": "f9db247c2ea1b0753f006d28cff16bc9cb7aa9290f61bb918bb96da248682218"
+    },
+    {
+      "path": "s1_corpus.py",
+      "sha256": "be2d7866cdf42b651c113becb0263e4737f290ff7894ee5e3448d531feac7206"
+    },
+    {
+      "path": "s1_score.py",
+      "sha256": "7dfb5b2a01d9433ad0fd34b018870f09d88b7c752b7fec24b8da99ce87d6865a"
+    },
+    {
+      "path": "s2_eval.py",
+      "sha256": "4196af4626a864f530ce250847d08178c310c11097929b017eb68e3a58eef2c5"
+    },
+    {
+      "path": "smoke_analysis.py",
+      "sha256": "78be45018c265e869cd696241c741ee42d1e4b0be44bd6cfd664e8322b9da1bc"
+    },
+    {
+      "path": "split_halves.py",
+      "sha256": "7b6d8ff3b70af80de2ee41d99b8b665fbda96e7ae73713c5452b06120dfbd69a"
+    },
+    {
+      "path": "test_analysis_logic.py",
+      "sha256": "f5d5aa92c2955cd6ae093a3e4f6e36b5a31e49a1eb4745fb48b0e90d0428be3d"
+    },
+    {
+      "path": "x1_compare.py",
+      "sha256": "43ccd50c5fea29736cc3c240825c3361e59df13bc5662311475eadac3c619581"
+    },
+    {
+      "path": "x3_census.py",
+      "sha256": "ee47fb2496f3c6359bb0aebb5a29e9a54ea3a9f1b8840dcfb8d9cc377f939641"
+    },
+    {
+      "path": "x4_eval.py",
+      "sha256": "7ffd0173597ae438b1bc6ef11275b53b70339c22ab629cf3fca3a018428a7477"
+    },
+    {
+      "path": "x6_compare.py",
+      "sha256": "bafe026a480b696e8f09319c4fe74dd2fbef0c5e8b32f4dedf9f6710e90dc4eb"
+    },
+    {
+      "path": "x7_x9_interventions.py",
+      "sha256": "9c7313b15caee0c2ce9705e3c819f401071e4f6b39d130753568eba03d9680d3"
+    }
+  ]
+}

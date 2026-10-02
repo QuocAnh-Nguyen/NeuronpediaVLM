@@ -1,0 +1,134 @@
+{
+  "labels": [
+    "bf16",
+    "fp32"
+  ],
+  "masks": {
+    "all": {
+      "n_prompts": [
+        8,
+        8
+      ],
+      "per_layer": {
+        "0": {
+          "rel_frobenius": 0.20132,
+          "cosine": 0.98143,
+          "best_scale": 0.97213,
+          "rel_after_scale": 0.1994
+        },
+        "8": {
+          "rel_frobenius": 0.03708,
+          "cosine": 1.001379,
+          "best_scale": 0.99818,
+          "rel_after_scale": 0.03701
+        },
+        "16": {
+          "rel_frobenius": 0.01201,
+          "cosine": 1.001967,
+          "best_scale": 0.99932,
+          "rel_after_scale": 0.01198
+        },
+        "24": {
+          "rel_frobenius": 0.00554,
+          "cosine": 1.002516,
+          "best_scale": 0.9996,
+          "rel_after_scale": 0.00552
+        },
+        "30": {
+          "rel_frobenius": 0.00216,
+          "cosine": 1.004122,
+          "best_scale": 1.00036,
+          "rel_after_scale": 0.00213
+        }
+      },
+      "median_rel": 0.01201,
+      "max_rel": 0.20132
+    },
+    "image": {
+      "n_prompts": [
+        8,
+        8
+      ],
+      "per_layer": {
+        "0": {
+          "rel_frobenius": 0.0435,
+          "cosine": 1.000944,
+          "best_scale": 0.99789,
+          "rel_after_scale": 0.04343
+        },
+        "8": {
+          "rel_frobenius": 0.03848,
+          "cosine": 1.001417,
+          "best_scale": 0.99833,
+          "rel_after_scale": 0.03843
+        },
+        "16": {
+          "rel_frobenius": 0.01264,
+          "cosine": 1.001918,
+          "best_scale": 0.9993,
+          "rel_after_scale": 0.01261
+        },
+        "24": {
+          "rel_frobenius": 0.00587,
+          "cosine": 1.002377,
+          "best_scale": 0.99959,
+          "rel_after_scale": 0.00585
+        },
+        "30": {
+          "rel_frobenius": 0.00233,
+          "cosine": 1.004053,
+          "best_scale": 1.00039,
+          "rel_after_scale": 0.0023
+        }
+      },
+      "median_rel": 0.01264,
+      "max_rel": 0.0435
+    },
+    "text": {
+      "n_prompts": [
+        8,
+        8
+      ],
+      "per_layer": {
+        "0": {
+          "rel_frobenius": 0.49187,
+          "cosine": 0.882789,
+          "best_scale": 0.89701,
+          "rel_after_scale": 0.48097
+        },
+        "8": {
+          "rel_frobenius": 0.03986,
+          "cosine": 1.001225,
+          "best_scale": 0.99212,
+          "rel_after_scale": 0.03906
+        },
+        "16": {
+          "rel_frobenius": 0.01479,
+          "cosine": 1.002296,
+          "best_scale": 0.99825,
+          "rel_after_scale": 0.01467
+        },
+        "24": {
+          "rel_frobenius": 0.00921,
+          "cosine": 1.003221,
+          "best_scale": 0.99922,
+          "rel_after_scale": 0.00917
+        },
+        "30": {
+          "rel_frobenius": 0.00465,
+          "cosine": 1.004392,
+          "best_scale": 0.99994,
+          "rel_after_scale": 0.00465
+        }
+      },
+      "median_rel": 0.01479,
+      "max_rel": 0.49187
+    }
+  },
+  "verdict": {
+    "worst_median_rel": 0.01479,
+    "worst_max_rel": 0.49187,
+    "use_fp32": true,
+    "rule": "fp32 if median > 0.03 or max > 0.1"
+  }
+}

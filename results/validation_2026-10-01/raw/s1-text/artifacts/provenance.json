@@ -1,0 +1,154 @@
+{
+  "artifacts": {
+    "all": {
+      "dtype": "torch.float16",
+      "file": "lens-all.pt",
+      "n_prompts": 100,
+      "sha256": "133a494ded1a55a0f3add9e000c091d7c9e0ed42e90430868209ea715def68cb",
+      "source_layers": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30
+      ]
+    }
+  },
+  "corpus": {
+    "corpus": "wikitext",
+    "max_tokens": 1536,
+    "min_chars": 600,
+    "n_dropped_over_length": 0,
+    "n_samples": 100,
+    "source_path": null,
+    "split": "train",
+    "version": 1
+  },
+  "created_utc": "2026-10-02T06:02:49+00:00",
+  "environment": {
+    "jlens_vendored_commit": "581d398613e5602a5af361e1c34d3a92ea82ba8e",
+    "jlens_vendored_dir": "/home/nvidia-lab/ai4life/phuongnh/vlm-lens/third_party/jacobian-lens",
+    "platform": "Linux-6.8.0-117-generic-x86_64-with-glibc2.39",
+    "python": "3.13.15",
+    "torch": "2.5.1+cu121",
+    "transformers": "5.17.0",
+    "vlm_lens_commit": "fc12c2641bf55787954d6e394969a0c98df1709e"
+  },
+  "estimator": "reference jlens: sum over later target positions, mean over source positions",
+  "extra": {
+    "allow_tf32": false,
+    "backend": "hf-llava",
+    "drop_rate": 0.0,
+    "model_id": "llava-hf/llava-1.5-7b-hf",
+    "n_samples_seen": 100,
+    "n_skipped": 0,
+    "prompt_template_sha256": null,
+    "skipped_examples": [],
+    "wall_seconds": 51.3
+  },
+  "fit_config": {
+    "dim_batch": 8,
+    "masks": [
+      "all"
+    ],
+    "max_seq_len": 1536,
+    "n_samples": 100,
+    "shard": [
+      0,
+      1
+    ],
+    "skip_first": 16,
+    "source_layers": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30
+    ],
+    "target_layer": 31,
+    "target_mask": "all"
+  },
+  "manifest": {
+    "path": "/data/vlm-lens/validation/step0/manifest-text-fit.jsonl",
+    "sha256": "ca19ae7e73580228bcece5cf7da5bb5a129d5bf8b650c3312ed289242b3804de"
+  },
+  "masks": [
+    "all"
+  ],
+  "model": {
+    "class": "LlavaForConditionalGeneration",
+    "d_model": 4096,
+    "image_seq_length": 576,
+    "image_seq_length_source": "config",
+    "image_token_id": 32000,
+    "model_type": "llava",
+    "n_layers": 32,
+    "name_or_path": "llava-hf/llava-1.5-7b-hf",
+    "vision_feature_layer": -2,
+    "vision_feature_select_strategy": "default",
+    "vision_hidden_size": 1024,
+    "vision_image_size": 336,
+    "vision_model_type": "clip_vision_model",
+    "vision_patch_size": 14
+  },
+  "n_prompts": {
+    "all": 100
+  },
+  "notes": "S1 WikiText-103 train, skip_first=16, bf16",
+  "provenance_version": 1,
+  "tasks": [
+    "manifest"
+  ]
+}

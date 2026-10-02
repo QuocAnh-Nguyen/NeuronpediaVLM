@@ -1,0 +1,32 @@
+{
+  "fit": {
+    "version": 1,
+    "n_samples": 100,
+    "corpus": "wikitext",
+    "source_path": null,
+    "min_chars": 600,
+    "split": "train",
+    "max_tokens": 1536,
+    "n_dropped_over_length": 0,
+    "token_lengths": {
+      "min": 139,
+      "median": 242,
+      "max": 568
+    }
+  },
+  "heldout": {
+    "version": 1,
+    "n_samples": 30,
+    "corpus": "wikitext",
+    "source_path": null,
+    "min_chars": 600,
+    "split": "validation",
+    "max_tokens": 1536,
+    "n_dropped_over_length": 0,
+    "token_lengths": {
+      "min": 124,
+      "median": 241,
+      "max": 400
+    }
+  }
+}

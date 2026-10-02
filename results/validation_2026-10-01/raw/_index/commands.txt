@@ -1,0 +1,24 @@
+run_campaign.sh: run_guarded 22000 x7x9 "$P" "$CODE/x7_x9_interventions.py" --lens-dir "$RUN/s2-merged/artifacts" \
+run_rest.sh: "$P" "$CODE/x7_x9_interventions.py" --lens-dir "$RUN/s2-merged/artifacts" \
+run_step0.sh: "$P" "$CODE/s0_corpus.py" --images-dir "$IMAGES" --out "$RUN/step0" || { echo S0_FAILED; exit 1; }
+run_step0.sh: "$P" "$CODE/s1_corpus.py" --out "$RUN/step0" || { echo S1_FAILED; exit 1; }
+run_step0.sh: "$P" "$CODE/measure_cost.py" \
+run_step0.sh: "$P" "$CODE/x3_census.py" --manifest "$RUN/step0/manifest-fit.jsonl" \
+run_step1.sh: "$P" scripts/check_equivalence.py --backend hf-llava --model llava-hf/llava-1.5-7b-hf \
+run_step1.sh: "$P" scripts/fit_llava.py --backend hf-llava --manifest "$RUN/step0/manifest-fit.jsonl" \
+run_step1.sh: "$P" scripts/fit_llava.py --backend hf-llava --manifest "$RUN/step0/manifest-fit.jsonl" \
+run_step1.sh: "$P" "$CODE/x6_compare.py" --dir-a "$RUN/x6-bf16/artifacts" --dir-b "$RUN/x6-fp32/artifacts" \
+run_step2.sh: "$P" scripts/fit_llava.py --backend hf-llava --manifest "$RUN/step0/manifest-text-fit.jsonl" \
+run_step2.sh: "$P" "$CODE/s1_score.py" --lens-dir "$RUN/s1-text/artifacts" --mask all \
+run_step3.sh: "$P" "$CODE/split_halves.py" --manifest "$RUN/step0/manifest-fit.jsonl" \
+run_step3.sh: "$P" scripts/fit_llava.py --backend hf-llava --manifest "$RUN/step3/manifest-half-$half.jsonl" \
+run_step3.sh: "$P" scripts/fit_llava.py --merge "$RUN/s2-half-a" "$RUN/s2-half-b" \
+run_step3.sh: "$P" "$CODE/s2_eval.py" --main-lens-dir "$RUN/s2-merged/artifacts" \
+run_step4.sh: "$P" scripts/fit_llava.py --backend hf-llava --manifest "$RUN/step3/manifest-half-a.jsonl" \
+run_step4.sh: "$P" "$CODE/x1_compare.py" --dir-all "$RUN/x1-all/artifacts" --dir-text "$RUN/x1-text/artifacts" \
+run_step5_x4.sh: "$P" scripts/fit_llava.py --backend hf-llava --manifest "$RUN/step3/manifest-half-a.jsonl" \
+run_step5_x4.sh: "$P" "$CODE/x4_eval.py" --variants "${VARIANTS[@]}" \
+run_x6_fp32.sh: "$P" scripts/fit_llava.py --backend hf-llava --manifest "$RUN/step0/manifest-fit.jsonl" \
+run_x6_fp32.sh: "$P" "$CODE/x6_compare.py" --dir-a "$RUN/x6-bf16/artifacts" --dir-b "$RUN/x6-fp32/artifacts" \
+run_x6_retry.sh: if ! pgrep -f 'run_res[t].sh|run_ste[p]2.sh|run_ste[p]3.sh|run_ste[p]4.sh|run_x7x[9].sh|run_campaign[.]sh|fit_llav[a].py' >/dev/null; then
+test_supervisors.sh: KILL) echo "$0: line 40: 12345 Killed  python scripts/fit_llava.py";;

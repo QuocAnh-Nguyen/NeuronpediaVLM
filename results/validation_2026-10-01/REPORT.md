@@ -7,9 +7,23 @@ refers to the assumption register [`docs/jlens-vlm-assumptions.md`](../../docs/j
 
 Status legend: ✅ done · ⏳ running · ⛔ not run (with reason).
 
-## 0. Headline (PENDING — fill as steps complete)
+## 0. Headline
 
-<!-- PENDING: one-paragraph verdict per experiment X1, X3, X6, X7, X8, X9 and the S1 gate. -->
+<!-- PENDING for S2, X1, X2, X7, X8, X9 (entries below are final). -->
+
+* **X3 (census)**: the leading positions are not sink-like (`pos_1_16_sink_like=false`) and BOS
+  is the massive-activation outlier, so `skip_first=1` stands (M14, `step1/x3_norms.json`).
+* **X6 (dtype)**: bf16 and fp32+TF32 Jacobians agree to ≤1.5 % per-layer *medians*, but the
+  worst cells are real disagreements - 20.1 % (`all`) and 49.2 % (`text`) at L0, the text/L0
+  cell also dropping to cosine 0.88, and a single best-fit scale does not absorb any of it.
+  The pre-registered rule fires → production fits are fp32+TF32 (1.13× bf16); S1's finished
+  bf16 lens stays as a recorded deviation (D18).
+* **S1 gate**: validity checks pass on the real checkpoint - identity exact `0.0`, depth trend
+  885.54 → 27.31 mean true-token rank, last-layer rank diff `0.0`, frequency control equal to
+  the model at L31 - while the strict per-layer middle criterion fails: the J-lens loses to the
+  plain logit lens at L17-24 (+99..+813 ranks) and wins at L2-16 and L26-30. Conditional pass,
+  finding recorded (D19); the finite-difference row (ii) lands with the re-run.
+* **Not yet**: S2 / X1 / X2 / X7 / X8 / X9 ⏳.
 
 ## 1. Setup
 
@@ -76,7 +90,7 @@ keeps the paper's 16, and the conditional **X4 boundary sweep was not run** (tri
 D6). X4's chain is committed (`code/run_step5_x4.sh`) for a future run if the boundary is
 ever questioned again.
 
-## 3. Step 1 — X6: bf16 vs fp32 fit ✅⏳
+## 3. Step 1 — X6: bf16 vs fp32 fit ✅
 
 Design: the same first 8 COCO fit samples (`step0/manifest-fit.jsonl`), layers
 `0,8,16,24,30`, target 31, masks `text,image,all`, `skip_first=1`, `max_seq_len=1536`,
@@ -86,12 +100,18 @@ removal); verdict rule: switch production to fp32/tf32 iff rel Δ ≳ a few %.
 
 * bf16 leg ✅ 8/8 samples, 0 skipped, `wall_seconds=2205.8`
   (`/data/vlm-lens/validation/x6-bf16/artifacts/provenance.json`).
-* fp32 leg ⏳ TF32 (D10): true fp32 ran 2 h 10 min without finishing 4 samples and was
-  killed; the TF32 re-run then OOMed during weight load because the co-tenant held
-  ~57 GiB (D11). `code/run_x6_retry.sh` waits for the campaign to go idle and retries
-  under a ≥45 GiB free-memory guard (`run_x6_fp32.sh` exits 3 and is retried).
+* fp32 leg ✅ TF32 (D10): true fp32 ran 2 h 10 min without finishing 4 samples and was
+  killed; the TF32 re-run OOMed once during weight load (co-tenant at ~57 GiB, D11) and then
+  completed under the retry guard - 8/8 samples, `wall_seconds=2486.5`, `extra.allow_tf32=true`
+  (`/data/vlm-lens/validation/x6-fp32/artifacts/provenance.json`).
 
-<!-- PENDING: x6_dtype.json numbers + verdict (switch production fit to fp32/tf32 iff rel Δ ≳ few %). -->
+**Measured** (`step1/x6_dtype.json`, 5 layers × 3 masks, 8 image samples per leg): per-layer
+`rel_frobenius` medians are 1.20 % (`all`), 1.26 % (`image`), 1.48 % (`text`); the worst cells
+are L0 - 20.1 % (`all`), 4.4 % (`image`), 49.2 % (`text`, cosine there 0.88, and
+`rel_after_scale` 48.1 %, i.e. not a scale artefact). Verdict under the pre-registered rule
+(`fp32 if median > 3 % or max > 10 %`): `use_fp32 = true` (max 49.2 %), at 1.13× the bf16
+wall time (2486.5 s vs 2205.8 s for the same 8 samples) → S2/X1 fit fp32+TF32, S1's existing
+bf16 lens stays (D18). Cosine is 0.98+ everywhere except that one text/L0 cell.
 
 ## 4. Step 2 — S1: text-only control fit ✅⏳
 
@@ -108,8 +128,9 @@ prompts, tag `text`:
   runs died on an all-dims perturbation `IndexError`, D18) — the FD model runs fp32 because
   bf16 cannot resolve the perturbation.
 
-**Measured** (2026-10-02, `step2/s1_score.json`, 30-sample held-out WikiText shard, tag
-`text`, lens `s1-attempt1`): identity check exact `0.0`; held-out mean true-token rank 885.54
+**Measured** (2026-10-02, `step2/s1_score.json`, 30-sample held-out WikiText shard, scored
+mask `all` - the corpus has no image tokens, so `text` ≡ `all` - lens `s1-attempt1`): identity
+check exact `0.0`; held-out mean true-token rank 885.54
 at L16 against 27.31 at L31 (the model's own 27.31); last-layer top-1-in-top-50 and mean rank
 equal the model's (0.450 / 27.3, frequency control). The J-lens beats the plain logit lens at
 L2-16 (L14: 1101.2 vs 5178.4) and L26-30 (L30: 46.5 vs 75.2) but loses at L17, 20, 21, 23, 24
@@ -253,9 +274,11 @@ dim_batch 8, checkpoint every 5):
 Steps 2-4 actuals are ⏳ (not completed); the S1 and X6 rows above are measured, and every
 failed attempt's GPU time is included in its row.
 
-State 2026-10-02T04:45Z [measured]: S1's bf16 fit is complete, so its row above is now only the
-scoring + FD pass; X6's verdict moved S2/X1 to fp32+TF32; the relaunched campaign is waiting
-for the next ≥28 GiB window (the co-tenant held ~63 GiB, 17.8 GiB free).
+State 2026-10-02T07:35Z [measured]: S1's bf16 fit is complete; its step now needs the scoring
+re-run (with the repaired FD check) and the fp32 FD model's window wait. X6's verdict moved
+S2/X1 to fp32+TF32. The relaunched campaign (06:50Z) is waiting for a ≥28 GiB window; free
+VRAM has held at 17.75 GiB for hours, and an out-of-band watcher holds the L24 census for the
+first ≥22 GiB window (it publishes by rename, so X7/X9 only ever read a complete file).
 
 ## 10. Reproduction appendix
 
@@ -281,8 +304,12 @@ bash results/validation_2026-10-01/code/run_step2.sh
 bash results/validation_2026-10-01/code/run_step3.sh
 # 4. X1 target-mask shard pair + bit-level check
 bash results/validation_2026-10-01/code/run_step4.sh
-# 5. (conditional) X4 skip_first sweep
+# 5. (conditional) X4 skip_first sweep - not triggered, X3 found pos_1_16 not sink-like
 bash results/validation_2026-10-01/code/run_step5_x4.sh
+# 5b. X3 re-census including L24 (feeds the X7/X9 alpha units; the live campaign's in-memory
+#     script predates this insertion, so it runs out-of-band: 22 GiB guard, 3 attempts,
+#     atomic publish by rename)
+bash /tmp/x3_recensus_watch.sh
 # 6. X7 conditioning + X9 edit sweep (needs a fitted lens dir + X3 norms)
 python results/validation_2026-10-01/code/x7_x9_interventions.py \
     --lens-dir /data/vlm-lens/validation/s2-merged/artifacts \
