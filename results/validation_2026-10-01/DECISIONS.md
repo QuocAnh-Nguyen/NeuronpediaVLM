@@ -318,3 +318,15 @@ in-process gate now marks the missing criterion as `not_measured` and reports `P
 the measured criteria plus `PASS_complete`, so a skipped FD can never masquerade as a
 failed check. If no window ever comes, the report states the FD row as unmeasured and
 leans on the tiny-fixture equivalence (4.4e-04 worst per-layer mean at eps=1e-5, D18).
+
+## D21 — S2/X1 drop to dim_batch 1 under 36 GiB guards; S1's guard drops to 24 GiB
+
+The co-tenant held 57-73 GiB for hours on 2026-10-02, so the chain could never see the
+windows its 55 GiB guards required. dim_batch scales activations, not math (F11/D13), so
+S2/X1 now run `DIMBATCH=1` under a 36 GiB guard (~29 GiB fp32 weights plus ~1-2 GiB
+activations, validated 36.4 GiB at dim_batch 8 in step 0) and S1's step runs under a 24 GiB
+guard (~16 GiB bf16 weights). `run_step4.sh` now takes the knob from the environment. The
+supervisor was restarted in place (v3, 12:43:53Z) while it slept inside `need_free` - no GPU
+was held and no partial work existed, so nothing was lost. The bf16 fallback in the report's
+schedule contingency is demoted to a last resort: it would trade the pre-registered dtype
+verdict, which dim_batch does not.

@@ -89,15 +89,18 @@ run_guarded() {  # $1 = MiB threshold, $2 = label, rest = command
 echo "=== run_campaign started $(date -Is) free=$(free_mib)MiB dim_batch_default=$DIMBATCH ==="
 
 # S1: WikiText control fit + held-out scoring/gate. dim_batch 8 (resumes the 20-sample
-# checkpoint left by the old chain; ~28 GiB peak).
-run_guarded 28000 s1 env DIMBATCH=8 bash "$CODE/run_step2.sh" || { echo CAMPAIGN_S1_FAILED; exit 1; }
+# checkpoint left by the old chain; bf16 weights ~16 GiB, ~20 GiB peak) - the guard is 24 GiB
+# so a modest window suffices (the 07:44Z attempt ran at 32.9 GiB free).
+run_guarded 24000 s1 env DIMBATCH=8 bash "$CODE/run_step2.sh" || { echo CAMPAIGN_S1_FAILED; exit 1; }
 
 # S2: two 50-sample caption half-fits + merge + held-out evaluation. fp32+TF32 weights are
-# ~29 GiB (X6 verdict use_fp32), so the guard is the fp32 leg's validated 55 GiB.
-run_guarded 55000 s2 bash "$CODE/run_step3.sh" || { echo CAMPAIGN_S2_FAILED; exit 1; }
+# ~29 GiB (X6 verdict use_fp32) and dim_batch only scales activations (identical math, D13),
+# so dim_batch 1 drops the peak to ~31 GiB: the guard is 36 GiB, not 55, which is what the
+# 2026-10-02 co-tenant (57-73 GiB held for hours) makes decisive.
+run_guarded 36000 s2 env DIMBATCH=1 bash "$CODE/run_step3.sh" || { echo CAMPAIGN_S2_FAILED; exit 1; }
 
-# X1: 20-image shard pair, 6 recorded layers each, fp32+TF32 like S2 (~29 GiB weights).
-run_guarded 55000 x1 bash "$CODE/run_step4.sh" || { echo CAMPAIGN_X1_FAILED; exit 1; }
+# X1: 20-image shard pair, 6 recorded layers each, fp32+TF32 like S2, dim_batch 1 (~31 GiB).
+run_guarded 36000 x1 env DIMBATCH=1 bash "$CODE/run_step4.sh" || { echo CAMPAIGN_X1_FAILED; exit 1; }
 
 # X3 re-census with L24 (X7/X9's upper edit layer): forwards only, so it fits a narrower window
 # than any fit. The L0/L16/L31 rows are recomputed identically (same manifest, same 50

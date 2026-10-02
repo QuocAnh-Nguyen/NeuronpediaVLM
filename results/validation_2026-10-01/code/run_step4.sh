@@ -19,7 +19,7 @@ cd "$REPO" || exit 1
 for variant in all text; do
     echo "=== X1 fit target_mask=$variant $(date -Is) ==="
     "$P" scripts/fit_llava.py --backend hf-llava --manifest "$RUN/step3/manifest-half-a.jsonl" \
-        --limit "$N_SHARD" --layers "$LAYERS" --masks text,image,all --dim-batch 8 \
+        --limit "$N_SHARD" --layers "$LAYERS" --masks text,image,all --dim-batch "${DIMBATCH:-8}" \
         --dtype float32 --allow-tf32 \
         --skip-first 1 --target-mask "$variant" --checkpoint-every 10 \
         --out "$RUN/x1-$variant" --notes "X1 shard $N_SHARD, target_mask=$variant" \
