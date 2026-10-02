@@ -22,6 +22,7 @@ call from ``vlm_lens`` so the scripts stay thin. Examples:
 from __future__ import annotations
 
 import argparse
+import logging
 import sys
 import time
 from datetime import datetime, timezone
@@ -259,6 +260,11 @@ def run_merge(args: argparse.Namespace) -> int:
 
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+        force=True,
+    )
     out_dir = Path(args.out)
     out_dir.mkdir(parents=True, exist_ok=True)
     if args.merge:
