@@ -186,6 +186,33 @@ def depth_checks(comparison: list[dict], n_layers: int) -> dict[str, object]:
     }
 
 
+def build_gate(report: dict) -> dict:
+    """The pre-registered S1 gate (D16 semantics). ``None`` means *not measured*, not failed.
+
+    With ``--skip-fd`` the finite-difference row (ii) is genuinely absent (D20), and a gate
+    that read that as ``False`` would misreport a skipped check as a failure in the
+    deliverable JSON. ``not_measured`` names such criteria, ``PASS`` covers the measured ones
+    only, and ``PASS_complete`` additionally requires that nothing is missing.
+    """
+    gate = {
+        "i_identity_exact": report["check_i_identity_max_abs_diff"] == 0.0,
+        "ii_finite_difference_ok": (
+            None
+            if "check_ii_finite_difference" not in report
+            else max(report["check_ii_finite_difference"]["per_layer_mean"].values()) <= 0.05
+        ),
+        "iii_last_layers_agree": report["checks"]["iii_last_layer_rank_diff"] <= 2.0,
+        "iv_depth_improves": report["checks"]["iv_rank_improves_with_depth"],
+        "j_not_worse_in_middle": report["checks"]["j_not_worse_in_middle"],
+    }
+    unmeasured = sorted(key for key, value in gate.items() if value is None)
+    measured_ok = all(value for value in gate.values() if value is not None)
+    gate["not_measured"] = unmeasured
+    gate["PASS"] = measured_ok
+    gate["PASS_complete"] = not unmeasured and measured_ok
+    return gate
+
+
 def main() -> int:
     args = parse_args()
     heldout = read_manifest(args.heldout_manifest)
@@ -367,26 +394,9 @@ def main() -> int:
         for layer, value in fd["per_layer_mean"].items():
             print(f"{layer}: mean relative error over rows = {value:.4f}")
 
-    gate = {
-        "i_identity_exact": report["check_i_identity_max_abs_diff"] == 0.0,
-        "ii_finite_difference_ok": (
-            None
-            if "check_ii_finite_difference" not in report
-            else max(report["check_ii_finite_difference"]["per_layer_mean"].values()) <= 0.05
-        ),
-        "iii_last_layers_agree": report["checks"]["iii_last_layer_rank_diff"] <= 2.0,
-        "iv_depth_improves": report["checks"]["iv_rank_improves_with_depth"],
-        "j_not_worse_in_middle": report["checks"]["j_not_worse_in_middle"],
-    }
-    # A None criterion means "not measured", not "failed": with --skip-fd the row (ii) is
-    # re-run out-of-band (D20), and a gate that silently read that as False would misreport it.
-    unmeasured = sorted(key for key, value in gate.items() if value is None)
-    gate["not_measured"] = unmeasured
-    gate["PASS"] = all(value for value in gate.values() if value is not None)
-    gate["PASS_complete"] = not unmeasured and gate["PASS"]
-    report["gate"] = gate
+    report["gate"] = build_gate(report)
     Path(args.json).write_text(json.dumps(report, indent=2), encoding="utf-8")
-    print(f"\ngate: {json.dumps(gate)}")
+    print(f"\ngate: {json.dumps(report['gate'])}")
     print(f"wrote {args.json}")
     return 0
 

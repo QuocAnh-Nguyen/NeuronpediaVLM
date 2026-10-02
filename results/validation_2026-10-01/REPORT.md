@@ -304,7 +304,8 @@ bash results/validation_2026-10-01/code/run_step0.sh
 
 # 0b. supervisor/guard logic regression test (no GPU; run on the server)
 bash results/validation_2026-10-01/code/test_supervisors.sh
-# 0c. analysis check logic (needs torch, no GPU/model): S1 gate (iv) trend rule
+# 0c. analysis check logic (needs torch, no GPU/model): S1 gate (iv) trend rule, the gate
+#     dict's not-measured vs failed semantics (D20), and check (ii) on the tiny fixture
 python results/validation_2026-10-01/code/test_analysis_logic.py
 # 1. equivalence gate + X6 bf16 leg (8 samples)
 bash results/validation_2026-10-01/code/run_step1.sh

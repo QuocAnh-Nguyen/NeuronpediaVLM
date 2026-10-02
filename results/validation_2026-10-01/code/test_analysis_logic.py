@@ -17,7 +17,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from s1_score import depth_checks, finite_difference_check  # noqa: E402
+from s1_score import build_gate, depth_checks, finite_difference_check  # noqa: E402
 
 
 def finite_difference_case() -> list[tuple[str, bool]]:
@@ -65,6 +65,52 @@ def finite_difference_case() -> list[tuple[str, bool]]:
     ]
 
 
+def gate_case() -> list[tuple[str, bool]]:
+    """The reported gate must tell *not measured* apart from *failed* (D20).
+
+    With ``--skip-fd`` the deliverable JSON has no finite-difference rows; a gate that read
+    the absent criterion as ``False`` would misreport a skipped check as a failure.
+    """
+
+    def report(*, fd: float | None, identity: float = 0.0, middle: bool = True) -> dict:
+        out: dict = {
+            "check_i_identity_max_abs_diff": identity,
+            "checks": {
+                "iii_last_layer_rank_diff": 0.0,
+                "iv_rank_improves_with_depth": True,
+                "j_not_worse_in_middle": middle,
+            },
+        }
+        if fd is not None:
+            out["check_ii_finite_difference"] = {"per_layer_mean": {"0": fd}}
+        return out
+
+    skipped = build_gate(report(fd=None))
+    measured = build_gate(report(fd=0.01))
+    noisy = build_gate(report(fd=0.5))
+    middle_lost = build_gate(report(fd=0.01, middle=False))
+    return [
+        (
+            "skipped FD is not_measured, not failed",
+            skipped["not_measured"] == ["ii_finite_difference_ok"],
+        ),
+        ("skipped FD passes the measured criteria", skipped["PASS"] is True),
+        ("skipped FD cannot read as complete", skipped["PASS_complete"] is False),
+        (
+            "measured FD at noise level passes and completes",
+            (measured["PASS"], measured["PASS_complete"]) == (True, True),
+        ),
+        (
+            "a real FD failure still fails the gate",
+            (noisy["PASS"], noisy["PASS_complete"], noisy["not_measured"]) == (False, False, []),
+        ),
+        (
+            "a middle-band loss fails the measured gate (S1's real verdict)",
+            middle_lost["PASS"] is False and middle_lost["not_measured"] == [],
+        ),
+    ]
+
+
 def _rows(rank_at) -> list[dict]:
     return [{"layer": layer, "rank_j": rank_at(layer)} for layer in range(32)]
 
@@ -101,6 +147,7 @@ def main() -> int:
             depth_checks(_rows(lambda layer: 10.0), 32)["iv_rank_improves_with_depth"] is False,
         ),
     ]
+    checks += gate_case()
     checks += finite_difference_case()
 
     failed = [name for name, ok in checks if not ok]
