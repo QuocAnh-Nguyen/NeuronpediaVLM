@@ -305,3 +305,16 @@ regression / flat profiles) passes locally and on the server's `vlm_truth_py313`
    for `--fd-min-free-mib` (default 32000) up to `--fd-wait-minutes` (default 60) *before* the
    fallback, printing each poll; only then does it drop to CPU. This supersedes D16's "minutes
    on the 263 GiB host" claim for the estimator leg (forward-only work would be minutes).
+
+## D20 — S1's finite-difference row is decoupled from the chain (watcher, not a stall)
+
+`s1_score.py` runs the FD check (ii) at the end of the same process, and its 60-min window
+wait plus its hours-long CPU fallback would sit *inside* the S1 step - delaying S2 (55 GiB)
+past the budget in the worst case (the co-tenant held 72 GiB at 09:55Z, free 7.9 GiB).
+`run_step2.sh` therefore scores with `--skip-fd` and the chain moves on; a separate watcher
+runs the full scoring (FD included) on the first unopposed ≥32 GiB window after S1's step
+exits, publishing `step2/s1_score.json` by rename so no reader sees a partial file. The
+in-process gate now marks the missing criterion as `not_measured` and reports `PASS` over
+the measured criteria plus `PASS_complete`, so a skipped FD can never masquerade as a
+failed check. If no window ever comes, the report states the FD row as unmeasured and
+leans on the tiny-fixture equivalence (4.4e-04 worst per-layer mean at eps=1e-5, D18).

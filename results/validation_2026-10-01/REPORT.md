@@ -136,7 +136,8 @@ equal the model's (0.450 / 27.3, frequency control). The J-lens beats the plain 
 L2-16 (L14: 1101.2 vs 5178.4) and L26-30 (L30: 46.5 vs 75.2) but loses at L17, 20, 21, 23, 24
 (+379, +813, +331, +99, +271 against the 16032.5 chance level) - so the gate verdict is FAIL
 on the strict per-layer middle criterion only; the diagnosis and the decision to proceed are
-D19. The finite-difference rows (ii) land after the fp32 FD model finds a window (D19).
+D19/D20: the finite-difference rows (ii) are measured by a decoupled watcher (D20: serialized
+behind this scoring pass, GPU if a ≥32 GiB window opens within 2 h, else a reduced CPU pass).
 
 ## 5. Step 3 — S2: on-policy caption pilot (100 images) ✅⏳
 
@@ -274,11 +275,13 @@ dim_batch 8, checkpoint every 5):
 Steps 2-4 actuals are ⏳ (not completed); the S1 and X6 rows above are measured, and every
 failed attempt's GPU time is included in its row.
 
-State 2026-10-02T07:50Z [measured]: S1's fit is complete (`fitted 1 lens(es) from 100 samples
-in 37.0s` on the 07:44 window) and the L24 census published at 07:45:26; the window was too
-tight for both at once (see §11, the 07:45 memory race), so the S1 step is requeued for its
-scoring re-run after the transient `cuda-error`, and free VRAM is back to 17.75 GiB. X6's
-verdict moved S2/X1 to fp32+TF32. Everything else waits on the next window.
+State 2026-10-02T10:05Z [measured]: S1's fit is complete and the L24 census is published
+(`layers [0, 16, 24, 31]`). The S1 step's scoring re-run is queued behind a co-tenant that
+grew to ~72 GiB held (7.9 GiB free at 09:55Z). The FD row (ii) no longer sits inside that
+step: a serialized watcher measures it after the scoring rewrites the JSON (GPU if a ≥32 GiB
+window opens within 2 h, else a reduced 3-layer CPU pass) - D20. Elapsed since the relaunch:
+3.3 h, of which the campaign actually held the GPU ~2 min (the fit resume plus the failed
+scoring's model load).
 
 ## 10. Reproduction appendix
 
@@ -310,6 +313,9 @@ bash results/validation_2026-10-01/code/run_step5_x4.sh
 #     script predates this insertion, so it runs out-of-band: 22 GiB guard, 3 attempts,
 #     atomic publish by rename)
 bash /tmp/x3_recensus_watch.sh
+# 5c. S1's finite-difference row (ii), decoupled (D20): serialized behind the scoring's JSON
+#     rewrite; full GPU run if a >=32 GiB window opens within 2 h, else a reduced CPU pass
+bash /tmp/s1_fd_watch.sh
 # 6. X7 conditioning + X9 edit sweep (needs a fitted lens dir + X3 norms)
 python results/validation_2026-10-01/code/x7_x9_interventions.py \
     --lens-dir /data/vlm-lens/validation/s2-merged/artifacts \

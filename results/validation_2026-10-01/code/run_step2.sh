@@ -20,10 +20,14 @@ echo "=== S1 fit $(date -Is) dim_batch=$DIMBATCH n_prompts=$N_PROMPTS ==="
     --checkpoint-every 5 --limit "$N_PROMPTS" --out "$RUN/s1-text" \
     --notes "S1 WikiText-103 train, skip_first=16, bf16" || { echo S1_FIT_FAILED; exit 1; }
 
-echo "=== S1 score $(date -Is) ==="
+echo "=== S1 score $(date -Is) (FD row decoupled, D20) ==="
+# --skip-fd: the fp32 FD model (~29 GiB) would otherwise sit inside this step behind its
+# window wait and then its hours-long CPU fallback, delaying S2 past the budget. A separate
+# watcher re-runs this scoring with the FD on the first unopposed >=32 GiB window after this
+# script exits (or on CPU, reduced, after 2 h), publishing step2/s1_score.json by rename.
 "$P" "$CODE/s1_score.py" --lens-dir "$RUN/s1-text/artifacts" --mask all \
     --heldout-manifest "$RUN/step0/manifest-text-heldout.jsonl" \
-    --fit-manifest "$RUN/step0/manifest-text-fit.jsonl" \
+    --fit-manifest "$RUN/step0/manifest-text-fit.jsonl" --skip-fd \
     --json "$RUN/step2/s1_score.json" || { echo S1_SCORE_FAILED; exit 1; }
 
 echo "=== step2 chain done $(date -Is) ==="

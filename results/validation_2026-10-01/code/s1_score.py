@@ -370,14 +370,20 @@ def main() -> int:
     gate = {
         "i_identity_exact": report["check_i_identity_max_abs_diff"] == 0.0,
         "ii_finite_difference_ok": (
-            "check_ii_finite_difference" in report
-            and max(report["check_ii_finite_difference"]["per_layer_mean"].values()) <= 0.05
+            None
+            if "check_ii_finite_difference" not in report
+            else max(report["check_ii_finite_difference"]["per_layer_mean"].values()) <= 0.05
         ),
         "iii_last_layers_agree": report["checks"]["iii_last_layer_rank_diff"] <= 2.0,
         "iv_depth_improves": report["checks"]["iv_rank_improves_with_depth"],
         "j_not_worse_in_middle": report["checks"]["j_not_worse_in_middle"],
     }
-    gate["PASS"] = all(gate.values())
+    # A None criterion means "not measured", not "failed": with --skip-fd the row (ii) is
+    # re-run out-of-band (D20), and a gate that silently read that as False would misreport it.
+    unmeasured = sorted(key for key, value in gate.items() if value is None)
+    gate["not_measured"] = unmeasured
+    gate["PASS"] = all(value for value in gate.values() if value is not None)
+    gate["PASS_complete"] = not unmeasured and gate["PASS"]
     report["gate"] = gate
     Path(args.json).write_text(json.dumps(report, indent=2), encoding="utf-8")
     print(f"\ngate: {json.dumps(gate)}")
