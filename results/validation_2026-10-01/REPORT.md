@@ -225,24 +225,30 @@ Spent so far ([measured] from provenance and the chain logs in `~/.vlm-lens-setu
 | --- | --- | --- |
 | Step 0 corpus + cost + X3 census | ~0.9 h | `step0_chain.log` 23:36:05 → closed 00:30 (includes the `jlens`-import re-run, D8) |
 | Equivalence gate (real checkpoint, bf16) | minutes | `step1_chain.log` 00:00:29, `[PASS]` LM stack max abs diff = 0 |
-| X6 bf16 leg (8 samples) | 0.61 h | `x6-bf16/artifacts/provenance.json`: `wall_seconds=2205.8` |
-| X6 fp32 attempts (true fp32, then TF32) | ~1.1 h | `step1_chain.log` closed 02:20 (`X6_FP32_FAILED`); the 06:48 retry OOMed; the 07:27 attempt was killed after 1 min |
-| S1 bf16 fit attempts (20 samples, then ~23 min) | ~0.85 h | 04:45 checkpoint (20 samples at 85.9 s/sample [derived]); 06:52:57 → 07:16:47 external kill |
-| **Total** | **≈ 3.5 h** | [derived] sum of the rows |
+| X6 bf16 leg (8 image samples) | 0.61 h | `x6-bf16/artifacts/provenance.json`: `wall_seconds=2205.8` (275.7 s/sample) |
+| X6 fp32/TF32 leg: 7 failed attempts, then the successful run | ~1.8 h | OOM/guard retries 02:03-02:34, then `x6-fp32/.../provenance.json` `wall_seconds=2486.5` (0.69 h) at 03:21, `extra.allow_tf32=true` |
+| S1 bf16 fit, first 20 samples (old chain) | ~0.48 h | 04:45 checkpoint, 85.9 s/sample [derived] |
+| S1 bf16 fit, remaining 80 samples + artifacts | 2.04 h | `s1_attempt1.log`: resumed 20/100 at 23:30:48, `fitted 1 lens(es) from 100 samples in 7350.4s`; convergence 4.0e-02 over the last 10 samples |
+| S1 scoring attempts ×3 (resume 31.8 s + scoring + FD crash) | ~0.4 h | `s1_attempt{1,2,3}.log`; all three died in the FD (D18), now fixed and verified |
+| **Total** | **≈ 6.3 h** | [derived] sum of the rows |
 
 Projection for the remaining campaign at the measured costs ([measured] seconds/sample,
 dim_batch 8, checkpoint every 5):
 
 | Step | Projected | Basis |
 | --- | --- | --- |
-| S1 fit 100 prompts + scoring + FD | 2.4 h + ~0.2 h | 85.9 s/sample; FD is minutes (CPU fallback possible, D16) |
-| S2 two 50-image halves at dim_batch 4 + merge + eval | ~8 h + ~0.3 h | 288.2 s/sample |
-| X1 shard pair (20 images, 6 layers each) | ~0.3 h | [inference] 288.2 s/sample × (6/31 layers) × 20 |
+| S1 scoring + FD (fixed check) | ~0.5 h | bf16 scoring model; the fp32 FD model (29 GiB) then runs one estimator pass + 40 forwards on 1 sample |
+| S2 two 50-image halves in fp32+TF32 + merge + eval | ~9.1 h + ~0.3 h | [derived] 288.2 s/sample (bf16) × 1.13 (the measured X6 leg ratio) × 100 samples |
+| X1 shard pair (20 images, both target masks) in fp32+TF32 | ~1.8 h | [derived] 288.2 s/sample × 1.13 × 20: per-sample cost is ~independent of the recorded layer count (the X6 leg fitted 5 layers at 275.7 s/sample on the same corpus) - the earlier ~0.3 h projection was wrong |
 | X7 conditioning + X9 edit sweep | ~0.3 h | [inference] 10 short generations + swap math |
-| **Total remaining** | **≈ 12 h** | fits the 21.6 h usable under the GPU-time reading, reserve intact |
+| **Total remaining** | **≈ 13 h** | fits the ~15 h left under the GPU-time reading; the optional S1 TF32 re-fit (D18) would exceed it |
 
-Steps 2-4 actuals are ⏳ (not completed); the failed attempts above are all the GPU time they
-have consumed so far.
+Steps 2-4 actuals are ⏳ (not completed); the S1 and X6 rows above are measured, and every
+failed attempt's GPU time is included in its row.
+
+State 2026-10-02T04:45Z [measured]: S1's bf16 fit is complete, so its row above is now only the
+scoring + FD pass; X6's verdict moved S2/X1 to fp32+TF32; the relaunched campaign is waiting
+for the next ≥28 GiB window (the co-tenant held ~63 GiB, 17.8 GiB free).
 
 ## 10. Reproduction appendix
 
