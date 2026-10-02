@@ -55,7 +55,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--fd-rows", type=int, default=4)
     parser.add_argument("--fd-samples", type=int, default=1)
     parser.add_argument("--fd-dtype", default="float32", help="FD dtype (bf16 cannot resolve eps=1e-2)")
-    parser.add_argument("--fd-device", default="cuda", help="FD device; falls back to cpu on CUDA OOM")
+    parser.add_argument("--fd-device", default="cuda", help="FD device; cpu is manual-debug only (2026-10-02: results runs are GPU-only; no automatic fallback)")
     parser.add_argument(
         "--fd-eps",
         type=float,
@@ -66,13 +66,13 @@ def parse_args() -> argparse.Namespace:
         "--fd-min-free-mib",
         type=int,
         default=32000,
-        help="free GPU memory the FD model waits for before falling back to CPU",
+        help="free GPU memory the FD model waits for before giving up (no CPU fallback)",
     )
     parser.add_argument(
         "--fd-wait-minutes",
         type=int,
         default=60,
-        help="how long to wait for that window before the CPU fallback",
+        help="how long to wait for that window before giving up (no CPU fallback)",
     )
     parser.add_argument("--max-seq-len", type=int, default=1536)
     parser.add_argument("--skip-fd", action="store_true")
@@ -338,10 +338,11 @@ def main() -> int:
         print("\n== finite-difference check (ii) ==")
         fd_dtype = torch.float32 if args.fd_dtype == "float32" else torch.bfloat16
         fd_layers = [int(part) for part in args.fd_layers.split(",") if part.strip()]
-        # The fp32 FD model (~29 GiB) needs a real window on this shared GPU. Waiting beats
-        # the CPU fallback: the estimator's ceil(d_model/dim_batch) chunk-backwards on a 7B
-        # fp32 CPU model take hours, not the minutes a forward-only check would (measured
-        # 2026-10-02: the CPU path was entered under a 90 MiB window and had to be killed).
+        # The fp32 FD model (~29 GiB) needs a real window on this shared GPU. The 2026-10-02
+        # GPU-only directive retired every CPU fallback here: the estimator's
+        # ceil(d_model/dim_batch) chunk-backwards on a 7B fp32 CPU model take hours (measured
+        # 2026-10-02: a CPU run under a 90 MiB window had to be killed). No window and OOM now
+        # both fail this optional step; the next campaign pass retries it in a fresh window.
         fd_device = args.fd_device
         if fd_device == "cuda":
             waited = 0
@@ -352,10 +353,9 @@ def main() -> int:
                 if waited >= args.fd_wait_minutes * 60:
                     print(
                         f"no {args.fd_min_free_mib} MiB window after {waited // 60} min "
-                        f"(free={free_mib} MiB) - falling back to CPU"
+                        f"(free={free_mib} MiB) - FD not measured (GPU-only, no CPU fallback)"
                     )
-                    fd_device = "cpu"
-                    break
+                    return 1
                 print(
                     f"waiting for GPU memory: free={free_mib} MiB < "
                     f"{args.fd_min_free_mib} MiB ({waited // 60}/{args.fd_wait_minutes} min)"
@@ -375,20 +375,8 @@ def main() -> int:
                 eps=args.fd_eps,
             )
         except torch.OutOfMemoryError:
-            print(f"CUDA OOM for the {args.fd_dtype} FD model - retrying on CPU")
-            torch.cuda.empty_cache()
-            fd_device = "cpu"
-            fd_model = LlavaLensModel.from_pretrained(
-                dtype=fd_dtype, device="cpu", local_files_only=True
-            )
-            fd = finite_difference_check(
-                fd_model,
-                heldout[: args.fd_samples],
-                layers=fd_layers,
-                n_rows=args.fd_rows,
-                max_seq_len=args.max_seq_len,
-                eps=args.fd_eps,
-            )
+            print(f"CUDA OOM for the {args.fd_dtype} FD model - FD not measured (GPU-only)")
+            return 1
         report["check_ii_finite_difference"] = fd
         report["check_ii_device"] = fd_device
         for layer, value in fd["per_layer_mean"].items():

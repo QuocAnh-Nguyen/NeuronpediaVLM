@@ -351,3 +351,7 @@ guard, fp32 estimator on GPU, `step2/s1_score.json` published by rename only whe
 `check_ii_finite_difference` is present), and `/tmp/s1_fd_watch.sh` is disabled. The FD
 watcher's in-flight CPU run (PID 53431, 9 cores, 48 GiB RSS) was killed and its partial
 `s1_score.new.json` removed.
+
+`s1_score.py`'s own two automatic CPU fallbacks (window-wait expiry at `--fd-wait-minutes`,
+and the `torch.OutOfMemoryError` retry) were removed for the same reason: both now fail the
+optional step, so a retry lands in the next fast window.
