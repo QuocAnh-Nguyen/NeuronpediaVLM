@@ -24,9 +24,9 @@ P=$HOME/miniconda3/envs/vlm_truth_py313/bin/python
 CODE=$REPO/results/validation_2026-10-01/code
 LOGS=$REPO/results/validation_2026-10-01/logs
 RUN=/data/vlm-lens/validation
-TF_MIN=150          # TFLOPS TF32; ~3.7x the 2026-10-02T17:05Z derated reading of 41
+TF_MIN=0            # logging-only speed probe; the gate is FREE_MIN (user directive 2026-10-02)
 FREE_MIN=24000      # MiB; the campaign's per-step guards (24-36 GiB) take it from there
-TRIP_S=5400         # 90 min without a new checkpoint while a step runs -> derated window
+TRIP_S=36000        # 10 h without a new checkpoint = genuine hang, not slowness (directive)
 SLEEP=180
 
 CAMPAIGN_RE='^bash .*/run_campaign\.sh$'
