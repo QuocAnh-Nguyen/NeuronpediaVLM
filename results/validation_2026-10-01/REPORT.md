@@ -285,15 +285,26 @@ CPU, two arriving 15:14Z/15:30Z) pins util at 100% and derates TF32 matmuls to ~
 (~10% of peak; clocks at max, no throttle) - ~5-10x the X6-era 311 s/sample. The chain was
 stopped at 17:24Z (the uncheckpointed <=5-sample partial was lost, ~25 quiet-minutes), the FD
 watcher's CPU fallback was killed (GPU-only directive), and `gpu_guard.sh` (D22) now owns the
-schedule: it starts the campaign only when the box probes >=150 TFLOPS TF32 with >=24 GiB free,
-and kills the chain when a running fit lands no checkpoint for 90 min. GPU-occupied time to
-date ~8.4 h (~6.5 h quiet-equivalent at the 311 s/sample cost model) of the 24 h budget.
+schedule: it starts the campaign when >=24 GiB is free (the TFLOPS probe is logging-only,
+`TF_MIN=0`) and kills the chain only after 10 h without a new output checkpoint
+(`TRIP_S=36000` - "genuine hang, not slowness"); nothing gates on speed.
+GPU-occupied time to date ~8.4 h (~6.5 h quiet-equivalent at the 311 s/sample cost model) of the 24 h budget.
 
 Schedule contingency [inference]: at the current derate the box is *speed*-blocked, not
 window-blocked - the guard waits rather than burns budget, so the pre-registered n-shrinking
 rule (autonomy rule 3) is not invoked (waiting costs no GPU-work). If the co-tenant never
 yields, options in order: (a) wait (current); (b) bf16 S2/X1 (~16 GiB, >=24 GiB guard), which
 trades the pre-registered X6 verdict for speed and stays the user's call.
+
+Update 2026-10-02T20:05Z [measured + user directive]: S2 half-A's sample 1 completed in 3431 s
+(57.2 min) under the still-active derate, ~10x the X6-era 311 s/sample; per the user's
+directive the chain now runs to completion at whatever pace the box allows, and the rule-3
+n-trim and quiet-wait contingencies above are withdrawn (guard keeps hang detection and
+occupancy gating only). Sample 1 verified legible: seq=609 = 576 image + 33 text tokens, masks
+text 31 + image 576 = all 607 (skip_first/exclude_last exact), 3431 s wall-consistent; the
+line's `rel_change=nan` is the explicit first-sample branch in `fitting.py` (`n_done[mask]==0`
+-> no running mean), not a NaN lens - finiteness is re-checked at checkpoint 5. Projection at
+the measured pace: checkpoint-5 ~00:35Z, half A ~47.5 h, both under `TRIP_S`.
 
 ## 10. Reproduction appendix
 

@@ -355,3 +355,15 @@ watcher's in-flight CPU run (PID 53431, 9 cores, 48 GiB RSS) was killed and its 
 `s1_score.py`'s own two automatic CPU fallbacks (window-wait expiry at `--fd-wait-minutes`,
 and the `torch.OutOfMemoryError` retry) were removed for the same reason: both now fail the
 optional step, so a retry lands in the next fast window.
+
+## D23. Run to completion regardless of wall time (user directive, 2026-10-02 ~19:50Z)
+
+User directive during the derated S2 half-A fit: "just keep running even if it take many times,
+don't stop." Consequences: the pre-registered n-shrinking rule (autonomy rule 3) and the
+quiet-wait contingency in the report's section 9 are withdrawn for this campaign;
+`gpu_guard.sh` retains only occupancy gating for starts (FREE_MIN=24000; TF_MIN=0
+logging-only) and the 10 h no-new-output-checkpoint trip (TRIP_S=36000). S2 sample 1
+(19:45:11Z) verified: seq=609 = 576 image + 33 text, masks text 31 + image 576 = all 607,
+3431 s; its `rel_change=nan` is the explicit `n_done[mask]==0` branch in fitting.py (first
+sample has no running mean), not a NaN tensor. Measured pace 3431 s/sample (vs 311-326 s
+quiet) => checkpoint-5 ~00:35Z, half A ~47.5 h [projection].
