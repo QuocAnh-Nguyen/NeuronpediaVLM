@@ -393,3 +393,19 @@ Open decision (user): free `/data` to >= ~20 GiB [derived: 6.4G half-A ckpt + 6.
 ckpt + 6.4G merged artifacts + headroom] or add storage; relocation to `/home` (22G avail,
 peak ~20G) rejected as razor-thin default.
 
+## D25 — 2026-10-03 ~09:00Z: outputs relocated to the user's data_mount; chain relaunched
+
+User directive: "Store the outputs in /home/nvidia-lab/data_mount. It has 49gb left. And
+resume where the process left off." Executed: MOUNT=/home/nvidia-lab/data_mount/vlm-lens
+(exfat, 48.9 GiB free; no symlinks on exfat, so paths are patched in-script): s2-half-a/b,
+s2-merged and the X1 fits write there; s2_eval and x7_x9 read the merged lens there; step
+JSONs and read-only /data artifacts stay in place. D24's DISK_NEED gates are now
+path-aware (`DISK_PATH`): s2 waits for >=24 GiB on the mount, x1 for >=2 GiB, /data steps
+for 1 GiB. `PYTHONUNBUFFERED=1` is exported by the campaign and both step chains (buffered
+stdout was one suspect behind the traceback-less 01:05Z deaths). `gpu_guard.sh` watches
+checkpoints in both trees. Relaunched 09:01:02Z: guard pid=987298; S1 attempt 1 started
+(GPU free 32117 MiB >= 24000; /data free 4109 MiB >= 1000 - both new gates logged passing);
+deployed script md5s verified identical to the repo commit. S2 half-A restarts from sample 0
+- D24 confirmed the 5 fitted samples were never checkpointed, so nothing was resumable.
+Budget: mount holds S2 (~31 GB) + X1 (~2 GB) with ~16 GB spare; no further deletions needed
+[derived from artifact sizes: 3x1984 MiB per lens set + 2 checkpoints + merge].
