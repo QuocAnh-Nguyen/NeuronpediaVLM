@@ -409,3 +409,25 @@ deployed script md5s verified identical to the repo commit. S2 half-A restarts f
 - D24 confirmed the 5 fitted samples were never checkpointed, so nothing was resumable.
 Budget: mount holds S2 (~31 GB) + X1 (~2 GB) with ~16 GB spare; no further deletions needed
 [derived from artifact sizes: 3x1984 MiB per lens set + 2 checkpoints + merge].
+## D26 — 2026-10-03 ~12:09Z/~12:36Z: user interrupted the chain (SIGTERM); ~27 min lost; relaunched 13:51:56Z
+
+User: "i interrupted the process" - accurate: SIGTERMs at 12:09:12 (s2 attempt-1, 1 min in,
+during model load, zero output) and ~12:36:5x (attempt-2, seconds after its sample 1 line
+landed). The sweep also took out guard+campaign; nothing was checkpointed (s2-half-a remains
+empty on the mount), so the interruption cost ~27 min of GPU plus two model loads. S2 could
+not start when S1 finished at 09:04Z - the co-tenant held VRAM below the 36000 MiB gate until
+~12:06Z, which is why the S2 attempts carry 12:0xZ timestamps.
+
+Legitimacy of attempt-2's single sample [measured]: same deterministic manifest sample as the
+10-02 run (`000000012966::prompt+caption`, seq=609, images=576, masks text 31 + image 576 =
+all 607 - exact again), 1584 s of fit between 12:10:27 and 12:36:51 (wall-consistent), clean
+log apart from the benign cuBLAS-context warning; `rel_change` nan is the documented n_done=0
+first-sample branch. The attempt ran entirely under the D25 mount paths, so the redirect is
+field-proven writable; no ENOSPC, no traceback, no tmp residue in the campaign tree.
+
+Relaunched 13:51:56Z: guard probe reported tf=231 TFLOPS (genuinely quiet - vs 88 at 09:01Z
+and 41-52 under the 10-02 derate) and free=81000 MiB; campaign s1 attempt-1 started instantly,
+both gates passing (/data 4109>=1000, GPU 81000>=24000). Expected pace at 231 TFLOPS is
+~5-6 min/sample, checkpoint-5 in ~35 min. Watch item: the mount reported 44658 MiB free at
+12:10Z and 37910 MiB at 13:43Z (-6.7 GB, not ours - s2-half-a is empty); a `find -size +1G`
+sweep on the next probe will attribute it.
