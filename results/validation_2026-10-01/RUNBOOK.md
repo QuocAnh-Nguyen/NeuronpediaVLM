@@ -69,13 +69,14 @@ Every script starts with a small config block. Set these consistently:
 Files to edit (config block near the top of each):
 
 ```
-code/run_campaign.sh   (lines ~27-30; also the two `env DIMBATCH=` values, §7.2)
-code/gpu_guard.sh      (lines ~22-30; also FREE_MIN / TRIP_S, §7.2)
+code/run_campaign.sh   (lines ~27-30; also the two `env DIMBATCH=` values, §6.1)
+code/gpu_guard.sh      (lines ~22-30; also FREE_MIN / TRIP_S, §6.1)
 code/run_step0.sh      (lines ~5-8; IMAGES= COCO val2014 dir)
 code/run_step2.sh      (lines ~5-7)
 code/run_step3.sh      (same block: REPO/P/RUN/MOUNT)
 code/run_step4.sh      (same block)
 code/run_fd.sh         (lines ~12-13: R=, OUT=)
+code/run_step1.sh, run_x6_fp32.sh, run_x6_retry.sh, run_step5_x4.sh  (same pattern)
 code/collect_results.sh / collect_results.py  (check the same names)
 ```
 
@@ -221,8 +222,8 @@ sample 12/50 COCO_val2014_000000xxxxxx::prompt+caption::<hash> seq=6xx images=57
 - A new `<out>/checkpoint.pt` (~6.4 GB) appears every 5 samples; watcher one-liner:
 
   ```bash
-  ls -lh $(grep -o '/[^ ]*s2-half[^ ]*' /dev/null 2>/dev/null); \
-  find /data/vlm-lens/validation <MOUNT> -name 'checkpoint.pt' -newermt '-20 min' 2>/dev/null
+  # newest checkpoints in the active output half (cadence: every 5 samples)
+  find "$RUN" "$MOUNT" -name 'checkpoint.pt' -mmin -30 2>/dev/null
   ```
 
 ### 7.2 Creativity you should not apply
@@ -243,6 +244,7 @@ Everything is wrapped by `run_campaign.sh`; for surgical reruns:
 env DIMBATCH=1 bash code/run_step3.sh        # S2 halves + merge + eval (resumes from checkpoints)
 bash code/run_fd.sh                          # FD row (publishes step2/s1_score.json atomically)
 env DIMBATCH=1 bash code/run_step4.sh        # X1
+bash code/run_step5_x4.sh                    # X4 eval (optional, not in the campaign chain)
 $P code/x3_census.py --manifest $RUN/step0/manifest-fit.jsonl --n-samples 50 --out $RUN/step1/x3_norms.json
 $P code/x7_x9_interventions.py --lens-dir $MOUNT/s2-merged/artifacts \
     --manifest $RUN/step0/manifest-heldout.jsonl --n-samples 10 \
