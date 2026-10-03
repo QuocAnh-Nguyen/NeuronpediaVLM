@@ -1,0 +1,43 @@
+{
+  "artifacts": {
+    "all": {
+      "dtype": "torch.float16",
+      "file": "lens-all.pt",
+      "n_prompts": 3,
+      "sha256": "8ae9600b8add37c636e3593b91d61c7ac024df3fb02c8a604480bdd9fa3f0c83",
+      "source_layers": [
+        0,
+        1,
+        2
+      ]
+    },
+    "image": {
+      "dtype": "torch.float16",
+      "file": "lens-image.pt",
+      "n_prompts": 3,
+      "sha256": "c5e414d6561246862b82090b376cd8fdc6f8f2f768fe7d20e2adb234bc8541be",
+      "source_layers": [
+        0,
+        1,
+        2
+      ]
+    },
+    "text": {
+      "dtype": "torch.float16",
+      "file": "lens-text.pt",
+      "n_prompts": 3,
+      "sha256": "3a1d44246bb0ab23e12ebaf771218835e937e8cfceeedd6e47ebb60087142fbd",
+      "source_layers": [
+        0,
+        1,
+        2
+      ]
+    }
+  },
+  "n_prompts": {
+    "all": 3,
+    "image": 3,
+    "text": 3
+  },
+  "note": "dry run"
+}

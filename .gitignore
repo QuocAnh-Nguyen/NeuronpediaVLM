@@ -10,13 +10,10 @@ __pycache__/
 .mypy_cache/
 
 # Run outputs (checkpoints, lenses, manifests)
-runs/
 
 # Vendored upstream (jlens) kept as a standalone git checkout - fetch it at the pinned
 # commit instead of committing a gitlink (see third_party/NOTICE.md):
 #   git clone https://github.com/anthropics/jacobian-lens third_party/jacobian-lens
 #   git -C third_party/jacobian-lens checkout 581d398613e5602a5af361e1c34d3a92ea82ba8e
-third_party/jacobian-lens/
 
 # Neuronpedia fork for the VLM J-Lens viz demo (separate git checkout, branch vlm-jlens-mvp1)
-neuronpedia/
