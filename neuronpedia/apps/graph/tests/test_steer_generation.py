@@ -1,0 +1,228 @@
+"""`/steer` generates through `transformers`, with its knobs decided as the inference server decides them.
+
+The endpoint used to call `HookedTransformer.generate` directly, so on the default `interp_engine`
+it raised `AttributeError: 'InterpEngineReplacementModel' object has no attribute 'generate'`. The
+attribute was the loud half. The quiet half is everything `steer_generation` translates: keywords
+`transformers` rejects, sampling knobs resolved against the checkpoint's own file, a presence
+penalty `transformers` has no flag for, and a continuation it hands back as text when the
+endpoint needs the token ids.
+
+Everything here runs on a randomly initialized two-layer GPT-2 built from a local config, so there
+is no download, no GPU and no tokenizer to fetch: what is under test is the keywords and the ids,
+not what a model would say.
+"""
+
+from types import SimpleNamespace
+from typing import Any
+
+import pytest
+import torch
+from interp_engine import RecommendedSampling, SamplingSettings
+from transformers import GPT2Config, GPT2LMHeadModel
+
+from neuronpedia_graph.steer_generation import (
+    _generation_kwargs,
+    _SequenceCollector,
+    generate_default,
+    generate_steered,
+    recommended_sampling,
+    resolve_request_sampling,
+)
+
+PROMPT_IDS = torch.tensor([0, 7, 11, 19])
+NEW_TOKENS = 6
+PROMPT_LEN = len(PROMPT_IDS)
+GREEDY = SamplingSettings(temperature=0.0, top_k=None, top_p=None, presence_penalty=0.0)
+
+
+def _sampled(temperature: float) -> SamplingSettings:
+    return SamplingSettings(temperature=temperature, top_k=None, top_p=None, presence_penalty=0.0)
+
+
+@pytest.fixture(scope="module")
+def hf_model() -> GPT2LMHeadModel:
+    config = GPT2Config(vocab_size=64, n_positions=64, n_embd=32, n_layer=2, n_head=2)
+    model = GPT2LMHeadModel(config).eval()
+    # An untrained model emits token ids uniformly, so it would hit EOS partway through and every
+    # length below would depend on the seed. No EOS means every run reaches `max_new_tokens`.
+    assert model.generation_config is not None, "GPT2LMHeadModel should build a generation config"
+    model.generation_config.eos_token_id = None
+    return model
+
+
+class FakeInterpEngineModel:
+    """The surface `steer_generation` uses from `InterpEngineReplacementModel`.
+
+    `feature_intervention_generate` mirrors the real one where it matters here: keywords reach
+    `transformers`' `generate` untouched, and the continuation comes back decoded rather than as
+    ids. That is what makes this a test of the translation -- a keyword `generate` will not accept
+    raises here exactly as it does in production.
+    """
+
+    backend = "interp_engine"
+
+    def __init__(self, model: GPT2LMHeadModel) -> None:
+        self.hf_model = model
+        self.tokenizer = SimpleNamespace(pad_token_id=0, eos_token_id=None)
+        self.device = torch.device("cpu")
+        self.sequences: torch.Tensor | None = None
+
+    def ensure_tokenized(self, prompt: str) -> torch.Tensor:
+        assert isinstance(prompt, str)
+        return PROMPT_IDS
+
+    def feature_intervention_generate(
+        self,
+        inputs: str,
+        interventions: Any,
+        freeze_attention: bool = True,
+        **kwargs: Any,
+    ) -> tuple[str, torch.Tensor, None]:
+        input_ids = self.ensure_tokenized(inputs).unsqueeze(0)
+        output = self.hf_model.generate(
+            input_ids,
+            attention_mask=torch.ones_like(input_ids),
+            pad_token_id=0,
+            use_cache=True,
+            return_dict_in_generate=True,
+            output_logits=True,
+            **kwargs,
+        )
+        # `generate` returns bare ids unless `return_dict_in_generate` is set, which it is above.
+        # Asserting it rather than casting keeps the test honest: if that keyword ever stops being
+        # forwarded, this fails here instead of reading attributes off a tensor.
+        assert not isinstance(output, torch.Tensor), "expected a GenerateOutput, not bare token ids"
+        assert output.logits is not None, "output_logits=True should populate logits"
+        self.sequences = output.sequences
+        return "the continuation, as text", torch.cat(output.logits, dim=0), None
+
+
+def test_temperature_zero_asks_for_greedy_decoding():
+    """The steer modal sends 0 by default, and `transformers` raises on it where greedy is meant."""
+    kwargs = _generation_kwargs(NEW_TOKENS, GREEDY, prompt_len=PROMPT_LEN)
+    assert kwargs["do_sample"] is False
+    assert "logits_processor" not in kwargs
+    # `generate` logs a line for every flag it was handed and will not use, and none of the sampling
+    # knobs apply while greedy.
+    assert "top_k" not in kwargs and "temperature" not in kwargs
+
+
+def test_every_resolved_knob_is_stated_so_the_file_adds_nothing():
+    """Qwen3 ships temperature 0.6 / top_p 0.95 / top_k 20 in its file. Whatever was resolved is
+    what `generate` is told, so the file cannot add a knob the request did not get."""
+    kwargs = _generation_kwargs(NEW_TOKENS, _sampled(0.7), prompt_len=PROMPT_LEN)
+    assert kwargs["do_sample"] is True
+    assert kwargs["temperature"] == 0.7
+    assert kwargs["top_k"] == 0
+    assert kwargs["top_p"] == 1.0
+    assert kwargs["repetition_penalty"] == 1.0
+
+    kwargs = _generation_kwargs(NEW_TOKENS, SamplingSettings(0.6, 20, 0.95, 0.0), prompt_len=PROMPT_LEN)
+    assert (kwargs["temperature"], kwargs["top_k"], kwargs["top_p"]) == (0.6, 20, 0.95)
+
+
+def test_the_request_resolves_against_the_models_own_generation_config(hf_model: GPT2LMHeadModel):
+    """Unset knobs take the file `transformers` loaded onto the model; passed ones win."""
+    model = FakeInterpEngineModel(hf_model)
+    hf_model.generation_config.temperature = 0.6
+    hf_model.generation_config.top_k = 20
+    hf_model.generation_config.top_p = 0.95
+    try:
+        assert recommended_sampling(model) == RecommendedSampling(
+            temperature=0.6, top_k=20, top_p=0.95, do_sample=False, source="hf_model.generation_config"
+        )
+        # `do_sample` is False on a fresh GPT-2 config: the file recommends greedy.
+        assert resolve_request_sampling(model, temperature=None, top_k=None, top_p=None, presence_penalty=None) == (
+            SamplingSettings(temperature=0.0, top_k=20, top_p=0.95, presence_penalty=0.0)
+        )
+        assert resolve_request_sampling(model, temperature=0.7, top_k=0, top_p=None, presence_penalty=1.5) == (
+            SamplingSettings(temperature=0.7, top_k=None, top_p=0.95, presence_penalty=1.5)
+        )
+    finally:
+        hf_model.generation_config.temperature = 1.0
+        hf_model.generation_config.top_k = 50
+        hf_model.generation_config.top_p = 1.0
+
+
+def test_a_model_without_a_generation_config_is_neutral():
+    assert recommended_sampling(SimpleNamespace(hf_model=SimpleNamespace())) == RecommendedSampling()
+    assert recommended_sampling(SimpleNamespace()) == RecommendedSampling()
+
+
+def test_the_penalty_is_applied_on_the_greedy_path_too():
+    """As vLLM has it: a greedy generation is penalized out of a loop as well."""
+    kwargs = _generation_kwargs(NEW_TOKENS, SamplingSettings(0.0, None, None, 1.5), prompt_len=PROMPT_LEN)
+    assert kwargs["do_sample"] is False
+    assert len(kwargs["logits_processor"]) == 1
+
+
+def test_default_generation_returns_the_prompt_and_the_continuation(hf_model: GPT2LMHeadModel):
+    tokens = generate_default(
+        FakeInterpEngineModel(hf_model),
+        "a prompt",
+        max_new_tokens=NEW_TOKENS,
+        sampling=GREEDY,
+    )
+
+    assert tokens.tolist()[: len(PROMPT_IDS)] == PROMPT_IDS.tolist()
+    assert len(tokens) == len(PROMPT_IDS) + NEW_TOKENS
+
+
+@pytest.mark.parametrize("temperature", [0.0, 0.8])
+def test_steered_generation_returns_ids_rather_than_the_text(hf_model: GPT2LMHeadModel, temperature: float):
+    """The ids have to be the ones `generate` chose, which is what the streamer is there for.
+
+    Re-tokenizing the returned string was the previous approach, and it shifted every logit row by
+    one on families whose tokenizer prepends BOS (commit bff40b1e).
+    """
+    model = FakeInterpEngineModel(hf_model)
+
+    torch.manual_seed(0)
+    tokens, logits = generate_steered(
+        model,
+        "a prompt",
+        [],
+        max_new_tokens=NEW_TOKENS,
+        sampling=_sampled(temperature),
+        freeze_attention=True,
+    )
+
+    assert model.sequences is not None
+    assert tokens.tolist() == model.sequences[0].tolist()
+    assert len(tokens) == len(PROMPT_IDS) + NEW_TOKENS
+    # One row of logits per generated token: the response pairs them up position by position.
+    assert logits.shape[0] == NEW_TOKENS
+
+
+@pytest.mark.parametrize("engine", ["nnsight", "transformerlens"])
+def test_an_engine_that_cannot_steer_says_which_one_it_was(engine: str):
+    """Refusing beats translating: no graph pod runs either, and both would need their own path."""
+    with pytest.raises(NotImplementedError, match=engine):
+        generate_default(
+            SimpleNamespace(backend=engine),
+            "a prompt",
+            max_new_tokens=NEW_TOKENS,
+            sampling=GREEDY,
+        )
+
+
+def test_a_model_that_is_not_a_replacement_model_is_named_by_type():
+    """The lm-saes-crm engine loads one, and it has no `backend` to report."""
+    with pytest.raises(NotImplementedError, match="SimpleNamespace"):
+        generate_default(
+            SimpleNamespace(),
+            "a prompt",
+            max_new_tokens=NEW_TOKENS,
+            sampling=GREEDY,
+        )
+
+
+def test_the_streamer_collects_the_prompt_and_then_each_token():
+    """`generate` hands over the prompt in one call and one token per step after it."""
+    collector = _SequenceCollector()
+    collector.put(torch.tensor([[4, 5, 6]]))
+    collector.put(torch.tensor([7]))
+    collector.put(torch.tensor([8]))
+    collector.end()
+
+    assert collector.sequence().tolist() == [4, 5, 6, 7, 8]

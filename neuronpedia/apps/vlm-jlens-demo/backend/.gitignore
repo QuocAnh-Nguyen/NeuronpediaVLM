@@ -1,0 +1,15 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Local artifacts
+.cache/
+runs/
+*.log
+
+# Virtual environments
+.venv/
+venv/

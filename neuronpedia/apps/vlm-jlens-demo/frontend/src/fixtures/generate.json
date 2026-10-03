@@ -1,0 +1,78 @@
+{
+  "caption": "A gray cat sitting on a wooden bench in a garden.",
+  "tokens": [
+    {
+      "i": 17,
+      "id": 319,
+      "str": "A",
+      "logprob": -0.12
+    },
+    {
+      "i": 18,
+      "id": 2311,
+      "str": "▁gray",
+      "logprob": -0.64
+    },
+    {
+      "i": 19,
+      "id": 6634,
+      "str": "▁cat",
+      "logprob": -0.29
+    },
+    {
+      "i": 20,
+      "id": 5137,
+      "str": "▁sitting",
+      "logprob": -0.83
+    },
+    {
+      "i": 21,
+      "id": 525,
+      "str": "▁on",
+      "logprob": -0.21
+    },
+    {
+      "i": 22,
+      "id": 263,
+      "str": "▁a",
+      "logprob": -1.02
+    },
+    {
+      "i": 23,
+      "id": 12512,
+      "str": "▁wooden",
+      "logprob": -0.52
+    },
+    {
+      "i": 24,
+      "id": 6603,
+      "str": "▁bench",
+      "logprob": -0.41
+    },
+    {
+      "i": 25,
+      "id": 297,
+      "str": "▁in",
+      "logprob": -0.33
+    },
+    {
+      "i": 26,
+      "id": 263,
+      "str": "▁a",
+      "logprob": -0.07
+    },
+    {
+      "i": 27,
+      "id": 6118,
+      "str": "▁garden",
+      "logprob": -0.58
+    },
+    {
+      "i": 28,
+      "id": 29889,
+      "str": ".",
+      "logprob": -0.09
+    }
+  ],
+  "prompt_len": 17
+}

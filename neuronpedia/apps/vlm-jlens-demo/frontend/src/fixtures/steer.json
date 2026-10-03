@@ -1,0 +1,172 @@
+{
+  "edits": [
+    {
+      "layer": 4,
+      "mode": "add",
+      "token": "cat",
+      "source_token": null,
+      "alpha": 2,
+      "positions": "last"
+    }
+  ],
+  "diagnostics": [
+    {
+      "layer": 4,
+      "mode": "add",
+      "v_norm": 3.41,
+      "h_norm": 18.72,
+      "cond": null
+    }
+  ],
+  "caption_before": "A gray cat sitting on a wooden bench in a garden.",
+  "caption_after": "A gray cat cat sitting on a wooden bench in a garden.",
+  "tokens_before": [
+    {
+      "i": 17,
+      "id": 319,
+      "str": "A",
+      "logprob": -0.12
+    },
+    {
+      "i": 18,
+      "id": 2311,
+      "str": "▁gray",
+      "logprob": -0.64
+    },
+    {
+      "i": 19,
+      "id": 6634,
+      "str": "▁cat",
+      "logprob": -0.29
+    },
+    {
+      "i": 20,
+      "id": 5137,
+      "str": "▁sitting",
+      "logprob": -0.83
+    },
+    {
+      "i": 21,
+      "id": 525,
+      "str": "▁on",
+      "logprob": -0.21
+    },
+    {
+      "i": 22,
+      "id": 263,
+      "str": "▁a",
+      "logprob": -1.02
+    },
+    {
+      "i": 23,
+      "id": 12512,
+      "str": "▁wooden",
+      "logprob": -0.52
+    },
+    {
+      "i": 24,
+      "id": 6603,
+      "str": "▁bench",
+      "logprob": -0.41
+    },
+    {
+      "i": 25,
+      "id": 297,
+      "str": "▁in",
+      "logprob": -0.33
+    },
+    {
+      "i": 26,
+      "id": 263,
+      "str": "▁a",
+      "logprob": -0.07
+    },
+    {
+      "i": 27,
+      "id": 6118,
+      "str": "▁garden",
+      "logprob": -0.58
+    },
+    {
+      "i": 28,
+      "id": 29889,
+      "str": ".",
+      "logprob": -0.09
+    }
+  ],
+  "tokens_after": [
+    {
+      "i": 17,
+      "id": 1000,
+      "str": "A",
+      "logprob": -0.2
+    },
+    {
+      "i": 18,
+      "id": 1037,
+      "str": "▁gray",
+      "logprob": -0.31
+    },
+    {
+      "i": 19,
+      "id": 1074,
+      "str": "▁cat",
+      "logprob": -0.42
+    },
+    {
+      "i": 20,
+      "id": 1111,
+      "str": "▁cat",
+      "logprob": -0.53
+    },
+    {
+      "i": 21,
+      "id": 1148,
+      "str": "▁sitting",
+      "logprob": -0.64
+    },
+    {
+      "i": 22,
+      "id": 1185,
+      "str": "▁on",
+      "logprob": -0.75
+    },
+    {
+      "i": 23,
+      "id": 1222,
+      "str": "▁a",
+      "logprob": -0.86
+    },
+    {
+      "i": 24,
+      "id": 1259,
+      "str": "▁wooden",
+      "logprob": -0.97
+    },
+    {
+      "i": 25,
+      "id": 1296,
+      "str": "▁bench",
+      "logprob": -1.08
+    },
+    {
+      "i": 26,
+      "id": 1333,
+      "str": "▁in",
+      "logprob": -1.19
+    },
+    {
+      "i": 27,
+      "id": 1370,
+      "str": "▁a",
+      "logprob": -1.3
+    },
+    {
+      "i": 28,
+      "id": 1407,
+      "str": "▁garden",
+      "logprob": -1.41
+    }
+  ],
+  "n_edit_forwards": 12
+}

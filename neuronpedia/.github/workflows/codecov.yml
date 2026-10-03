@@ -1,0 +1,53 @@
+name: Codecov Coverage
+# Temporarily disabled: manual runs only. Restore the push/pull_request triggers below to re-enable.
+on:
+  workflow_dispatch:
+  # push:
+  #   branches: [main]
+  # pull_request:
+  #   branches: [main]
+
+jobs:
+  coverage:
+    # Both Python services install and test the same way, so they share one matrix, and the steps
+    # below are genuinely identical for the two. (They used to differ: inference needed a credential
+    # to fetch the engine from a private repo. The engine lives in this repo now, so there is nothing
+    # to authenticate to and no asymmetry left.)
+    name: ${{ matrix.app }} coverage
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        app: [autointerp, inference]
+    defaults:
+      run:
+        working-directory: ./apps/${{ matrix.app }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Set up Python
+        run: uv python install 3.11
+
+      - name: Install dependencies
+        run: uv sync --python 3.11
+
+      - name: Run tests with coverage
+        run: >-
+          uv run pytest tests/unit
+          --cov=neuronpedia_${{ matrix.app }}
+          --cov-branch
+          --cov-report=term-missing
+          --cov-report=xml
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./apps/${{ matrix.app }}/coverage.xml
+          flags: ${{ matrix.app }}
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false

@@ -1,0 +1,38 @@
+name: Autointerp - Tests
+defaults:
+  run:
+    working-directory: ./apps/autointerp
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/autointerp/**"
+  pull_request:
+    branches: [main]
+    paths:
+      - "apps/autointerp/**"
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # requires-python is >=3.10,<3.13: sae-auto-interp pulls in vLLM, which
+        # publishes no wheels for 3.13+.
+        python-version: ["3.10", "3.11", "3.12"]
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install uv
+      uses: astral-sh/setup-uv@v5
+      with:
+        enable-cache: true
+    - name: Set up Python ${{ matrix.python-version }}
+      run: uv python install ${{ matrix.python-version }}
+    - name: Install dependencies
+      run: uv sync --python ${{ matrix.python-version }}
+    # Ruff is NOT run here: python-lint.yml owns the lint/format gate for every apps/* project and
+    # reaches the same verdict in seconds, without installing vLLM three times over. Type checking
+    # stays put, because pyright needs the dependencies this job already has.
+    - name: Type checking
+      run: uv run pyright .
+    - name: Run tests
+      run: uv run pytest

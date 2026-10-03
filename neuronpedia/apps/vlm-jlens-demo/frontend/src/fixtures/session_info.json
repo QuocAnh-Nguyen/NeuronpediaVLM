@@ -1,0 +1,33 @@
+{
+  "session_id": "fixture-session-001",
+  "has_baseline": true,
+  "baseline_caption": "A gray cat sitting on a wooden bench.",
+  "lens": {
+    "available": true,
+    "dir": "fixtures/tiny-lens",
+    "source_layers": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "masks": [
+      "text",
+      "image",
+      "all"
+    ],
+    "n_prompts": {
+      "text": 50,
+      "image": 50,
+      "all": 50
+    },
+    "mock": true,
+    "notes": "Synthetic fixture lens — values are deterministic stand-ins, not a trained Jacobian.",
+    "error": null
+  },
+  "created_utc": "2026-10-03T00:00:00Z"
+}

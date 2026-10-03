@@ -1,0 +1,128 @@
+{
+  "session_id": "fixture-session-noimg-001",
+  "mode": "tiny",
+  "model": {
+    "name": "tiny-llava-fixture",
+    "n_layers": 8,
+    "d_model": 256,
+    "image_seq_length": 576,
+    "grid": [
+      24,
+      24
+    ],
+    "vocab_size": 32000
+  },
+  "lens": {
+    "available": true,
+    "dir": "fixtures/tiny-lens",
+    "source_layers": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "masks": [
+      "text",
+      "image",
+      "all"
+    ],
+    "n_prompts": {
+      "text": 50,
+      "image": 50,
+      "all": 50
+    },
+    "mock": true,
+    "notes": "Synthetic fixture lens — values are deterministic stand-ins, not a trained Jacobian.",
+    "error": null
+  },
+  "prompt_text": "USER: \nDescribe this image in detail.\nASSISTANT:",
+  "text_tokens": [
+    {
+      "i": 0,
+      "id": 1,
+      "str": "<s>"
+    },
+    {
+      "i": 1,
+      "id": 11889,
+      "str": "USER"
+    },
+    {
+      "i": 2,
+      "id": 28747,
+      "str": ":"
+    },
+    {
+      "i": 3,
+      "id": 29871,
+      "str": "▁"
+    },
+    {
+      "i": 4,
+      "id": 13,
+      "str": "<0x0A>"
+    },
+    {
+      "i": 5,
+      "id": 9192,
+      "str": "Describe"
+    },
+    {
+      "i": 6,
+      "id": 1587,
+      "str": "▁this"
+    },
+    {
+      "i": 7,
+      "id": 2704,
+      "str": "▁image"
+    },
+    {
+      "i": 8,
+      "id": 297,
+      "str": "▁in"
+    },
+    {
+      "i": 9,
+      "id": 4704,
+      "str": "▁detail"
+    },
+    {
+      "i": 10,
+      "id": 29889,
+      "str": "."
+    },
+    {
+      "i": 11,
+      "id": 13,
+      "str": "<0x0A>"
+    },
+    {
+      "i": 12,
+      "id": 29902,
+      "str": "ASS"
+    },
+    {
+      "i": 13,
+      "id": 1155,
+      "str": "IST"
+    },
+    {
+      "i": 14,
+      "id": 2688,
+      "str": "ANT"
+    },
+    {
+      "i": 15,
+      "id": 28747,
+      "str": ":"
+    }
+  ],
+  "image": null,
+  "variant": "no_image",
+  "has_baseline": true
+}

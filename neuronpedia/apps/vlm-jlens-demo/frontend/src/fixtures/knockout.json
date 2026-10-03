@@ -1,0 +1,185 @@
+{
+  "patches": [
+    351,
+    352,
+    353,
+    375,
+    376,
+    377,
+    399,
+    400,
+    401
+  ],
+  "mode": "zero",
+  "baseline_caption": "A gray cat sitting on a wooden bench in a garden.",
+  "caption_after": "A gray cat sitting on a wooden bench.",
+  "tokens_after": [
+    {
+      "i": 17,
+      "id": 319,
+      "str": "A",
+      "logprob": -0.12
+    },
+    {
+      "i": 18,
+      "id": 2311,
+      "str": "▁gray",
+      "logprob": -0.64
+    },
+    {
+      "i": 19,
+      "id": 6634,
+      "str": "▁cat",
+      "logprob": -0.29
+    },
+    {
+      "i": 20,
+      "id": 5137,
+      "str": "▁sitting",
+      "logprob": -0.83
+    },
+    {
+      "i": 21,
+      "id": 525,
+      "str": "▁on",
+      "logprob": -0.21
+    },
+    {
+      "i": 22,
+      "id": 263,
+      "str": "▁a",
+      "logprob": -1.02
+    },
+    {
+      "i": 23,
+      "id": 12512,
+      "str": "▁wooden",
+      "logprob": -0.52
+    },
+    {
+      "i": 24,
+      "id": 6603,
+      "str": "▁bench",
+      "logprob": -0.41
+    },
+    {
+      "i": 25,
+      "id": 29889,
+      "str": ".",
+      "logprob": -0.09
+    }
+  ],
+  "deltas": [
+    {
+      "token": "▁garden",
+      "logprob_before": -0.58,
+      "logprob_after": -3.78,
+      "delta": -3.2
+    },
+    {
+      "token": "▁outdoor",
+      "logprob_before": -3.1,
+      "logprob_after": -6.9,
+      "delta": -3.8
+    },
+    {
+      "token": "▁grass",
+      "logprob_before": -4.2,
+      "logprob_after": -6.05,
+      "delta": -1.85
+    },
+    {
+      "token": "▁sitting",
+      "logprob_before": -0.36,
+      "logprob_after": -0.86,
+      "delta": -0.5
+    },
+    {
+      "token": "▁bench",
+      "logprob_before": -0.41,
+      "logprob_after": -0.52,
+      "delta": -0.11
+    },
+    {
+      "token": "▁cat",
+      "logprob_before": -0.29,
+      "logprob_after": -0.35,
+      "delta": -0.06
+    },
+    {
+      "token": "▁wooden",
+      "logprob_before": -0.52,
+      "logprob_after": -0.61,
+      "delta": -0.09
+    },
+    {
+      "token": "▁table",
+      "logprob_before": -5,
+      "logprob_after": -4.42,
+      "delta": 0.58
+    },
+    {
+      "token": "▁floor",
+      "logprob_before": -4.4,
+      "logprob_after": -4.01,
+      "delta": 0.39
+    }
+  ],
+  "outcomes": [
+    {
+      "token": "▁garden",
+      "class": "removed",
+      "delta": -3.82,
+      "in_caption_after": false
+    },
+    {
+      "token": "▁outdoor",
+      "class": "removed",
+      "delta": -4.53,
+      "in_caption_after": false
+    },
+    {
+      "token": "▁grass",
+      "class": "removed",
+      "delta": -2.21,
+      "in_caption_after": false
+    },
+    {
+      "token": "▁sitting",
+      "class": "changed",
+      "delta": -0.5,
+      "in_caption_after": true
+    },
+    {
+      "token": "▁bench",
+      "class": "persisted",
+      "delta": -0.13,
+      "in_caption_after": true
+    },
+    {
+      "token": "▁cat",
+      "class": "persisted",
+      "delta": -0.07,
+      "in_caption_after": true
+    },
+    {
+      "token": "▁wooden",
+      "class": "persisted",
+      "delta": -0.11,
+      "in_caption_after": true
+    },
+    {
+      "token": "▁table",
+      "class": "removed",
+      "delta": 0.69,
+      "in_caption_after": false
+    },
+    {
+      "token": "▁floor",
+      "class": "removed",
+      "delta": 0.47,
+      "in_caption_after": false
+    }
+  ],
+  "classification_note": "removed: token no longer in the caption after knockout; changed: still generated but |Δlogprob| ≥ 0.25; persisted: still generated with a smaller change"
+}

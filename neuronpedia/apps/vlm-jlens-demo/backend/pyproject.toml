@@ -1,0 +1,83 @@
+[project]
+name = "vlm-jlens-demo-backend"
+version = "0.1.0"
+description = "Local J-Lens workbench backend for LLaVA: lens readouts, patch attribution, knockout, steering"
+requires-python = ">=3.11,<3.14"
+# The lens implementation itself (vlm_lens, jlens) is checked out in this repo rather
+# than published, so it is deliberately absent here: point PYTHONPATH at it (pythonpath
+# below) or set VLMJ_LENS_SRC.
+dependencies = [
+    "fastapi",
+    "uvicorn[standard]",
+    "torch",
+    "transformers>=5.14",
+    "pillow",
+]
+
+[dependency-groups]
+dev = [
+    "pytest",
+    "httpx",
+    # Pinned to the same ranges as every other apps/* project (see apps/nla/pyproject.toml
+    # for the rationale: one `ruff format` verdict covers the repo).
+    "ruff>=0.16.2,<0.17",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# `import vlmj` needs this backend root on sys.path when pytest is launched bare;
+# importing vlmj itself locates the repo's `vlm_lens`/`jlens` trees (VLMJ_LENS_SRC),
+# so nothing else has to be added here.
+pythonpath = ["."]
+
+[tool.ruff]
+line-length = 120
+# target-version is inferred from project.requires-python above.
+# `*.md`: ruff 0.16 formats Python code blocks in Markdown by default; keep this in step
+# with the other apps, whose gates filter Markdown out of their `paths:`.
+extend-exclude = ["*.ipynb", "*.md"]
+
+[tool.ruff.lint]
+# pyflakes + pycodestyle errors (F/E) as the floor, plus the rule families that catch defects
+# rather than taste: isort (I), pyupgrade (UP), bugbear (B), comprehensions (C4), simplify (SIM),
+# return (RET), logging (LOG), and tidy-imports (TID) for the banned typing aliases below.
+select = ["E", "F", "I", "UP", "B", "C4", "SIM", "RET", "LOG", "TID"]
+ignore = [
+  # Line length is the formatter's job; E501 only fires on the strings, URLs and comments
+  # the formatter cannot split.
+  "E501",
+  # zip-without-explicit-strict: off repo-wide until the call sites are audited for real.
+  "B905",
+]
+
+[tool.ruff.lint.flake8-tidy-imports.banned-api]
+"typing.Union".msg = "Use `|` instead"
+"typing.Optional".msg = "Use `| None` instead"
+"typing.Dict".msg = "Use `dict` instead"
+"typing.List".msg = "Use `list` instead"
+
+[tool.pyright]
+# Mirrors the shared apps/* settings (see apps/nla/pyproject.toml): "standard" finds
+# None-safety/wrong-argument bugs without demanding annotations on every parameter.
+typeCheckingMode = "standard"
+# torch, transformers and the repo's own vlm_lens/jlens trees ship no usable stubs, so
+# those reports are noise about the dependencies rather than about this code.
+reportMissingTypeStubs = "none"
+reportMissingImports = "none"
+extraPaths = [
+    # The backend's own package.
+    ".",
+    # The lens research code this app wraps, as checked out in the umbrella repo
+    # (VLMJ_LENS_SRC points at the same tree at runtime). Absent when the app is
+    # cloned standalone, which is harmless: reportMissingImports is off.
+    "../../../../src",
+    "../../../../third_party/jacobian-lens",
+]
+# `exclude` REPLACES pyright's defaults, so the three default patterns are repeated.
+# `**/.*` is load-bearing: without it pyright walks .venv and never finishes. Matching
+# the other apps, `scripts` holds hand-run helpers that no server path imports.
+exclude = ["**/node_modules", "**/__pycache__", "**/.*", "scripts"]
+
+[tool.uv]
+# Application, not a distributable package (installs deps but not the project itself).
+package = false
