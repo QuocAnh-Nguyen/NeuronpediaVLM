@@ -26,7 +26,7 @@ for half in a b; do
     echo "=== S2 fit half $half $(date -Is) ==="
     "$P" scripts/fit_llava.py --backend hf-llava --manifest "$RUN/step3/manifest-half-$half.jsonl" \
         --layers all --masks text,image,all --dim-batch "$DIMBATCH" --dtype float32 --allow-tf32 \
-        --checkpoint-every 5 --out "$MOUNT/s2-half-$half" \
+        --checkpoint-every 2 --out "$MOUNT/s2-half-$half" \
         --notes "S2 caption pilot, question half $half, 50 samples, skip_first=1, fp32+TF32 (X6)" \
         || { echo S2_HALF_${half}_FAILED; exit 1; }
 done

@@ -431,3 +431,16 @@ both gates passing (/data 4109>=1000, GPU 81000>=24000). Expected pace at 231 TF
 ~5-6 min/sample, checkpoint-5 in ~35 min. Watch item: the mount reported 44658 MiB free at
 12:10Z and 37910 MiB at 13:43Z (-6.7 GB, not ours - s2-half-a is empty); a `find -size +1G`
 sweep on the next probe will attribute it.
+
+## D27 - 2026-10-03 ~14:19Z: co-tenant took the GPU; S2 attempt 1 SIGKILLed, attempt 2 OOM; cadence 5->2
+
+Attempt 1 (started 13:54:22, pace 375 s/sample - quiet box) was SIGKILLed mid-sample-5
+(samples 1-4 done, no checkpoint). Campaign auto-retried in 60 s: attempt 2 (14:25:03) OOM'd
+during model load - GPU 0 had 77 MiB free of 79.11 GiB (co-tenant holding essentially
+everything; host RAM 124/251 GB used, clean dmesg - GPU-side, not host OOM). The chain is
+alive and parked in the 36 GiB s2 gate (holds up to 16 h; after that the fit's own
+transient-OOM retry loop covers it). Cost: ~31 min of S2 compute, nothing durable.
+Fix applied: `--checkpoint-every 5 -> 2` in run_step3.sh (worst-case loss per kill is now
+~2 samples / ~12.5 min). Cadence is not part of the checkpoint fingerprint - verified in
+fitting.py:289-305 (layers/target/dim_batch/max_seq_len/skip_first/masks/target_mask/shard).
+Mount still holds no >1 GB files from us (s2-half-a empty); only s1-text/checkpoint.pt on /data.
