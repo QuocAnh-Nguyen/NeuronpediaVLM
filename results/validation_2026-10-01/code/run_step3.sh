@@ -5,12 +5,13 @@ set -u
 REPO=$HOME/ai4life/phuongnh/vlm-lens
 P=$HOME/miniconda3/envs/vlm_truth_py313/bin/python
 RUN=/data/vlm-lens/validation
+MOUNT=/home/nvidia-lab/data_mount/vlm-lens
 CODE=$REPO/results/validation_2026-10-01/code
 DIMBATCH=${DIMBATCH:-8}
 export PYTHONPATH=$REPO/src
 export HF_HUB_OFFLINE=1
-export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
-mkdir -p "$RUN/step3"
+export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True PYTHONUNBUFFERED=1
+mkdir -p "$RUN/step3" "$MOUNT"
 cd "$REPO" || exit 1
 
 echo "=== split halves $(date -Is) ==="
@@ -25,20 +26,20 @@ for half in a b; do
     echo "=== S2 fit half $half $(date -Is) ==="
     "$P" scripts/fit_llava.py --backend hf-llava --manifest "$RUN/step3/manifest-half-$half.jsonl" \
         --layers all --masks text,image,all --dim-batch "$DIMBATCH" --dtype float32 --allow-tf32 \
-        --checkpoint-every 5 --out "$RUN/s2-half-$half" \
+        --checkpoint-every 5 --out "$MOUNT/s2-half-$half" \
         --notes "S2 caption pilot, question half $half, 50 samples, skip_first=1, fp32+TF32 (X6)" \
         || { echo S2_HALF_${half}_FAILED; exit 1; }
 done
 
 echo "=== merge halves $(date -Is) ==="
-"$P" scripts/fit_llava.py --merge "$RUN/s2-half-a" "$RUN/s2-half-b" \
-    --out "$RUN/s2-merged" --notes "S2 merged 100-sample caption lens (halves A+B)" \
+"$P" scripts/fit_llava.py --merge "$MOUNT/s2-half-a" "$MOUNT/s2-half-b" \
+    --out "$MOUNT/s2-merged" --notes "S2 merged 100-sample caption lens (halves A+B)" \
     || { echo MERGE_FAILED; exit 1; }
 
 echo "=== s2_eval $(date -Is) ==="
-"$P" "$CODE/s2_eval.py" --main-lens-dir "$RUN/s2-merged/artifacts" \
+"$P" "$CODE/s2_eval.py" --main-lens-dir "$MOUNT/s2-merged/artifacts" \
     --heldout-manifest "$RUN/step0/manifest-heldout.jsonl" \
-    --half-lens-a "$RUN/s2-half-a/artifacts" --half-lens-b "$RUN/s2-half-b/artifacts" \
+    --half-lens-a "$MOUNT/s2-half-a/artifacts" --half-lens-b "$MOUNT/s2-half-b/artifacts" \
     --split-json "$RUN/step0/corpus-split.json" \
     --text-lens-dir "$RUN/s1-text/artifacts" --text-heldout "$RUN/step0/manifest-text-heldout.jsonl" \
     --json "$RUN/step3/s2_eval.json" || { echo S2_EVAL_FAILED; exit 1; }

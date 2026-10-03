@@ -24,6 +24,7 @@ P=$HOME/miniconda3/envs/vlm_truth_py313/bin/python
 CODE=$REPO/results/validation_2026-10-01/code
 LOGS=$REPO/results/validation_2026-10-01/logs
 RUN=/data/vlm-lens/validation
+MOUNT=/home/nvidia-lab/data_mount/vlm-lens
 TF_MIN=0            # logging-only speed probe; the gate is FREE_MIN (user directive 2026-10-02)
 FREE_MIN=24000      # MiB; the campaign's per-step guards (24-36 GiB) take it from there
 TRIP_S=36000        # 10 h without a new checkpoint = genuine hang, not slowness (directive)
@@ -55,7 +56,7 @@ while :; do
     free=${free:-0}
     if pgrep -f "$CAMPAIGN_RE" >/dev/null 2>&1; then
         if pgrep -f "$WORK_RE" >/dev/null 2>&1; then
-            newest=$(find "$RUN" -name '*.pt' -printf '%T@\n' 2>/dev/null | sort -n | tail -1 | cut -d. -f1)
+            newest=$(find "$MOUNT" "$RUN" -name '*.pt' -printf '%T@\n' 2>/dev/null | sort -n | tail -1 | cut -d. -f1)
             case "${newest:-}" in ''|*[!0-9]*) newest=0 ;; esac
             now=$(date +%s)
             if [ "$work_seen_at" -eq 0 ]; then

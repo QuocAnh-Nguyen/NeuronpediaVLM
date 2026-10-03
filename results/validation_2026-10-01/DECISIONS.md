@@ -367,3 +367,29 @@ logging-only) and the 10 h no-new-output-checkpoint trip (TRIP_S=36000). S2 samp
 3431 s; its `rel_change=nan` is the explicit `n_done[mask]==0` branch in fitting.py (first
 sample has no running mean), not a NaN tensor. Measured pace 3431 s/sample (vs 311-326 s
 quiet) => checkpoint-5 ~23:40Z, half A ~47.5 h [projection].
+
+## D24 — 2026-10-03 ~01:05Z: /data hit 100% full; S2 checkpoint writes fail (ENOSPC); chain loop stopped
+
+S2 half-A (started 19:45Z) fitted samples 1-5 healthily (3431->3307 s/sample; `rel_change`
+decaying 8.0e-01->1.6e-01 text, 4.0e-01->1.5e-01 image) but its checkpoint-5 save (23:35Z)
+died in `torch.save`'s zip trailer (`unexpected pos 4294983872 vs 4294983760`), leaving a
+4.3 GB unrenamed `checkpoint.pt.tmp.227311`; `s2_attempt2/3` then failed explicitly with
+`OSError [Errno 28] No space left on device` (SPLIT_FAILED) and the chain gave up on
+3 consecutive non-transient failures. `gpu_guard.sh` relaunched it every ~3 min into an
+S1 fail-loop (even ~3 KB saves hit the same pos-mismatch signature; 8+ cycles by 01:01Z).
+
+Root cause: `/data` (5.5T) at 100% - 0 bytes free (our tree is only 8.8G; co-tenant data
+dominates). The fp32 three-mask S2 checkpoint (~6.4 GB) cannot be written at all; nothing
+in the campaign can persist while this holds. Partials from the 5 fitted samples were
+never checkpointed and are lost (~5 h GPU; second uncheckpointed loss after D22).
+
+Actions: (1) reclaimed the corrupt 4.1G tmp after a `fuser` check (not in use);
+(2) deliberately stopped guard+campaign+step+fit at ~01:05Z - continuing would burn ~5 h
+per fresh S2 attempt whose checkpoint can never land; `s2_watch.sh` stays (read-only).
+Restart is state-free: `cd .../validation_2026-10-01/code && nohup bash gpu_guard.sh >> ../logs/gpu_guard.log 2>&1 &`
+- S1 resumes from its 20-sample checkpoint, S2 half-A restarts from sample 0.
+
+Open decision (user): free `/data` to >= ~20 GiB [derived: 6.4G half-A ckpt + 6.4G half-B
+ckpt + 6.4G merged artifacts + headroom] or add storage; relocation to `/home` (22G avail,
+peak ~20G) rejected as razor-thin default.
+

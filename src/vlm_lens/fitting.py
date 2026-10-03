@@ -23,6 +23,7 @@ from __future__ import annotations
 import logging
 import math
 import os
+import shutil
 import time
 from collections.abc import Sequence
 from dataclasses import dataclass, field
@@ -95,9 +96,30 @@ def model_fingerprint(model: Any) -> dict[str, Any]:
 
 
 def _atomic_save(obj: object, path: str | os.PathLike[str]) -> None:
+    """``torch.save`` via a tmp file + rename, with disk-full diagnostics.
+
+    A full disk truncates ``torch.save``'s zip container mid-stream, which surfaces as an
+    opaque ``unexpected pos X vs Y`` RuntimeError and leaves a large ``*.tmp.<pid>`` behind
+    (2026-10-03: /data at 100 % left 4.3 GB of garbage). Free space is sampled before the
+    write and the tmp file is removed on any failure, so a full disk fails fast, says so,
+    and cleans up after itself.
+    """
+    path = os.fspath(path)
     tmp = f"{path}.tmp.{os.getpid()}"
-    torch.save(obj, tmp)
-    os.replace(tmp, path)
+    try:
+        free: int | None = shutil.disk_usage(os.path.dirname(os.path.abspath(path))).free
+    except OSError:  # not a local filesystem path; torch.save will surface any real error
+        free = None
+    try:
+        torch.save(obj, tmp)
+        os.replace(tmp, path)
+    except Exception as error:  # noqa: BLE001 - re-raised with disk context below
+        try:
+            os.unlink(tmp)
+        except OSError:
+            pass
+        hint = f"free={free / 2**20:.0f} MiB at save time" if free is not None else "free=unknown"
+        raise RuntimeError(f"failed to write {path!r} ({hint}): {error}") from error
 
 
 def jacobian_for_sample(
