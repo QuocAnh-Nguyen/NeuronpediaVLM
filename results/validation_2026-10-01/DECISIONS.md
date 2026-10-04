@@ -475,3 +475,28 @@ A resumes instantly, B resumes from its checkpoint.
 (5) Half-B pace watch: sample 1 = 1056 s, sample 2 = 1908 s (derate persists); ETA 15-25 h.
 First half-B checkpoint (cadence 2, edit was live for attempt 3) not yet on disk at probe
 time - likely a slow mount write; confirm at next probe.
+## D29 - 2026-10-04 ~19:50Z: root cause = data_mount (exfat) write-death, not the co-tenant; tree killed; heartbeats deployed; rescue to /home
+
+User directive: kill + detailed progress logging + resume from the latest checkpoint. Kill done:
+guard/campaign/step3/fit all stopped cleanly; s2-half-b/checkpoint.pt (20/50, 5.94 GB, mtime
+14:06) intact.
+Storage autopsy (MOUNT = /dev/sdc1, exfat, 1.9 TB, 100% full, 4.5 GB avail): reads fine (10 MB
+instant), writes hang (8 MB write times out in 15 s; 512 MB dd hung > 150 s). The "co-tenant
+derate" reading was mostly save stalls: half-A's 15.7 h = ~5.2 h compute + ~25 checkpoint writes
+grinding on a full exFAT; half-B's sample-21 "stall" = a checkpoint save hung since ~14:40 (the
+stranded checkpoint.pt.tmp.*). Host fs map: / ext4 5.8 GB free; /home ext4 10 GB free (2.5 GB/s);
+/data 5.5 TB 100% (2.8 GB free); fuse.rclone 1.7 TB free (another user's, off-limits).
+No healthy filesystem can host the 5.9-GB-checkpoint write pattern (tmp+replace needs ~12 GB
+peak) => S2 cannot continue safely on this box.
+Actions: (1) fitting.py now logs a pass heartbeat (every 10% of the 4096 passes, with elapsed
+seconds + GPU alloc) - deployed by scp, local commit f585d3b; (2) run_campaign.sh s2 retry disk
+gate 24000->8000 - deployed; (3) the cadence-2 edit in run_step3.sh was still NOT on the server
+(server md5 differs from local by exactly that line) - D27/D28's "edit was live" is corrected
+here; deployment to this server is manual scp, which is now the stated mechanism; (4) rescue:
+cp exfat -> /home/nvidia-lab/vlm-lens-rescue (half-a artifacts md5-verified against provenance
+sha256, half-b checkpoint, step0/1/2 JSONs + manifests, x6-fp32 artifacts). S1 lens (3 GB),
+s1-text checkpoint (2 GB) and the half-a checkpoint (5.9 GB) remain on /data and exfat (reads
+OK; ship or rescue separately).
+Resume options: (a) new server - recommended; runbook Path A plus this rescue bundle; (b)
+fragile-local: half-B re-fit on /home with checkpoint-every None (no kill protection), then
+merge; X1 deferred.
