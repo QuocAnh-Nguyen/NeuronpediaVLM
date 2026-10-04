@@ -444,3 +444,34 @@ Fix applied: `--checkpoint-every 5 -> 2` in run_step3.sh (worst-case loss per ki
 ~2 samples / ~12.5 min). Cadence is not part of the checkpoint fingerprint - verified in
 fitting.py:289-305 (layers/target/dim_batch/max_seq_len/skip_first/masks/target_mask/shard).
 Mount still holds no >1 GB files from us (s2-half-a empty); only s1-text/checkpoint.pt on /data.
+## D28 - 2026-10-04 ~10:15Z: S2 half-A verified (first durable caption lens); ops notes
+
+Half-A fit completed 09:16Z after 15.7 h (17:34Z-09:16Z, ~1130 s/sample - co-tenant derate
+~3x vs the 375 s quiet pace; ran to completion under it). Verified by loading the three lens
+files (weights_only load OK; upstream keys; stored fp16, 993 MiB each; fit in fp32+TF32):
+  n_prompts 50/50/50, n_skipped=0, finite, max|J| = 9.3 (text) / 4.6 / 4.2
+  text:  |J|_F l0/mid/top = 249/69/68;  ||J-I||/||I|| = 4.01/0.88/0.43 nonincreasing
+  image: 62/94/72; 1.20/1.25/0.54.  all: 61/90/71; 1.21/1.18/0.52 (early non-monotone in
+  image/all - the X6-fp32 reference fit shows the identical pattern: transport geometry,
+  not a defect).
+  final rel_change text 3.3e-2 / image 1.1e-2 / all 1.2e-2 (from 0.21-0.29 at n=4).
+  Cross-check vs x6-fp32 (8 samples, layers 0/8/16/24/30): norms agree within 2-7% on all
+  masks. Provenance: manifest-half-a sha256 efd2ffcf..., dim_batch=1, skip_first=1,
+  image_token_id 32000, 576 image tokens, vendored jlens commit 581d398.
+  Cross-mask cos at L0: text-image 0.05 (near-orthogonal source-side geometry); ~0.98 at L30.
+
+Ops notes:
+(1) Completed fits' checkpoints are the step-retry skip markers - S1 re-ran 100 samples in
+2.5 min off its 100/100 checkpoint (observed behavior). Do NOT prune s1-text/checkpoint.pt
+or s2-half-a/checkpoint.pt; deleting them replays 15+ h.
+(2) run_campaign.sh must not be edited in place while running (the s2 call site already bound
+its DISK_NEED=24000 argument; bash re-reads moving offsets). If half-B is killed, the retry
+parks in the 24-GiB gate which cannot open at mount-free ~16 GB. Recovery: stop the campaign,
+sed DISK_NEED=24000 to 12000 (15.9 >= 12 opens it), relaunch guard; s1 skips in ~3 min,
+A resumes instantly, B resumes from its checkpoint.
+(3) Cleaned 76 zero-byte checkpoint.pt.tmp.* relics under s1-text (pre-D24 S1 OOM-storm era).
+(4) Space ledger, mount (free 15.9 GiB at probe): half-b checkpoint 5.9 -> half-b artifacts
+3.0 -> merged 3.0 -> X1 ~1 => ~3 GiB final margin. /data free 2.8 GiB, tiny JSON writers only.
+(5) Half-B pace watch: sample 1 = 1056 s, sample 2 = 1908 s (derate persists); ETA 15-25 h.
+First half-B checkpoint (cadence 2, edit was live for attempt 3) not yet on disk at probe
+time - likely a slow mount write; confirm at next probe.
