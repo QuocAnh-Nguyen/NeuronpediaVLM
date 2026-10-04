@@ -76,7 +76,7 @@ export function HeatmapGrid({
         }
       }
     } else {
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.06)';
+      ctx.strokeStyle = 'rgba(20, 20, 19, 0.25)';
       ctx.lineWidth = 1;
       for (let r = 0; r <= rows; r += 1) {
         ctx.beginPath();
@@ -94,7 +94,7 @@ export function HeatmapGrid({
 
     if (showQuarters) {
       ctx.save();
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.55)';
+      ctx.strokeStyle = 'rgba(250, 249, 245, 0.75)';
       ctx.lineWidth = 1;
       ctx.setLineDash([5, 4]);
       ctx.beginPath();
@@ -105,7 +105,7 @@ export function HeatmapGrid({
       ctx.stroke();
       ctx.restore();
       if (quarterOfPatch && quarterOfPatch.length >= cols * rows) {
-        ctx.font = '600 11px ui-monospace, SFMono-Regular, Menlo, monospace';
+        ctx.font = '500 11px "JetBrains Mono", ui-monospace, Menlo, monospace';
         ctx.textAlign = 'left';
         ctx.textBaseline = 'top';
         const qw = width / 2;
@@ -113,10 +113,10 @@ export function HeatmapGrid({
         QUARTER_LABELS.forEach((label, q) => {
           const x = (q % 2) * qw + 4;
           const y = Math.floor(q / 2) * qh + 4;
-          ctx.fillStyle = 'rgba(0, 0, 0, 0.55)';
+          ctx.fillStyle = 'rgba(24, 23, 21, 0.72)';
           const metrics = ctx.measureText(label);
           ctx.fillRect(x - 2, y - 1, metrics.width + 4, 14);
-          ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+          ctx.fillStyle = 'rgba(250, 249, 245, 0.92)';
           ctx.fillText(label, x, y);
         });
       }
@@ -127,13 +127,13 @@ export function HeatmapGrid({
       const r = Math.floor(idx / cols);
       const c = idx % cols;
       if (r < 0 || r >= rows || c < 0 || c >= cols) return;
-      ctx.strokeStyle = 'rgba(109, 124, 255, 0.95)';
+      ctx.strokeStyle = 'rgba(204, 120, 92, 0.95)';
       ctx.strokeRect(c * cw + 1, r * ch + 1, Math.max(1, cw - 2), Math.max(1, ch - 2));
     });
     if (focus !== null) {
       const r = Math.floor(focus / cols);
       const c = focus % cols;
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.95)';
+      ctx.strokeStyle = 'rgba(250, 249, 245, 0.95)';
       ctx.lineWidth = 2;
       ctx.strokeRect(c * cw + 1, r * ch + 1, Math.max(1, cw - 2), Math.max(1, ch - 2));
     }

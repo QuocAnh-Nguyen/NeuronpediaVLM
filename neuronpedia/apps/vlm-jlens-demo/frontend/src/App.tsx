@@ -8,11 +8,11 @@ import { CaptionView } from './views/CaptionView';
 import { PatchView } from './views/PatchView';
 import { SteerView } from './views/SteerView';
 
-const TABS: Array<{ key: TabKey; label: string }> = [
-  { key: 'session', label: 'Session' },
-  { key: 'caption', label: 'Caption & lens' },
-  { key: 'patch', label: 'Patch attribution' },
-  { key: 'steer', label: 'Knockout & steering' },
+const TABS: Array<{ key: TabKey; n: number; label: string }> = [
+  { key: 'session', n: 1, label: 'Session' },
+  { key: 'caption', n: 2, label: 'Caption & lens' },
+  { key: 'patch', n: 3, label: 'Patch attribution' },
+  { key: 'steer', n: 4, label: 'Knockout & steering' },
 ];
 
 const META_REFRESH_MS = 15000;
@@ -90,10 +90,19 @@ export default function App() {
     <div className="app">
       <header className="app-header">
         <div className="brand">
-          <h1>VLM J-Lens</h1>
-          <span className="muted small">
-            Jacobian-lens readouts, patch attribution, causal knockout &amp; steering — captioning-hallucination research
+          <span className="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 20 20" width={22} height={22}>
+              <circle cx="10" cy="10" r="8.25" fill="none" stroke="currentColor" strokeWidth="1.1" opacity="0.35" />
+              <circle cx="10" cy="10" r="4.6" fill="none" stroke="currentColor" strokeWidth="1.1" opacity="0.7" />
+              <circle cx="10" cy="10" r="1.5" style={{ fill: 'var(--primary)' }} />
+            </svg>
           </span>
+          <div className="brand-text">
+            <h1>VLM J-Lens</h1>
+            <span className="brand-sub">
+              Jacobian-lens readouts, patch attribution, causal knockout &amp; steering — captioning-hallucination research
+            </span>
+          </div>
         </div>
         <nav className="tabs">
           {TABS.map((t) => (
@@ -103,6 +112,7 @@ export default function App() {
               className={`tab${tab === t.key ? ' active' : ''}`}
               onClick={() => setTab(t.key)}
             >
+              <span className="tab-num">{t.n}</span>
               {t.label}
               {t.key === 'caption' && flags.length > 0 ? <span className="tab-badge">{flags.length}</span> : null}
               {t.key === 'steer' && selectedPatches.size > 0 ? <span className="tab-badge">{selectedPatches.size}</span> : null}
@@ -160,14 +170,30 @@ export default function App() {
         ) : null}
       </main>
 
-      <footer className="app-footer muted small">
+      <footer className="app-footer">
         {session ? (
           <>
-            session <span className="mono">{session.session_id}</span> · {generated ? `${generated.tokens.length} caption tokens` : 'no caption'} ·{' '}
-            {flags.length} flagged · {selectedPatches.size} patches selected
+            <span className="foot-item">
+              <span className="foot-k">session</span>
+              <span className="foot-v">{session.session_id}</span>
+            </span>
+            <span className="foot-item">
+              <span className="foot-k">caption</span>
+              <span className="foot-v">{generated ? `${generated.tokens.length} tokens` : 'none'}</span>
+            </span>
+            <span className="foot-item">
+              <span className="foot-k">flagged</span>
+              <span className="foot-v">{flags.length}</span>
+            </span>
+            <span className="foot-item">
+              <span className="foot-k">patches</span>
+              <span className="foot-v">{selectedPatches.size} selected</span>
+            </span>
           </>
         ) : (
-          'no session yet'
+          <span className="foot-item">
+            <span className="foot-v">no session yet</span>
+          </span>
         )}
       </footer>
     </div>

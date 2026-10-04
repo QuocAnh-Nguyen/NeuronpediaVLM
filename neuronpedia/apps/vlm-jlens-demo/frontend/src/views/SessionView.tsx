@@ -115,7 +115,7 @@ export function SessionView({ meta, session, sessionInfo, imageB64, generated, o
     <div className="view-grid">
       <section className="panel">
         <header className="panel-header">
-          <h2>1 · image</h2>
+          <h2>image</h2>
           <span className="muted small">
             {meta ? `grid ${meta.model.grid[0]}×${meta.model.grid[1]} = ${meta.model.image_seq_length} patches` : 'grid 24×24'}
           </span>
@@ -162,7 +162,7 @@ export function SessionView({ meta, session, sessionInfo, imageB64, generated, o
 
       <section className="panel">
         <header className="panel-header">
-          <h2>2 · prompt</h2>
+          <h2>prompt</h2>
           <span className="muted small">the &lt;image&gt; token marks the 576 image placeholders</span>
         </header>
         <div className="panel-body">
@@ -184,7 +184,7 @@ export function SessionView({ meta, session, sessionInfo, imageB64, generated, o
 
       <section className="panel">
         <header className="panel-header">
-          <h2>3 · session</h2>
+          <h2>session</h2>
           {session ? <span className="badge ok">created</span> : null}
         </header>
         <div className="panel-body">
@@ -255,7 +255,7 @@ export function SessionView({ meta, session, sessionInfo, imageB64, generated, o
 
       <section className="panel">
         <header className="panel-header">
-          <h2>4 · generate</h2>
+          <h2>generate</h2>
           {generated ? <span className="badge ok">caption ready</span> : null}
         </header>
         <div className="panel-body">

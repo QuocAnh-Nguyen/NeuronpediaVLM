@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { attribution, errorMessage, lens, pollJob } from '../lib/api';
-import { formatHeat, viridisGradient } from '../lib/colormap';
+import { formatHeat, heatGradient } from '../lib/colormap';
 import type {
   AttributionMetric,
   AttributionResult,
@@ -255,68 +255,70 @@ export function PatchView({
           </div>
           <JobProgress job={attrJob} label="attribution" error={attrErr} />
 
-          <div className="heat-wrap">
-            {imageB64 ? (
-              <img
-                ref={imgRef}
-                className="heat-img"
-                src={`data:image/png;base64,${imageB64}`}
-                alt="session"
-                onLoad={(e) => {
-                  const el = e.currentTarget;
-                  setBox({ w: el.clientWidth, h: el.clientHeight });
-                }}
-              />
-            ) : (
-              <div className="empty small">
-                session image not attached (it was created elsewhere) — recreate a session here to see the overlay
-              </div>
-            )}
-            {imageB64 && box.w > 0 && box.h > 0 ? (
-              <HeatmapGrid
-                values={display?.values ?? null}
-                grid={grid}
-                vmin={display?.vmin ?? 0}
-                vmax={display?.vmax ?? 1}
-                width={box.w}
-                height={box.h}
-                showQuarters={showQuarters}
-                quarterOfPatch={imageSpan?.quarter_of_patch ?? null}
-                selected={selectedPatches}
-                focus={focus}
-                onHover={(idx, x, y) => setHover(idx === null ? null : { idx, x, y })}
-                onPaintStart={(idx) => {
-                  const wasSelected = selectedPatches.has(idx);
-                  strokeRef.current = { idx, wasSelected, moved: false };
-                  setFocus(idx);
-                  if (!wasSelected) addPatches([idx]);
-                }}
-                onPaintMove={(idx) => {
-                  if (!strokeRef.current) return;
-                  if (idx !== strokeRef.current.idx) strokeRef.current.moved = true;
-                  addPatches([idx]);
-                }}
-                onPaintEnd={() => {
-                  const stroke = strokeRef.current;
-                  strokeRef.current = null;
-                  if (!stroke) return;
-                  if (!stroke.moved) {
-                    if (stroke.wasSelected) removePatches([stroke.idx]);
-                    else void fetchPatchLens(stroke.idx);
-                  } else {
-                    void fetchPatchLens(stroke.idx);
-                  }
-                }}
-              />
-            ) : null}
-            {hover ? (
-              <div className="heat-tooltip mono" style={{ left: hover.x + 12, top: hover.y + 12 }}>
-                patch {hover.idx} · r{Math.floor(hover.idx / cols)} c{hover.idx % cols} ·{' '}
-                {attr ? formatHeat(attr.grid[Math.floor(hover.idx / cols)]?.[hover.idx % cols] ?? NaN) : '—'}
-                {hoverRank !== undefined ? ` · rank #${hoverRank}` : ''}
-                {hoverQuarter !== undefined ? ` · ${QUARTER_NAMES[hoverQuarter]}` : ''}
-              </div>
-            ) : null}
+          <div className="chrome">
+            <div className="heat-wrap">
+              {imageB64 ? (
+                <img
+                  ref={imgRef}
+                  className="heat-img"
+                  src={`data:image/png;base64,${imageB64}`}
+                  alt="session"
+                  onLoad={(e) => {
+                    const el = e.currentTarget;
+                    setBox({ w: el.clientWidth, h: el.clientHeight });
+                  }}
+                />
+              ) : (
+                <div className="empty small">
+                  session image not attached (it was created elsewhere) — recreate a session here to see the overlay
+                </div>
+              )}
+              {imageB64 && box.w > 0 && box.h > 0 ? (
+                <HeatmapGrid
+                  values={display?.values ?? null}
+                  grid={grid}
+                  vmin={display?.vmin ?? 0}
+                  vmax={display?.vmax ?? 1}
+                  width={box.w}
+                  height={box.h}
+                  showQuarters={showQuarters}
+                  quarterOfPatch={imageSpan?.quarter_of_patch ?? null}
+                  selected={selectedPatches}
+                  focus={focus}
+                  onHover={(idx, x, y) => setHover(idx === null ? null : { idx, x, y })}
+                  onPaintStart={(idx) => {
+                    const wasSelected = selectedPatches.has(idx);
+                    strokeRef.current = { idx, wasSelected, moved: false };
+                    setFocus(idx);
+                    if (!wasSelected) addPatches([idx]);
+                  }}
+                  onPaintMove={(idx) => {
+                    if (!strokeRef.current) return;
+                    if (idx !== strokeRef.current.idx) strokeRef.current.moved = true;
+                    addPatches([idx]);
+                  }}
+                  onPaintEnd={() => {
+                    const stroke = strokeRef.current;
+                    strokeRef.current = null;
+                    if (!stroke) return;
+                    if (!stroke.moved) {
+                      if (stroke.wasSelected) removePatches([stroke.idx]);
+                      else void fetchPatchLens(stroke.idx);
+                    } else {
+                      void fetchPatchLens(stroke.idx);
+                    }
+                  }}
+                />
+              ) : null}
+              {hover ? (
+                <div className="heat-tooltip mono" style={{ left: hover.x + 12, top: hover.y + 12 }}>
+                  patch {hover.idx} · r{Math.floor(hover.idx / cols)} c{hover.idx % cols} ·{' '}
+                  {attr ? formatHeat(attr.grid[Math.floor(hover.idx / cols)]?.[hover.idx % cols] ?? NaN) : '—'}
+                  {hoverRank !== undefined ? ` · rank #${hoverRank}` : ''}
+                  {hoverQuarter !== undefined ? ` · ${QUARTER_NAMES[hoverQuarter]}` : ''}
+                </div>
+              ) : null}
+            </div>
           </div>
 
           <div className="row wrap">
@@ -346,7 +348,7 @@ export function PatchView({
                 </span>
                 <span className="legend">
                   <span className="mono small">{formatHeat(display.vmin)}</span>
-                  <span className="legend-bar" style={{ background: viridisGradient() }} />
+                  <span className="legend-bar" style={{ background: heatGradient(display.vmin, display.vmax) }} />
                   <span className="mono small">{formatHeat(display.vmax)}</span>
                 </span>
               </>

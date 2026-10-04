@@ -97,7 +97,7 @@ export function TopKTable({ target, tracked = [], onPickToken, nLayers, colorMod
                         type="button"
                         className="tok-cell"
                         style={{
-                          background: `linear-gradient(90deg, rgba(109, 124, 255, 0.42) ${pct}%, rgba(255, 255, 255, 0.03) ${pct}%)`,
+                          background: `linear-gradient(90deg, rgba(204, 120, 92, 0.40) ${pct}%, rgba(250, 249, 245, 0.05) ${pct}%)`,
                         }}
                         title={`${entry.str} · prob=${entry.prob.toFixed(4)} · logit=${entry.logit.toFixed(2)} · rank=${entry.rank}`}
                         onClick={onPickToken ? () => onPickToken(entry.str) : undefined}

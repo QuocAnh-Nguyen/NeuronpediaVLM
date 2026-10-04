@@ -20,7 +20,7 @@ export interface LayerChartProps {
 const W = 560;
 const M = { top: 14, right: 18, bottom: 28, left: 52 };
 
-export function LayerChart({ points, color = '#6d7cff', height = 190, title }: LayerChartProps) {
+export function LayerChart({ points, color = 'var(--primary)', height = 190, title }: LayerChartProps) {
   if (points.length === 0) return <div className="empty small">no tracked token — select one to see its per-layer curve</div>;
   const minX = Math.min(...points.map((p) => p.layer));
   const maxX = Math.max(...points.map((p) => p.layer));
