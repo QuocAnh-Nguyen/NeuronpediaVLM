@@ -197,6 +197,9 @@ def jacobian_for_sample(
         batch_indices = torch.arange(dim_batch, device=device)
         cotangent = torch.zeros_like(target_activation)
 
+
+        heartbeat_every = max(1, n_passes // 10)
+        pass_t0 = time.perf_counter()
         for pass_idx, dim_start in enumerate(range(0, d_model, dim_batch)):
             n_dims = min(dim_batch, d_model - dim_start)
             # One-hot cotangent at dim (dim_start + b) for batch element b, at every valid
@@ -220,6 +223,15 @@ def jacobian_for_sample(
                     rows = grad[:n_dims, positions, :].float().mean(dim=1)
                     jacobians[name][layer][dim_start : dim_start + n_dims, :] = rows.cpu()
             del grads
+            if (pass_idx + 1) % heartbeat_every == 0 or pass_idx in (0, n_passes - 1):
+                logger.info(
+                    "    pass %d/%d (%.0f%%) elapsed=%.0fs gpu=%.1fGiB",
+                    pass_idx + 1,
+                    n_passes,
+                    100.0 * (pass_idx + 1) / n_passes,
+                    time.perf_counter() - pass_t0,
+                    torch.cuda.memory_allocated() / 2**30,
+                )
 
     seconds = time.perf_counter() - start
     return jacobians, FitInfo(

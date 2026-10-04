@@ -128,7 +128,7 @@ DISK_PATH=/data DISK_NEED=1000 run_guarded 24000 s1 env DIMBATCH=8 bash "$CODE/r
 # ~29 GiB (X6 verdict use_fp32) and dim_batch only scales activations (identical math, D13),
 # so dim_batch 1 drops the peak to ~31 GiB: the guard is 36 GiB, not 55, which is what the
 # 2026-10-02 co-tenant (57-73 GiB held for hours) makes decisive.
-DISK_PATH="$MOUNT" DISK_NEED=24000 run_guarded 36000 s2 env DIMBATCH=1 bash "$CODE/run_step3.sh" || { echo CAMPAIGN_S2_FAILED; exit 1; }
+DISK_PATH="$MOUNT" DISK_NEED=8000 run_guarded 36000 s2 env DIMBATCH=1 bash "$CODE/run_step3.sh" || { echo CAMPAIGN_S2_FAILED; exit 1; }
 
 # FD: S1's finite-difference row (ii) on GPU (D22; replaces the decoupled s1_fd_watch.sh,
 # whose CPU fallback is retired). Needs 36 GiB - the FD model is the fp32 estimator.
