@@ -500,3 +500,22 @@ OK; ship or rescue separately).
 Resume options: (a) new server - recommended; runbook Path A plus this rescue bundle; (b)
 fragile-local: half-B re-fit on /home with checkpoint-every None (no kill protection), then
 merge; X1 deferred.
+
+## D30 - 2026-10-05 ~06:05Z: MOUNT relocated to /data (user freed 46 GB at /data/anhnq); campaign relaunched to resume at B=20/50
+
+User freed 46 GB on /data (free 2.8 -> 48.9 GB) and instructed to use it. /data write test:
+2.0 GB/s (healthy ext4). The exFAT data_mount remains write-dead (8 MB write still times out
+after the user's cleanup there; 3.3 GB free) and is now abandoned for writes - reads stay
+available for anything not yet rescued.
+Executed: (1) MOUNT=/data/vlm-lens/mount in run_campaign.sh, run_step3.sh, run_step4.sh,
+gpu_guard.sh (guard's pt-watch already globs "$MOUNT" "$RUN", so the TRIP clock follows the
+outputs); deployed by scp, md5-verified on the server (step4 pre-check matched HEAD). Also
+carries the cadence-2 line into the server's run_step3.sh at last (D29's deployment note).
+(2) state: cp from the verified rescue bundle (half-a artifacts, half-b checkpoint) + the one
+exFAT read still needed (half-a checkpoint, 6.24 GB, for the A resume-skip); B checkpoint md5
+46f6b369...46f6... matches the rescue-time hash; 15 GB on /data, 34 GB still free (enough for
+B's save churn 5.9 + B artifacts 3 + merged 3 + X1 1 + margin).
+(3) guard relaunched; it waits for free>=24000 MiB (GPU was 21.2 GB free at launch), then the
+chain runs s1 (resume-skip ~3 min) -> s2 (gate 36 GB; disk gate 8000 on the new MOUNT) -> A
+resume-skip -> B resume from 20/50 with the new pass-heartbeat logging and ~second-scale
+checkpoint saves on ext4. /home rescue bundle (9.2 GB) retained as the immutable backup.
