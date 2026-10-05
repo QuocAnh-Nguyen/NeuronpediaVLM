@@ -27,7 +27,7 @@ export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 REPO=$HOME/ai4life/phuongnh/vlm-lens
 P=$HOME/miniconda3/envs/vlm_truth_py313/bin/python
 RUN=/data/vlm-lens/validation
-MOUNT=/home/nvidia-lab/data_mount/vlm-lens
+MOUNT=/data/vlm-lens/mount
 CODE=$REPO/results/validation_2026-10-01/code
 LOGS=$REPO/results/validation_2026-10-01/logs
 export PYTHONPATH=$REPO/src PYTHONUNBUFFERED=1
