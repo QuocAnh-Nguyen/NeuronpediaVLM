@@ -24,35 +24,46 @@
 # as transient so a retry parks in the gates instead of burning ~5 h per fresh S2 attempt.
 set -u
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
-REPO=$HOME/ai4life/phuongnh/vlm-lens
-P=$HOME/miniconda3/envs/vlm_truth_py313/bin/python
-RUN=/data/vlm-lens/validation
-MOUNT=/data/vlm-lens/mount
+WORK=${VLM_WORK:-/data/anhnq}
+REPO=${REPO:-$WORK/NeuronpediaVLM}
+P=${P:-$WORK/envs/vlm_truth_py313/bin/python}
+RUN=${RUN:-$WORK/vlm-lens-out/validation}
+MOUNT=${MOUNT:-$RUN}
 CODE=$REPO/results/validation_2026-10-01/code
 LOGS=$REPO/results/validation_2026-10-01/logs
 export PYTHONPATH=$REPO/src PYTHONUNBUFFERED=1
+export HF_HOME=${HF_HOME:-$WORK/hf_cache}
 export HF_HUB_OFFLINE=1
-export DIMBATCH=${DIMBATCH:-4}
+export TMPDIR=${TMPDIR:-$WORK/tmp}
+export DIMBATCH=${DIMBATCH:-1}
 mkdir -p "$LOGS" "$RUN/step2" "$RUN/step3" "$RUN/step4" "$MOUNT"
 cd "$REPO" || exit 1
 
-free_mib() { nvidia-smi --query-gpu=memory.free --format=csv,noheader,nounits | head -1; }
+free_mib() { nvidia-smi --query-gpu=memory.free --format=csv,noheader,nounits | sort -rn | head -1; }  # freest card
 
-need_free() {  # $1 = MiB threshold, $2 = label; waits up to 16 h (the 2026-10-02 co-tenant
-              #           held 72 GiB for >2 h at a stretch; a 6 h cap let the chain exit)
-    local need=$1 label=$2 waited=0 free
+gpus_table() { nvidia-smi --query-gpu=index,memory.free --format=csv,noheader,nounits | tr '\n' ' '; }
+
+need_free() {  # $1 = MiB threshold, $2 = label; waits up to 16 h for ANY GPU with >= $1
+              #           free, then exports CUDA_VISIBLE_DEVICES to the freest such card.
+              #           The Brev box is shared with long-running co-tenant jobs (40-57 h
+              #           training runs observed 2026-10-06), so GPU 0 is not special: poll
+              #           every card and take whatever window opens. Re-picked on retries.
+    local need=$1 label=$2 waited=0 g
     while :; do
-        free=$(free_mib)
-        if [ "${free:-0}" -ge "$need" ]; then
-            echo "[$label] free=${free}MiB >= ${need}MiB - starting $(date -Is)"
+        g=$(nvidia-smi --query-gpu=index,memory.free --format=csv,noheader,nounits | \
+            awk -F', ' -v N="$need" '$2 >= N {print $2, $1}' | sort -rn | head -1 | awk '{print $2}')
+        if [ -n "${g:-}" ]; then
+            export CUDA_VISIBLE_DEVICES=$g
+            echo "[$label] GPU $g has >= ${need}MiB free - starting $(date -Is)"
             return 0
         fi
         if [ "$waited" -ge 57600 ]; then
-            echo "[$label] GAVE UP after 16 h: free=${free}MiB < ${need}MiB"
+            echo "[$label] GAVE UP after 16 h: table=$(gpus_table)"
             return 1
         fi
         sleep 30
         waited=$((waited + 30))
+        if [ $((waited % 1800)) -eq 0 ]; then echo "[$label] still waiting (30 min): $(gpus_table)"; fi
     done
 }
 
@@ -119,15 +130,17 @@ run_guarded() {  # $1 = MiB threshold, $2 = label, rest = command
 
 echo "=== run_campaign started $(date -Is) free=$(free_mib)MiB dim_batch_default=$DIMBATCH ==="
 
-# S1: WikiText control fit + held-out scoring/gate. dim_batch 8 (resumes the 20-sample
-# checkpoint left by the old chain; bf16 weights ~16 GiB, ~20 GiB peak) - the guard is 24 GiB
-# so a modest window suffices (the 07:44Z attempt ran at 32.9 GiB free).
-DISK_PATH=/data DISK_NEED=1000 run_guarded 24000 s1 env DIMBATCH=8 bash "$CODE/run_step2.sh" || { echo CAMPAIGN_S1_FAILED; exit 1; }
+# S1: WikiText control fit + held-out scoring/gate. On the Brev box S1 was migrated complete
+# (step2/s1_score.json + s1-text artifacts), so only run it when that state is absent.
+if [ -f "$RUN/step2/s1_score.json" ] && [ -f "$RUN/s1-text/artifacts/lens-all.pt" ]; then
+    echo "[s1] complete (artifacts + s1_score present) - skip $(date -Is)"
+else
+    DISK_PATH=/data DISK_NEED=1000 run_guarded 24000 s1 env DIMBATCH=8 bash "$CODE/run_step2.sh" || { echo CAMPAIGN_S1_FAILED; exit 1; }
+fi
 
-# S2: two 50-sample caption half-fits + merge + held-out evaluation. fp32+TF32 weights are
-# ~29 GiB (X6 verdict use_fp32) and dim_batch only scales activations (identical math, D13),
-# so dim_batch 1 drops the peak to ~31 GiB: the guard is 36 GiB, not 55, which is what the
-# 2026-10-02 co-tenant (57-73 GiB held for hours) makes decisive.
+# S2: two 50-sample caption half-fits (run_step3.sh picks GPUs itself; concurrent when two
+# cards are free, sequential otherwise) + merge + held-out evaluation. fp32+TF32 weights
+# ~29 GiB, ~31 GiB peak at dim_batch 1; the 36 GiB gate leaves margin on a shared box.
 DISK_PATH="$MOUNT" DISK_NEED=8000 run_guarded 36000 s2 env DIMBATCH=1 bash "$CODE/run_step3.sh" || { echo CAMPAIGN_S2_FAILED; exit 1; }
 
 # FD: S1's finite-difference row (ii) on GPU (D22; replaces the decoupled s1_fd_watch.sh,

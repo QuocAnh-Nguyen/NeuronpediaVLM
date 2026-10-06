@@ -2,13 +2,15 @@
 # Step 2 chain: S1 text-only control fit (WikiText train, skip_first=16) + held-out scoring.
 # DTYPE/DIMBATCH come from the X6 verdict; N_PROMPTS is cut by the rule-3 budget check.
 set -u
-REPO=$HOME/ai4life/phuongnh/vlm-lens
-P=$HOME/miniconda3/envs/vlm_truth_py313/bin/python
-RUN=/data/vlm-lens/validation
+WORK=${VLM_WORK:-/data/anhnq}
+REPO=${REPO:-$WORK/NeuronpediaVLM}
+P=${P:-$WORK/envs/vlm_truth_py313/bin/python}
+RUN=${RUN:-$WORK/vlm-lens-out/validation}
 CODE=$REPO/results/validation_2026-10-01/code
 DIMBATCH=${DIMBATCH:-8}
 N_PROMPTS=${N_PROMPTS:-100}
 export PYTHONPATH=$REPO/src
+export HF_HOME=${HF_HOME:-$WORK/hf_cache}
 export HF_HUB_OFFLINE=1
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 mkdir -p "$RUN/step2"

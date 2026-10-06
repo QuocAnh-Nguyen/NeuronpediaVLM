@@ -9,15 +9,17 @@
 # run_step2.sh plus the FD), publishes step2/s1_score.json by rename only when the
 # check_ii_finite_difference row is present, so no reader ever sees a partial file.
 set -u
-R=$HOME/ai4life/phuongnh/vlm-lens
-OUT=/data/vlm-lens/validation/step2/s1_score
-P=$HOME/miniconda3/envs/vlm_truth_py313/bin/python
+R=${REPO:-/data/anhnq/NeuronpediaVLM}
+RUN=${RUN:-/data/anhnq/vlm-lens-out/validation}
+P=${P:-/data/anhnq/envs/vlm_truth_py313/bin/python}
+OUT=$RUN/step2/s1_score
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True PYTHONPATH=$R/src HF_HUB_OFFLINE=1
+export HF_HOME=${HF_HOME:-/data/anhnq/hf_cache}
 rm -f "$OUT.new.json"
 "$P" "$R/results/validation_2026-10-01/code/s1_score.py" \
-    --lens-dir /data/vlm-lens/validation/s1-text/artifacts --mask all \
-    --heldout-manifest /data/vlm-lens/validation/step0/manifest-text-heldout.jsonl \
-    --fit-manifest /data/vlm-lens/validation/step0/manifest-text-fit.jsonl \
+    --lens-dir "$RUN/s1-text/artifacts" --mask all \
+    --heldout-manifest "$RUN/step0/manifest-text-heldout.jsonl" \
+    --fit-manifest "$RUN/step0/manifest-text-fit.jsonl" \
     --json "$OUT.new.json" || { echo "FD_RUN_FAILED rc=$?"; exit 1; }
 if grep -q check_ii_finite_difference "$OUT.new.json"; then
     mv -f "$OUT.new.json" "$OUT.json"

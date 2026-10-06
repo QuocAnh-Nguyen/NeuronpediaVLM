@@ -2,14 +2,16 @@
 # Step 4 chain (X1): fit the same 20-image shard with target_mask=all and target_mask=text,
 # compare the text-block lens rows, and run the single-sample bit-level check.
 set -u
-REPO=$HOME/ai4life/phuongnh/vlm-lens
-P=$HOME/miniconda3/envs/vlm_truth_py313/bin/python
-RUN=/data/vlm-lens/validation
-MOUNT=/data/vlm-lens/mount
+WORK=${VLM_WORK:-/data/anhnq}
+REPO=${REPO:-$WORK/NeuronpediaVLM}
+P=${P:-$WORK/envs/vlm_truth_py313/bin/python}
+RUN=${RUN:-$WORK/vlm-lens-out/validation}
+MOUNT=${MOUNT:-$RUN}
 CODE=$REPO/results/validation_2026-10-01/code
 N_SHARD=${N_SHARD:-20}
 LAYERS=0,8,16,24,30
 export PYTHONPATH=$REPO/src
+export HF_HOME=${HF_HOME:-$WORK/hf_cache}
 export HF_HUB_OFFLINE=1
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True PYTHONUNBUFFERED=1
 mkdir -p "$RUN/step4" "$MOUNT"

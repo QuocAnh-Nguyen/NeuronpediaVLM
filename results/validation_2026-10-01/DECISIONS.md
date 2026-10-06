@@ -534,3 +534,43 @@ landing on /data (mtime 03:33; guard clock resets 02:39 + 03:36; cadence 2 effec
 done ~14-15Z today, then merge -> s2_eval -> FD -> X1 -> X3 -> X7/X9 automatically. The
 server-side hbwatch expired before S2 began (240-min cap started 06:17 on 10-05); live probes
 replace it.
+
+## D32 - 2026-10-06 ~08:45Z: campaign relocated to the Brev 8xH100 box at /data/anhnq; S2 refit in parallel; launched 08:36:19Z
+
+The user provided a new server (Brev `brev-jkk3...`, 8x H100 80GB, `/data` 18 TB with 7.1 TB
+free) and staged `/data/anhnq` themselves: repo upload (a pre-10-05 snapshot), exactly the
+needed 130 COCO val2014 images (`needed.txt`), a complete `hf_cache/hub/models--llava-hf--
+llava-1.5-7b-hf` (14 GB, snapshot b234b804), conda env `vlm_truth_py313` (py3.13, torch
+2.5.1+cu121, transformers 5.17.0, datasets 5.0.1, matplotlib/pillow/pytest), `vlm_env.sh`
+(WORK=/data/anhnq, HF_HOME, HF_HUB_OFFLINE=1, TMPDIR, REPO, RUN), and a 4.8 GB
+`vlm-lens-out/validation` tree carrying step0/step1/step2 complete (S1 lens + s1_score; x6
+lenses) but no S2 state (s2-half-a empty, no half-b).
+
+Setup performed (all committed here; scripts synced to the box):
+* Latest tree rsync'd (src, scripts, tests, docs, code/, DECISIONS, RUNBOOK); report draft
+  REPORT.md and neuronpedia/ left untouched.
+* All campaign-called scripts re-pathed to env defaults for the Brev layout: REPO=/data/anhnq/
+  NeuronpediaVLM, P=.../envs/vlm_truth_py313/bin/python, RUN=.../vlm-lens-out/validation,
+  MOUNT=$RUN (single-disk, per vlm_env.sh), HF_HOME=.../hf_cache, DIMBATCH=1 (proven ~31 GiB).
+* Gates are GPU-aware now: the box is shared (co-tenant training jobs with 40-57 h elapsed);
+  need_free polls every card and pins CUDA_VISIBLE_DEVICES to the freest >= threshold,
+  re-picking on each retry. step3 fits each half with its own lock-guarded GPU picker
+  (concurrent when two cards are free, sequential otherwise) plus a 190-min no-checkpoint
+  hang watchdog. GPU 0 is no longer special (its free memory was 1.7 GB while GPU 5 held 38).
+* `manifest-fit/heldout` embedded the old box's absolute image dir; rewritten in place to
+  `/data/anhnq/coco_val2014` (originals in `step0/prepath_bak/`; text manifests had no image
+  paths; the half manifests regenerate from manifest-fit at step3 start, inheriting the fix).
+* S1 skipped on artifacts+s1_score presence (both staged).
+
+Decision - refit S2 on the new box rather than transfer the old campaign's 9 GB of S2
+checkpoint/artifacts: quiet-window pace is ~275 s/sample (matches the historical 311 s), the
+halves run concurrently on separate cards, and the engine/radius are identical; the old box's
+state stays archived (rescue bundle + /data/vlm-lens) and its campaign remains killed
+(04:46:18Z, user directive).
+
+Launched 2026-10-06T08:36:19Z (no gpu_guard - the co-tenant speed probe is superseded by the
+per-step window gates and the in-step watchdog). Verified: s1 skip, S2 gate -> GPU 5 (38 GB
+window), disk gate 7.4 TB, half-a fitting (30.5 -> 32.3 GiB, heartbeats every ~11 passes/
+sample), half-b picked a second card ~2 min later (30.8 GiB). Expected: halves ~3.8 h each ->
+S2 fits done ~12:30Z -> merge + s2_eval -> FD -> X1 -> X3 -> X7/X9; report materials under
+results/validation_2026-10-01/.
