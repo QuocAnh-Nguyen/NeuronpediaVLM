@@ -519,3 +519,18 @@ B's save churn 5.9 + B artifacts 3 + merged 3 + X1 1 + margin).
 chain runs s1 (resume-skip ~3 min) -> s2 (gate 36 GB; disk gate 8000 on the new MOUNT) -> A
 resume-skip -> B resume from 20/50 with the new pass-heartbeat logging and ~second-scale
 checkpoint saves on ext4. /home rescue bundle (9.2 GB) retained as the immutable backup.
+
+## D31 - 2026-10-06 ~04:10Z: S2 running on relocated setup; correction - durable B resume was 15/50, not 20/50
+
+S2 step started 22:54:50Z on 10-05 (gate: GPU 38637 MiB >= 36000; disk 33587 >= 8000 on the new
+MOUNT). Half-A resumed instantly: 50/50 recognized in ~82 s (warm fp32 load, zero recompute).
+Half-B resumed from **15/50** - the true durable state: the 14:06 save on the exFAT was after
+sample 15 (the server still ran cadence 5; D29/D30's "20/50" was inferred from the
+unpropagated cadence-2 assumption and is corrected here). Samples 16-20 (computed 10-04, never
+saved) are being recomputed identically; no data loss.
+Progress at 04:07Z: samples 16-26 done (11 in this log), pace ~24.7 min/sample (persistent ~4x
+co-tenant derate), 133 heartbeat lines (11/sample - the new logging works), checkpoint saves
+landing on /data (mtime 03:33; guard clock resets 02:39 + 03:36; cadence 2 effective). ETA B
+done ~14-15Z today, then merge -> s2_eval -> FD -> X1 -> X3 -> X7/X9 automatically. The
+server-side hbwatch expired before S2 began (240-min cap started 06:17 on 10-05); live probes
+replace it.
