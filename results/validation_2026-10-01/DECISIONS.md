@@ -626,3 +626,38 @@ include_placeholders (n=43200); whole-block image rows are placeholder-target do
 logit-lens baseline (use_jacobian=False) on the same held-out, to attribute (i)/(ii) to the
 model's mid-layer states vs the fitted map. Chain continues FD -> X1 -> X3 -> X7/X9
 automatically.
+
+## D35 - 2026-10-07 ~04:45Z: S2 section complete - expected structure, halves symmetric, L20 bump attributed to the model
+
+`step3 chain done 2026-10-07T00:56:00Z`; `step3/s2_eval.json` (154 KB, 300 held-out captions).
+Main table as in D34 (text L0 26120.6 -> L16 1307.6 -> L30 215.2 -> L31 = model 42.62, identity
+exact; composition text 82.0 / image 576 / all 658 / quarters 144 positions per sample, as
+designed).
+
+Halves (A4/X8, text tag, 150 + 150 held-out): at L30, lens_a own 233.00 vs cross 231.83,
+lens_b own 197.81 vs cross 203.15 - near-symmetric with the correct in-domain sign, no
+leakage/overfit. lens_b is the stronger half (~15%) on both subsets (question-half
+distribution, not a defect). L31 identity exact in all four cells.
+
+Transfer (A4/E6):
+* Captions, S1 text-lens vs S2 merged, at L30: rank 109.49 vs 215.21 (S1 better) while agree
+  0.706 vs 0.729 and KL 0.474 vs 0.428 (S2 better) - the same rank-tail vs distribution
+  tension recorded for S1 (D19). By rank S1 leads L0-L20 (L0 5.6k vs 26.1k), S2 leads L24-L27
+  (1047.5 vs 1095.2; 414.2 vs 592.3). Note S2's text-mask fit sees ~82 text positions per
+  sample (the 576-token image block dominates the sequence) against S1's ~190 - half the
+  source tokens at equal n_prompts.
+* WikiText, S2 caption lens: L30 rank 67.9 (2.49x ceiling) vs S1's own 46.5 (1.70x) - the
+  expected out-of-domain loss; agree/KL close (0.743 / 0.470).
+
+Diagnostics from D34: the L20 bump is SHARED by every lens on captions and by the caption
+lens on WikiText (S1-on-captions +48%, S2-on-captions +110%, S2-on-WikiText +138% against
+their L16) - the L17-24 region is a model-level property (consistent with the S1 gate's D19
+record), not a defect of the fitted S2 map. The L30 rank gap is S2-specific, noted together
+with the countervailing agree/KL. X11 (logit-lens baseline) stays queued for a GPU window.
+
+Campaign: FD failed twice with "CUDA OOM for the float32 FD model - FD not measured
+(GPU-only)" - run_fd.sh's designed graceful path; classified `other` only because
+run_guarded greps "OutOfMemory" and not "CUDA OOM" (cosmetic; three `other` in a row skip
+FD by design via `|| echo CAMPAIGN_FD_SKIPPED`). X1 (36 GiB gate) is queueing - the box is
+memory-packed (max free ~19.9 GB) so later steps wait for windows. X11 deferred (needs
+~24 GB), will launch opportunistically.
