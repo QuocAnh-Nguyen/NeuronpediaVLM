@@ -137,6 +137,7 @@ def score_table_fast(
     skip_first: int,
     max_seq_len: int,
     modes=("default",),
+    use_jacobian: bool = True,
     chunk_size: int = 256,
 ) -> tuple[object, dict, dict[str, list[LensScore]]]:
     """GPU-metric scorer with the reference's exact position/target semantics.
@@ -173,9 +174,9 @@ def score_table_fast(
             model,
             lens,
             batch,
-            layers=[layer for layer in score_layers if layer != final_layer],
+            layers=[layer for layer in score_layers if not (use_jacobian and layer == final_layer)],
             positions=index_list,
-            use_jacobian=True,
+            use_jacobian=use_jacobian,
             max_seq_len=max_seq_len,
         )
         row_of = {position: row for row, position in enumerate(readout.positions)}
@@ -206,7 +207,7 @@ def score_table_fast(
                     model_log_probs = torch.log_softmax(model_chunk, dim=-1)
                     n = int(chunk_targets.numel())
                     for layer in score_layers:
-                        if layer == final_layer:
+                        if use_jacobian and layer == final_layer:
                             lens_chunk = model_chunk
                         else:
                             lens_chunk = readout.lens_logits[layer][chunk].to(device)
