@@ -574,3 +574,55 @@ window), disk gate 7.4 TB, half-a fitting (30.5 -> 32.3 GiB, heartbeats every ~1
 sample), half-b picked a second card ~2 min later (30.8 GiB). Expected: halves ~3.8 h each ->
 S2 fits done ~12:30Z -> merge + s2_eval -> FD -> X1 -> X3 -> X7/X9; report materials under
 results/validation_2026-10-01/.
+
+## D33 - 2026-10-06 ~21:05Z: half-A cross-box verification (old vs new agree to fp32 noise); both halves done on Brev; merge/eval running
+
+User directive: "the first half is already done [on the old box] - take that as the results for
+the running ones." Verified:
+* Structure: old-A artifacts (`/data/vlm-lens/mount/s2-half-a/artifacts` on the old box) are the
+  current format - 31 layers (0-30), J as per-layer [4096, 4096], fp16 on disk, rich provenance,
+  fit_config identical to new-B/new-A (dim_batch 1, masks text/image/all, skip_first 1,
+  n_samples 50, shard [0,1]); loads with `vlm_lens.artifacts.load_lens_set`.
+* Content: per-layer mean|J|, old-A vs new-A (the SAME 50-sample half, old H100 vs Brev GPU 5),
+  agree to <=1e-4 absolute (<=1% relative) at all 31 layers. old-A vs new-B (a different half)
+  differ ~2.5% - so the cross-box same-samples gap is fp32/TF32 reduction-order noise
+  (RUNBOOK 11); either half-A is interchangeable for the merged lens.
+* The campaign merges the new-A (written 20:52:36Z; B 20:02:28Z; same box/library stack as B).
+  Old-A stays archived. Manifest sha differs (b7d60ab..., the D32 image-dir rewrite) as
+  expected; the checkpoint fingerprint excludes the manifest.
+
+Brev half timings: B done 20:02Z, A 20:52Z (both ~11.3-11.6 h wall, co-tenant derate ~3x).
+step3 continues: merge (n_prompts-weighted) -> s2_eval on 300 held-out captions.
+
+## D34 - 2026-10-07 ~00:35Z: s2_eval runtime swap (reference -> GPU-metric scorer), A/B-exact; S2 main table as expected
+
+The reference scorer (kept verbatim as `code/s2_eval_ref.py`) is CPU-metric bound: every
+phase runs twice (default + include_placeholders, the second discarded for halves/transfer),
+and metrics span 30 layers x 32k vocab x ~600 positions per sample on the CPU. Measured on
+the first attempt: ~34 cores busy, GPU ~22 % utilization, main's first table still unprinted
+after 115 min (main = 600 passes before its print), projected ~14 h total. Killed at 2h07m
+(zero printed output lost; log kept as s2_attempt1.log); run_guarded retried step3 as
+s2_attempt2 (halves instant-resumed from their 50/50 checkpoints on GPUs 0/4; merge re-run).
+
+`code/s2_eval.py` now keeps the same `lens_readout` (identical logits, identical JSON schema
+and prints) and changes only the metric reduction: GPU reductions, one readout shared by both
+modes, and the discarded include_placeholders pass skipped for halves/transfer. Verified by
+`code/s2_eval_ab.py` on real samples: default 128 cells and ip 224 cells with
+max|drank| = max|dagree| = max|dmodel_rank| = 0.000000 (integer metrics exact) and max rel
+dKL 1.1e-5 / 4.8e-6 -> PASS. Known residual cost: the fp32-CPU logits are staged back to the
+GPU per chunk (lens_readout's float32-CPU contract) - a `to_cpu=False` readout option would
+remove roughly half of the current ~12 s/sample; future work, not applied mid-campaign.
+
+S2 main table (attempt2, 300 held-out captions, merged lens, default = placeholder-excluded):
+text tag rank 26120.6 (L0) -> 1307.6 (L16) -> 215.2 (L30) -> 42.62 = model (L31; identity
+exact, agree 1.000, KL 0.000). Normalized, L16 is 30.7x the model ceiling against S1's 32.4x
+- S2 tracks S1, and the curve matches the M6 train-set shape (L30 215 vs M6's 236). Two
+diagnostics flagged, both pre-consistent: (i) an L20 bump (2753, +1446 over L16) echoing
+S1's L17-24 middle-layer weakness (D19); (ii) a steeper L30->L31 convergence (5.0x ceiling
+at L30 vs S1's 1.7x). Tags behave per design: image/image-q3 collapse to one position per
+sample in the default table (identical rows, V5); quarters appear only under
+include_placeholders (n=43200); whole-block image rows are placeholder-target dominated
+(model rank 14.7k) - descriptive only (V1/V4/V5). Follow-up diagnostic: the untrained
+logit-lens baseline (use_jacobian=False) on the same held-out, to attribute (i)/(ii) to the
+model's mid-layer states vs the fitted map. Chain continues FD -> X1 -> X3 -> X7/X9
+automatically.

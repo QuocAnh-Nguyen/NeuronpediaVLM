@@ -12,23 +12,6 @@ Three analyses in one process (one model load):
   scored on held-out questions of both halves, giving same-half vs cross-half cells.
 * **transfer** — A4/E6 cross-corpus: the caption lens on held-out WikiText and the text
   lens on held-out captions.
-
-Runtime note (D34). The reference implementation of this script is preserved verbatim in
-``s2_eval_ref.py``. It produced identical logits (via ``lens_readout``) but computed every
-metric on the CPU from the fp32-CPU logits and ran each phase twice (default +
-include_placeholders): measured ~23 s/sample, ~41 cores busy, GPU ~22 % utilization, and the
-first table still unprinted after 115 min (projected ~15.5 h total on the shared Brev box).
-This file keeps the logits identical and changes only how the metrics are reduced:
-
-* metrics (rank, top-1, KL) are computed with GPU reductions instead of CPU reductions;
-* one ``lens_readout`` per sample is shared by both modes (the modes differ only in which
-  *targets* are counted, never in the readout);
-* the ``include_placeholders`` pass is skipped where the reference discarded it
-  (halves/transfer store only the default rows).
-
-Integer metrics (``n``, true-token rank, top-1 agreement) are exact reproductions; the
-float means (KL) differ only in fp32 reduction order (``s2_eval_ab.py`` prints the max
-deltas on real samples).
 """
 
 from __future__ import annotations
@@ -48,10 +31,9 @@ import torch  # noqa: E402
 from vlm_lens._batch import as_batch  # noqa: E402
 from vlm_lens.artifacts import load_lens_set  # noqa: E402
 from vlm_lens.data.manifest import read_manifest  # noqa: E402
-from vlm_lens.evaluate import LensScore, format_scores  # noqa: E402
+from vlm_lens.evaluate import format_scores, score_lens  # noqa: E402
 from vlm_lens.models.llava import LlavaLensModel  # noqa: E402
 from vlm_lens.positions import build_position_masks  # noqa: E402
-from vlm_lens.readout import lens_readout  # noqa: E402
 
 TAGS = ("text", "image", "all", "image-q0", "image-q1", "image-q2", "image-q3")
 
@@ -113,146 +95,24 @@ def mask_composition(model, samples, tags, skip_first: int, max_seq_len: int) ->
     } | {"seq_len": {"mean": round(sum(seq_lengths) / len(seq_lengths), 1)}}
 
 
-def _rank_of_row(logits: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
-    """1-based rank of each target id in its logit row (ties count as better ranks).
-
-    Same definition as ``vlm_lens.evaluate._rank_of_row``; element-wise comparisons give
-    identical integers on CPU and GPU for identical logits.
-    """
-    target_logit = logits.gather(1, targets[:, None]).squeeze(1)
-    return (logits > target_logit[:, None]).sum(dim=1) + 1
-
-
-def _empty_row() -> dict[str, float]:
-    return {"n": 0.0, "rank": 0.0, "model_rank": 0.0, "agree": 0.0, "kl": 0.0}
-
-
-def score_table_fast(
-    model,
-    lens_dir: str,
-    samples,
-    *,
-    mask: str,
-    tags,
-    skip_first: int,
-    max_seq_len: int,
-    modes=("default",),
-    chunk_size: int = 256,
-) -> tuple[object, dict, dict[str, list[LensScore]]]:
-    """GPU-metric scorer with the reference's exact position/target semantics.
-
-    One ``lens_readout`` per sample covers every tag (union positions, as in
-    ``evaluate._iter_scored_batches``); both requested modes derive their metrics from it.
-    Per (layer, tag) the same per-chunk float32 sums are accumulated in the same order as
-    the reference; only the reduction device differs.
-    """
+def score_table(model, lens_dir: str, samples, *, mask: str, tags, skip_first: int, max_seq_len: int):
     lenses, provenance = load_lens_set(lens_dir)
     lens = lenses[mask]
-    device = torch.device(
-        "cuda" if (torch.cuda.is_available() and model.unembed_weight().is_cuda) else "cpu"
-    )
-    final_layer = model.n_layers - 1
-    score_layers = sorted(set(lens.source_layers) | {final_layer})
-    stats = {
-        mode: {layer: {tag: _empty_row() for tag in tags} for layer in score_layers}
-        for mode in modes
-    }
-
-    for sample in samples:
-        batch = as_batch(model, sample, max_seq_len)
-        masks = build_position_masks(
-            batch.input_ids, model.image_token_id, skip_first=skip_first, masks=tags
-        )
-        active = {tag: m for tag, m in masks.items() if bool(m.any())}
-        if not active:
-            continue
-        index_list = sorted(
-            {int(p) for m in active.values() for p in m.nonzero(as_tuple=True)[0]}
-        )
-        readout = lens_readout(
+    rows = {
+        "default": score_lens(
+            model, lens, samples, tags=tags, skip_first=skip_first, max_seq_len=max_seq_len
+        ),
+        "include_placeholders": score_lens(
             model,
             lens,
-            batch,
-            layers=[layer for layer in score_layers if layer != final_layer],
-            positions=index_list,
-            use_jacobian=True,
+            samples,
+            tags=tags,
+            skip_first=skip_first,
             max_seq_len=max_seq_len,
-        )
-        row_of = {position: row for row, position in enumerate(readout.positions)}
-        input_ids = readout.input_ids
-        seq_len = input_ids.numel()
-        model_logits_cpu = readout.model_logits
-
-        for mode in modes:
-            include_placeholders = mode == "include_placeholders"
-            for tag, m in active.items():
-                positions = [
-                    int(p) for p in m.nonzero(as_tuple=True)[0] if int(p) + 1 < seq_len
-                ]
-                if not include_placeholders:
-                    positions = [
-                        p for p in positions if int(input_ids[p + 1]) != model.image_token_id
-                    ]
-                if not positions:
-                    continue
-                rows = torch.tensor([row_of[p] for p in positions], dtype=torch.long)
-                targets = input_ids[torch.tensor([p + 1 for p in positions], dtype=torch.long)]
-                for start in range(0, rows.numel(), chunk_size):
-                    chunk = rows[start : start + chunk_size]
-                    chunk_targets = targets[start : start + chunk_size].to(device)
-                    model_chunk = model_logits_cpu[chunk].to(device)
-                    model_rank = _rank_of_row(model_chunk, chunk_targets).float().sum()
-                    model_top1 = model_chunk.argmax(dim=1)
-                    model_log_probs = torch.log_softmax(model_chunk, dim=-1)
-                    n = int(chunk_targets.numel())
-                    for layer in score_layers:
-                        if layer == final_layer:
-                            lens_chunk = model_chunk
-                        else:
-                            lens_chunk = readout.lens_logits[layer][chunk].to(device)
-                        accumulator = stats[mode][layer][tag]
-                        accumulator["n"] += float(n)
-                        accumulator["rank"] += float(
-                            _rank_of_row(lens_chunk, chunk_targets).float().sum()
-                        )
-                        accumulator["model_rank"] += float(model_rank)
-                        accumulator["agree"] += float(
-                            (lens_chunk.argmax(dim=1) == model_top1).float().sum()
-                        )
-                        lens_log_probs = torch.log_softmax(lens_chunk, dim=-1)
-                        accumulator["kl"] += float(
-                            torch.nn.functional.kl_div(
-                                lens_log_probs,
-                                model_log_probs,
-                                reduction="none",
-                                log_target=True,
-                            )
-                            .sum(dim=-1)
-                            .sum()
-                        )
-
-    out: dict[str, list[LensScore]] = {}
-    for mode in modes:
-        rows_out: list[LensScore] = []
-        for layer in score_layers:
-            for tag in tags:
-                accumulator = stats[mode][layer][tag]
-                n = int(accumulator["n"])
-                if n == 0:
-                    continue
-                rows_out.append(
-                    LensScore(
-                        layer=layer,
-                        tag=tag,
-                        n=n,
-                        mean_rank_true=accumulator["rank"] / n,
-                        model_mean_rank_true=accumulator["model_rank"] / n,
-                        top1_agreement=accumulator["agree"] / n,
-                        mean_kl=accumulator["kl"] / n,
-                    )
-                )
-        out[mode] = rows_out
-    return lens, provenance, out
+            include_placeholders=True,
+        ),
+    }
+    return lens, provenance, rows
 
 
 def main() -> int:
@@ -273,10 +133,9 @@ def main() -> int:
     }
 
     print("== main: merged caption lens, held-out captions ==")
-    lens, provenance, rows = score_table_fast(
+    lens, provenance, rows = score_table(
         model, args.main_lens_dir, heldout, mask=args.mask, tags=tags,
         skip_first=args.skip_first, max_seq_len=args.max_seq_len,
-        modes=("default", "include_placeholders"),
     )
     report["main"] = {
         "lens_dir": args.main_lens_dir,
@@ -308,10 +167,9 @@ def main() -> int:
         }
         for label, lens_dir in (("lens_a", args.half_lens_a), ("lens_b", args.half_lens_b)):
             for subset_name, subset in subsets.items():
-                half_lens, _, half_rows = score_table_fast(
+                half_lens, _, half_rows = score_table(
                     model, lens_dir, subset, mask=args.mask, tags=("text",),
                     skip_first=args.skip_first, max_seq_len=args.max_seq_len,
-                    modes=("default",),
                 )
                 key = f"{label}_on_{subset_name}"
                 halves[key] = {
@@ -333,17 +191,17 @@ def main() -> int:
     if args.text_lens_dir and args.text_heldout:
         text_heldout = read_manifest(args.text_heldout)
         transfer: dict[str, object] = {"n_text_heldout": len(text_heldout)}
-        caption_lens, _, caption_rows = score_table_fast(
+        caption_lens, _, caption_rows = score_table(
             model, args.main_lens_dir, text_heldout, mask=args.mask, tags=("text",),
-            skip_first=16, max_seq_len=args.max_seq_len, modes=("default",),
+            skip_first=16, max_seq_len=args.max_seq_len,
         )
         transfer["caption_lens_on_wikitext"] = {
             "skip_first": 16,
             "rows": [row.to_json() for row in caption_rows["default"]],
         }
-        text_lens, _, text_rows = score_table_fast(
+        text_lens, _, text_rows = score_table(
             model, args.text_lens_dir, heldout, mask="all", tags=("text",),
-            skip_first=1, max_seq_len=args.max_seq_len, modes=("default",),
+            skip_first=1, max_seq_len=args.max_seq_len,
         )
         transfer["text_lens_on_captions"] = {
             "skip_first": 1,
