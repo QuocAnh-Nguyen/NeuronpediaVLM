@@ -729,3 +729,22 @@ shrank mid-run); redeployed with expandable_segments + 3 attempts + a >=22 GiB g
 for a window. FD remains not_measured (skipped by design). /tmp on the workstation wiped the
 older pulls after ~6 h; all canonical results are durable on the Brev box under
 /data/anhnq/vlm-lens-out/validation/.
+
+## D38 - 2026-10-08 ~12:50Z: X1 v2 float64 re-run deferred - 3 consecutive OOMs; the analytic justification stands
+
+The corrected X1 compare (float64 cosine + text_rows_max_rel_fro) failed all 3 attempts
+(last: rc=1 at 11:04:25Z, ALL_ATTEMPTS_FAILED 11:06:25Z): every >=22 GiB window was grabbed
+by a co-tenant mid-load; the compare's peak is ~25-30 GiB (bf16 model + the per-sample
+Jacobian backward through 31 layers). The box has been memory-packed for ~30 h (max free
+18.7 GiB at 12:45Z). Deferred as OPTIONAL: the float64 fix is justified analytically (the
+16.7M-element reductions become exact to ~1e-15; the fp32 artifact cos=1.0019 > 1 cannot
+survive exact reductions), the original JSON's max_abs/rel_fro numbers are plain
+subtractions and trustworthy, and the adjudication (D36) rests on those plus torch.equal,
+not the cosine. Re-run when a >=30 GiB window persists; also queued as optional: an FD
+re-run and the X9 alpha-grid extension.
+
+Campaign status: COMPLETE. S1 conditional pass (D19), X6 fp32 mandate measured, S2 verified
+expected (D34/D35, 544 cells / 0 anomalies / 17 identities exact), X1 V1 confirmed
+(D36), X3 reproduced + L24 measured, X7 clean, X9 E5-passed, X11 attribution complete
+(D37: the L17-24 degradation is a property of the fitted average-Jacobian map, A2's limit).
+All artifacts durable under /data/anhnq/vlm-lens-out/validation/ on the Brev box.
