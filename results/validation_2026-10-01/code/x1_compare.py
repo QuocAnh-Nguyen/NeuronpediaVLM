@@ -59,7 +59,8 @@ def parse_args() -> argparse.Namespace:
 
 
 def _compare(A: torch.Tensor, B: torch.Tensor) -> dict[str, float | bool]:
-    A, B = A.float(), B.float()
+    A, B = A.double(), B.double()  # fp64: the 16.7M-element reductions are exact to ~1e-15;
+                                   # fp32 gave an impossible cos=1.0019 on the L0 text rows.
     scale = float((A * B).sum() / B.pow(2).sum().clamp_min(1e-12))
     return {
         "bit_identical": bool(torch.equal(A, B)),
@@ -106,6 +107,9 @@ def bit_check(model, sample, layers, max_seq_len: int) -> dict[str, object]:
         ),
         "image_rows_bit_identical": all(
             entry["bit_identical"] for entry in per_mask.get("image", {}).values()
+        ),
+        "text_rows_max_rel_fro": (
+            max((entry["rel_fro"] for entry in per_mask.get("text", {}).values()), default=0.0)
         ),
     }
 

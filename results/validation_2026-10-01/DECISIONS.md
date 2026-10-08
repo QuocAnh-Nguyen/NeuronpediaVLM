@@ -661,3 +661,44 @@ run_guarded greps "OutOfMemory" and not "CUDA OOM" (cosmetic; three `other` in a
 FD by design via `|| echo CAMPAIGN_FD_SKIPPED`). X1 (36 GiB gate) is queueing - the box is
 memory-packed (max free ~19.9 GB) so later steps wait for windows. X11 deferred (needs
 ~24 GB), will launch opportunistically.
+
+## D36 - 2026-10-08 ~05:15Z: campaign COMPLETE (19:15:49Z Oct 7) - X1/X3/X7/X9 results; X1's hard criterion mis-calibrated; cos>1 artifact fixed
+
+`=== campaign done 2026-10-07T19:15:49Z ===` - every step ran; FD skipped by design (2 OOMs
++ 1 no-window). X11 (logit-lens baseline, the queued diagnostic) launched separately at
+~05:10Z on GPU 3 (26.4 GB window) once the campaign freed the box; ~1 h for 300 samples.
+
+**X1** (`step4/x1_targetmask.json`): the pre-registered HARD criterion (text rows
+`torch.equal`-identical between `target_mask=all` and `target_mask=text`) FAILED -
+`text_rows_bit_identical=False`, but with rel_fro 1.37e-2 (L0) -> 1.75e-6 (L30), i.e. the
+**X6-era TF32/atomics run-to-run noise floor** (X6 measured 1.2-1.5 % per-layer medians).
+The two variants are separate fit invocations, so bit-identity was unachievable by
+construction - the criterion was mis-calibrated, not the estimator broken. The REAL signal
+confirms V1 spectacularly: the image rows move by rel_fro 24.5 (L0) -> 27.4 (L8) -> 38.1
+(L16) -> 103 (L24) -> 255 (L30) with cosine collapsing 0.39 -> 0.09 - a ~180-1500x separation
+between image-row and text-row movement. Lens-level (aggregate J): text rows differ 2.12 (L0)
+-> 0.17 (L30) - explained by the library text mask covering the USER: tokens before the
+placeholder, which causally reach image targets (pre-registered in x1_compare's docstring,
+D3); image J moves 23.7 -> 115.6 with best-fit scale 8-28x - the image->image cotangent mass
+is ~8-28x larger and nearly orthogonal (V1).
+Artifact fixed: `_compare` computed a 16.7M-element cosine in fp32 and returned an
+impossible cos=1.0019 (>1) on the L0 text rows - now float64 (exact to ~1e-15) and a
+`text_rows_max_rel_fro` field added; re-run in flight to `step4/x1_targetmask_v2.json`.
+
+**X3 re-census** (`step1/x3_norms.json`): L0/L16/L31 rows reproduce the committed census
+within cross-GPU rounding (L0 bos 8.32 vs 8.3; L16 bos 1568.83 vs 1568.8; L31 633.65 vs
+633.7; one cell 0.4 % off - within the S11 noise clause); the L24 row landed (bos 1567.4,
+pos_1_16 65.25, text_post 91.50) giving X9's alpha grid measured units. Verdict re-confirmed:
+`pos_1_16_sink_like=false`, `recommended_skip_first=1`.
+
+**X7** (`step4/x7_x9.json`): 31 conditioning entries; cond in [1.30, 2.89] - ALL far below
+the 1e3 exclusion threshold, `degenerate=false` everywhere, cosine 0.25-0.78, norms
+0.83-1.35 (residual-relative units). The pseudo-inverse swap bases are well-conditioned;
+the exclusion rule never needed to fire.
+
+**X9** (`step4/x7_x9.json`): 215/1400 generations changed (rate 0.154; add 161, ablate 32,
+swap 22); first-diff tokens cluster at caption positions 10-14 and 1-3 - edits bite early.
+The E5 minimal bar (change rate > 0, first differing token reported) PASSES; the strong
+bar (directed concept-specific changes) is partial - 85 % of edits left greedy generation
+unchanged, and some pairs (dog->cat on a snowboarding image) are semantically irrelevant to
+their sample. Follow-up: extend the alpha grid and filter pairs by image content.
