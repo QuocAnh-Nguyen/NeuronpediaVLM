@@ -19,7 +19,7 @@ wait_gpu() {  # $1 = MiB, $2 = label; waits up to 4 h, echoes the GPU index
     while :; do
         g=$(pick_gpu "$need")
         if [ -n "$g" ]; then
-            echo "[$label] GPU $g >= ${need}MiB $(date -Is)"
+            echo "[$label] GPU $g >= ${need}MiB $(date -Is)" >&2
             echo "$g"; return 0
         fi
         if [ "$waited" -ge 14400 ]; then
