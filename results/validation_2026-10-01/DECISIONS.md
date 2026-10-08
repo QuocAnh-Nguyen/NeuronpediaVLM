@@ -702,3 +702,30 @@ The E5 minimal bar (change rate > 0, first differing token reported) PASSES; the
 bar (directed concept-specific changes) is partial - 85 % of edits left greedy generation
 unchanged, and some pairs (dog->cat on a snowboarding image) are semantically irrelevant to
 their sample. Follow-up: extend the alpha grid and filter pairs by image content.
+
+## D37 - 2026-10-08 ~09:30Z: X11 completes the L20 attribution - REVISES D35/D36: the bump is fitted-map-specific, not a model property
+
+X11 (logit-lens baseline, use_jacobian=False, 300 held-out captions, ~55 min on GPU 3) is in
+`step4/x11_logit_lens.json`. The logit lens's text-tag rank is MONOTONE through L17-24
+(2201.8 at L16 -> 1557.9 at L20 -> 1305.8 at L24 -> 702.3 at L27 -> 284.8 at L30) - NO bump.
+The fitted S2 lens bumps 1307.6 -> 2753.0 at L20 (+110 %, KL 4.46 -> 6.60), and S1's lens
+bumped +48 % there. So D35/D36's "the L17-24 region is a model-level property" is WRONG: the
+bump appears only in fitted average-Jacobian maps. Corrected attribution: A2's single-linear-
+map approximation degrades in the L17-24 region (the same region where S1's gate failed its
+strict middle criterion, D19) - a property of the estimator, and the campaign's main honest
+limitation. The bump is a genuine distributional degradation (rank AND KL move together), not
+a metric artifact.
+
+Other X11 readings: at L0 the logit lens scores 6842 vs the S2 lens 26121 (the fitted lens is
+3.8x worse at the embedding layer on captions; on WikiText S1 beat the logit lens at L2-16 -
+domain difference); agree at L30: logit 0.763 > S2 0.729 (the untrained lens still leads on
+agreement late, consistent with S1's D19); image tag: the logit lens's last-patch rank 33.17
+BEATS the model's own 57.83 (the intermediate unembed's flatter tail - a rank-metric
+curiosity), while the fitted S2 image lens sits at 3302.7 (V1: the image rows carry the
+image->image mass). image-q3 rows identical to image (the same collapsed last patch, V5).
+
+X1 v2 re-run: the first launcher fired at 06:11 but the compare OOM'd (its >=20 GiB pick
+shrank mid-run); redeployed with expandable_segments + 3 attempts + a >=22 GiB gate, waiting
+for a window. FD remains not_measured (skipped by design). /tmp on the workstation wiped the
+older pulls after ~6 h; all canonical results are durable on the Brev box under
+/data/anhnq/vlm-lens-out/validation/.
