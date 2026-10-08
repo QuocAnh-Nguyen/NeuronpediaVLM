@@ -29,15 +29,25 @@ This file keeps the logits identical and changes only how the metrics are reduce
 Integer metrics (``n``, true-token rank, top-1 agreement) are exact reproductions; the
 float means (KL) differ only in fp32 reduction order (``s2_eval_ab.py`` prints the max
 deltas on real samples).
+
+Extended metrics (D19/D39). The mean true-token rank is tail-heavy (the D19 rank-vs-KL
+tension), so the rows also summarize the per-position rank distribution: ``ExtendedScore``
+keeps the ``vlm_lens.evaluate.LensScore`` fields and adds ``median_rank_true`` plus the
+top-k hit rates (``top{5,10,50}_agreement``, k = 1/5/10/50); the JSON rows at all three
+report sites emit them via ``ExtendedScore.to_json`` (``format_scores`` still prints the
+shared fields).
 """
 
 from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from collections import defaultdict
+from dataclasses import asdict, dataclass
 from pathlib import Path
+from typing import Any
 
 REPO = Path(__file__).resolve().parents[3]
 if str(REPO / "src") not in sys.path:
@@ -46,9 +56,9 @@ if str(REPO / "src") not in sys.path:
 import torch  # noqa: E402
 
 from vlm_lens._batch import as_batch  # noqa: E402
-from vlm_lens.artifacts import load_lens_set  # noqa: E402
+from vlm_lens.artifacts import load_bias, load_lens_set  # noqa: E402
 from vlm_lens.data.manifest import read_manifest  # noqa: E402
-from vlm_lens.evaluate import LensScore, format_scores  # noqa: E402
+from vlm_lens.evaluate import format_scores  # noqa: E402
 from vlm_lens.models.llava import LlavaLensModel  # noqa: E402
 from vlm_lens.positions import build_position_masks  # noqa: E402
 from vlm_lens.readout import lens_readout  # noqa: E402
@@ -72,6 +82,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--max-seq-len", type=int, default=1536)
     parser.add_argument("--composition-samples", type=int, default=3)
     parser.add_argument("--limit", type=int, default=None, help="score only the first N samples (smoke)")
+    parser.add_argument(
+        "--bias-dir", default=None,
+        help="directory of moment-census bias-<mask>.pt affine-correction files; when set, "
+        "every lens readout applies the bias/scale correction (the model's own "
+        "final-layer logits are never corrected)",
+    )
     parser.add_argument(
         "--backend", choices=("hf-llava", "tiny"), default="hf-llava",
         help="model backend: 'hf-llava' (default, CUDA) or the tiny CPU smoke fixture",
@@ -126,6 +142,36 @@ def _rank_of_row(logits: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
 def _empty_row() -> dict[str, float]:
     return {"n": 0.0, "rank": 0.0, "model_rank": 0.0, "agree": 0.0, "kl": 0.0}
 
+#: Per-cell per-position true-token ranks (int32 CPU tensors) and top-k hit counts; the
+#: medians and top-k rates are computed once at the end from the concatenated ranks.
+TOP_KS = (1, 5, 10, 50)
+
+
+@dataclass(frozen=True)
+class ExtendedScore:
+    """Fidelity metrics of one lens layer at one modality tag, extended (D19/D39).
+
+    The ``vlm_lens.evaluate.LensScore`` fields (same names and semantics —
+    ``top1_agreement`` stays the argmax agreement with the model) plus the rank
+    distribution's median and the top-k hit rates; the mean rank is tail-heavy, so the
+    median and top-k rates give a fairer read (the D19 rank-vs-KL tension).
+    """
+
+    layer: int
+    tag: str
+    n: int
+    mean_rank_true: float
+    model_mean_rank_true: float
+    top1_agreement: float
+    mean_kl: float
+    median_rank_true: float
+    top5_agreement: float
+    top10_agreement: float
+    top50_agreement: float
+
+    def to_json(self) -> dict[str, Any]:
+        return asdict(self)
+
 
 def score_table_fast(
     model,
@@ -139,16 +185,35 @@ def score_table_fast(
     modes=("default",),
     use_jacobian: bool = True,
     chunk_size: int = 256,
-) -> tuple[object, dict, dict[str, list[LensScore]]]:
+    bias_dir: str | None = None,
+) -> tuple[object, dict, dict[str, list[ExtendedScore]]]:
     """GPU-metric scorer with the reference's exact position/target semantics.
 
     One ``lens_readout`` per sample covers every tag (union positions, as in
     ``evaluate._iter_scored_batches``); both requested modes derive their metrics from it.
     Per (layer, tag) the same per-chunk float32 sums are accumulated in the same order as
     the reference; only the reduction device differs.
+    The rows are :class:`ExtendedScore`: the shared LensScore fields plus the rank
+    distribution's median and the top-k (1/5/10/50) hit rates accumulated per cell.
+    With ``bias_dir`` set, the ``bias-<mask>.pt`` affine correction (moment census) is
+    loaded for the requested mask and applied inside every ``lens_readout`` call - the
+    lens readouts become ``unembed(s_l * (J_l @ h + b_l))``; the model's own final-layer
+    logits are never corrected, so the final-layer rows stay exact.
+    A missing bias file warns and scores unbiased (the launcher runs the zoo even when
+    the census step failed), so a census-less run must not crash.
     """
     lenses, provenance = load_lens_set(lens_dir)
     lens = lenses[mask]
+    bias: dict[int, torch.Tensor] | None = None
+    scale: dict[int, float] | None = None
+    if bias_dir is not None:
+        try:
+            bias_payload, _ = load_bias(os.path.join(bias_dir, f"bias-{mask}.pt"))
+        except FileNotFoundError:
+            print(f"WARNING: no bias-{mask}.pt under {bias_dir}; scoring unbiased", flush=True)
+        else:
+            bias = {int(layer): entry["bias"] for layer, entry in bias_payload.items()}
+            scale = {int(layer): float(entry["scale"]) for layer, entry in bias_payload.items()}
     device = torch.device(
         "cuda" if (torch.cuda.is_available() and model.unembed_weight().is_cuda) else "cpu"
     )
@@ -156,6 +221,17 @@ def score_table_fast(
     score_layers = sorted(set(lens.source_layers) | {final_layer})
     stats = {
         mode: {layer: {tag: _empty_row() for tag in tags} for layer in score_layers}
+        for mode in modes
+    }
+
+    #: Per-cell per-position true-token ranks (int32 CPU tensors) and top-k hit counts; the
+    #: medians and top-k rates are computed once at the end from the concatenated ranks.
+    rank_lists = {
+        mode: {layer: {tag: [] for tag in tags} for layer in score_layers}
+        for mode in modes
+    }
+    hits = {
+        mode: {layer: {tag: dict.fromkeys(TOP_KS, 0) for tag in tags} for layer in score_layers}
         for mode in modes
     }
 
@@ -178,6 +254,8 @@ def score_table_fast(
             positions=index_list,
             use_jacobian=use_jacobian,
             max_seq_len=max_seq_len,
+            bias=bias,
+            scale=scale,
         )
         row_of = {position: row for row, position in enumerate(readout.positions)}
         input_ids = readout.input_ids
@@ -202,20 +280,27 @@ def score_table_fast(
                     chunk = rows[start : start + chunk_size]
                     chunk_targets = targets[start : start + chunk_size].to(device)
                     model_chunk = model_logits_cpu[chunk].to(device)
-                    model_rank = _rank_of_row(model_chunk, chunk_targets).float().sum()
+                    model_rank_row = _rank_of_row(model_chunk, chunk_targets)
+                    model_rank = float(model_rank_row.float().sum())
                     model_top1 = model_chunk.argmax(dim=1)
                     model_log_probs = torch.log_softmax(model_chunk, dim=-1)
                     n = int(chunk_targets.numel())
                     for layer in score_layers:
                         if use_jacobian and layer == final_layer:
                             lens_chunk = model_chunk
+                            lens_rank_row = model_rank_row
                         else:
                             lens_chunk = readout.lens_logits[layer][chunk].to(device)
+                            lens_rank_row = _rank_of_row(lens_chunk, chunk_targets)
                         accumulator = stats[mode][layer][tag]
                         accumulator["n"] += float(n)
-                        accumulator["rank"] += float(
-                            _rank_of_row(lens_chunk, chunk_targets).float().sum()
+                        rank_lists[mode][layer][tag].append(
+                            lens_rank_row.to(torch.int32).cpu()
                         )
+                        cell_hits = hits[mode][layer][tag]
+                        for k in TOP_KS:
+                            cell_hits[k] += int((lens_rank_row <= k).sum())
+                        accumulator["rank"] += float(lens_rank_row.float().sum())
                         accumulator["model_rank"] += float(model_rank)
                         accumulator["agree"] += float(
                             (lens_chunk.argmax(dim=1) == model_top1).float().sum()
@@ -232,17 +317,18 @@ def score_table_fast(
                             .sum()
                         )
 
-    out: dict[str, list[LensScore]] = {}
+    out: dict[str, list[ExtendedScore]] = {}
     for mode in modes:
-        rows_out: list[LensScore] = []
+        rows_out: list[ExtendedScore] = []
         for layer in score_layers:
             for tag in tags:
                 accumulator = stats[mode][layer][tag]
                 n = int(accumulator["n"])
                 if n == 0:
                     continue
+                ranks = torch.cat(rank_lists[mode][layer][tag])
                 rows_out.append(
-                    LensScore(
+                    ExtendedScore(
                         layer=layer,
                         tag=tag,
                         n=n,
@@ -250,6 +336,10 @@ def score_table_fast(
                         model_mean_rank_true=accumulator["model_rank"] / n,
                         top1_agreement=accumulator["agree"] / n,
                         mean_kl=accumulator["kl"] / n,
+                        median_rank_true=float(ranks.median()),
+                        top5_agreement=hits[mode][layer][tag][5] / n,
+                        top10_agreement=hits[mode][layer][tag][10] / n,
+                        top50_agreement=hits[mode][layer][tag][50] / n,
                     )
                 )
         out[mode] = rows_out
@@ -278,6 +368,7 @@ def main() -> int:
         model, args.main_lens_dir, heldout, mask=args.mask, tags=tags,
         skip_first=args.skip_first, max_seq_len=args.max_seq_len,
         modes=("default", "include_placeholders"),
+        bias_dir=args.bias_dir,
     )
     report["main"] = {
         "lens_dir": args.main_lens_dir,
@@ -313,6 +404,7 @@ def main() -> int:
                     model, lens_dir, subset, mask=args.mask, tags=("text",),
                     skip_first=args.skip_first, max_seq_len=args.max_seq_len,
                     modes=("default",),
+                    bias_dir=args.bias_dir,
                 )
                 key = f"{label}_on_{subset_name}"
                 halves[key] = {
@@ -337,6 +429,7 @@ def main() -> int:
         caption_lens, _, caption_rows = score_table_fast(
             model, args.main_lens_dir, text_heldout, mask=args.mask, tags=("text",),
             skip_first=16, max_seq_len=args.max_seq_len, modes=("default",),
+            bias_dir=args.bias_dir,
         )
         transfer["caption_lens_on_wikitext"] = {
             "skip_first": 16,
@@ -345,6 +438,7 @@ def main() -> int:
         text_lens, _, text_rows = score_table_fast(
             model, args.text_lens_dir, heldout, mask="all", tags=("text",),
             skip_first=1, max_seq_len=args.max_seq_len, modes=("default",),
+            bias_dir=args.bias_dir,
         )
         transfer["text_lens_on_captions"] = {
             "skip_first": 1,

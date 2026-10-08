@@ -92,6 +92,8 @@ def lens_readout(
     positions: Sequence[int] | None = None,
     use_jacobian: bool = True,
     max_seq_len: int = 1536,
+    bias: dict[int, torch.Tensor] | None = None,
+    scale: dict[int, float] | None = None,
 ) -> LensReadout:
     """Lens logits at ``positions`` for every requested layer, plus the model's logits.
 
@@ -102,6 +104,12 @@ def lens_readout(
             position — fine on the tiny fixture, potentially large on LLaVA-7B.
         use_jacobian: ``False`` gives the vanilla logit-lens baseline (``unembed`` of the
             raw residual).
+        bias: Per-layer additive corrections in residual (d_model) space, applied to the
+            transported vector - ``unembed(s_l * (J_l @ h + b_l))``, the affine fix for
+            the fitted lens (see the moment census that estimates it). Only layers
+            present in the dict are corrected.
+        scale: Per-layer scalar multipliers applied to the residual just before
+            ``unembed``. The final-layer readout (the model's own logits) gets neither.
     """
     batch = as_batch(model, sample, max_seq_len)
     fitted = set(lens.source_layers)
@@ -137,6 +145,10 @@ def lens_readout(
         residual = select(layer)
         if use_jacobian and layer in lens.jacobians:
             residual = lens.transport(residual, layer)
+            if bias is not None and layer in bias:
+                residual = residual + bias[layer].to(residual.device)
+        if scale is not None and layer in scale:
+            residual = residual * scale[layer]
         lens_logits[layer] = model.unembed(residual).float().cpu()
 
     model_logits = model.unembed(select(final_layer)).float().cpu()

@@ -1,11 +1,14 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Lens artifacts: upstream-compatible files plus provenance.
+"""Lens artifacts: upstream-compatible lens files, affine-correction bias files, provenance.
 
-File format is exactly the reference's (``J`` / ``n_prompts`` / ``source_layers`` /
+The lens file format is exactly the reference's (``J`` / ``n_prompts`` / ``source_layers`` /
 ``d_model``), so a file written here loads with ``jlens.JacobianLens.load`` and with
 TransformerLens's ``JacobianLens.load``, and vice versa. Provenance is written as a
 sidecar ``.json`` next to each lens (and optionally embedded under an extra ``provenance``
-key, which upstream ``load`` ignores).
+key, which upstream ``load`` ignores). The bias family (``bias-<mask>.pt``, written by the
+moment census) holds the per-layer affine correction ``readout.lens_readout`` applies -
+``unembed(s_l * (J_l @ h + b_l))`` - as ``{"bias": Tensor[d_model], "scale": float}`` per
+layer string plus a ``"meta"`` key, loadable with ``weights_only=True``.
 """
 
 from __future__ import annotations
@@ -218,13 +221,63 @@ def merge_shards(shard_dirs: Sequence[str | Path], *, masks: Sequence[str] | Non
     return {mask: JacobianLens.merge(group) for mask, group in per_mask.items()}
 
 
+def save_bias(path: str | Path, payload: Mapping[str, Any]) -> Path:
+    """Write an affine-correction bias file (the ``bias-<mask>.pt`` family).
+
+    ``payload`` maps each layer string to ``{"bias": Tensor[d_model], "scale": float}``
+    plus a ``"meta"`` key. Tensors are stored verbatim (``weights_only=True`` accepts
+    them); every other non-primitive goes through :func:`_plainify`, so exotic types
+    cannot break the load the way a ``TorchVersion`` would break the lens provenance.
+    """
+    path = Path(path)
+    entries: dict[str, Any] = {}
+    for layer_str, entry in payload.items():
+        if layer_str == "meta":
+            continue
+        if not isinstance(entry, Mapping) or "bias" not in entry or "scale" not in entry:
+            raise ValueError(
+                f"bias entry for layer {layer_str!r} must be a mapping with "
+                f"'bias' and 'scale' keys, got {type(entry).__name__}"
+            )
+        if not isinstance(entry["bias"], torch.Tensor):
+            raise ValueError(
+                f"bias for layer {layer_str!r} must be a torch.Tensor, "
+                f"got {type(entry['bias']).__name__}"
+            )
+        entries[str(layer_str)] = {
+            key: (value if isinstance(value, torch.Tensor) else _plainify(value))
+            for key, value in entry.items()
+        }
+    out = {**entries, "meta": _plainify(dict(payload.get("meta") or {}))}
+    path.parent.mkdir(parents=True, exist_ok=True)
+    torch.save(out, path)
+    return path
+
+
+def load_bias(path: str | Path) -> tuple[dict[str, Any], dict[str, Any]]:
+    """Load a bias file written by :func:`save_bias`.
+
+    Returns ``(payload, meta)``: ``payload`` maps each layer string to its
+    ``{"bias": Tensor[d_model], "scale": float}`` entry (``meta`` excluded) and
+    ``meta`` is the provenance dict. Raises ``FileNotFoundError`` on a missing path.
+    """
+    path = Path(path)
+    if not path.is_file():
+        raise FileNotFoundError(f"no bias file at {path}")
+    checkpoint = torch.load(path, map_location="cpu", weights_only=True)
+    meta = checkpoint.pop("meta", {})
+    return checkpoint, meta
+
+
 __all__ = [
     "MASK_FILENAME",
     "PROVENANCE_FILENAME",
     "PROVENANCE_VERSION",
     "build_provenance",
     "environment_info",
+    "load_bias",
     "load_lens_set",
     "merge_shards",
+    "save_bias",
     "save_lens_set",
 ]
