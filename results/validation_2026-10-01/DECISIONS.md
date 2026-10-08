@@ -784,3 +784,67 @@ hallucination analysis in three specific roles, with mapped limits.
 Also note: n=100 fit / 300 held-out is small (the 15 % lens_b half-gap), the rank-vs-KL
 tension (D19) means metric choice matters, and fp32+TF32 is required (X6). Optional re-runs
 (X1 v2 float64, FD) remain window-gated; a 34 GiB window was observed at 15:54Z.
+
+## D40 - 2026-10-08 ~21:50Z: improvement campaign - metric redesign, affine correction (P1), scaling (P2), alpha sweep (P3) - the mid-layer verdict reverses
+
+The improvement campaign ("design experiments to improve our J Lens performances") produced four
+measured levers on the same shared H100 (all window-gated):
+
+1. METRIC REDESIGN. lens_zoo_eval.py now scores mean rank, median rank, top-1/5/10/50
+agreement, mean KL and a composite LQS. Medians unmask the lens: at L16 mean rank 1307.6 but
+MEDIAN 15; L24 mean 1047.5 / median 4; L30 mean 215.2 / median 1 with top10 0.886 - for the
+typical position the lens nearly solves next-token prediction from L16 on. Cross-run determinism:
+the re-scored 100-sample merged lens reproduces the historical ranks exactly (L30 215.21).
+
+2. SCALING (P2). Flat from n=20 to n=100 (LQS -0.25/-0.12/-0.19/-0.03; L16 ratio ~31x, L30
+4.7-5.7x at every n) - the limiter is the estimator's model class (A2), not sample count. Data
+levers: target_mask=text (excluding the image block's next-image-token targets) gives the best
+n=20 score (LQS +0.116, L30 ratio 2.61 vs 4.7-5.7) - a 50-sample refit (phase3c) is queued,
+window-gated; image-target-mask rows and the all-target zoo are worse; prompt/caption variants
+neutral.
+
+3. AFFINE CORRECTION (P1) - the decisive win. moment_census.py measures per-layer E[h] and
+E[h_final] on 100 corpus samples (text mask, 7144 positions); the readout can apply
+h_final ~= b_l + s_l * (J_l h_l) with b_l = E[h_f] - J_l E[h_l], s_l = <t,h_f> / ||t||^2. Census:
+||b|| ~ 97-131, s ~ 0.75-1.92 mid-late but NOISY early (s_0 = -3.19, a ratio-of-means artifact).
+Merged-lens A/B on the 300-sample held-out (tag=text):
+
+| L | rank_nb | rank_b | KL_nb | KL_b |
+| --- | --- | --- | --- | --- |
+| 0 | 26120.6 | 30075.6 | 14.21 | 21.88 (fixed by the clamp) |
+| 8 | 6439.1 | 1794.6 | 8.13 | 6.72 |
+| 16 | 1307.6 | 1185.6 | 4.46 | 4.60 |
+| 20 | 2753.0 | 811.3 | 6.60 | 2.87 |
+| 24 | 1047.5 | 626.7 | 4.60 | 2.44 |
+| 30 | 215.2 | 76.9 | 0.43 | 0.44 |
+
+The L17-24 bump collapses (L20/L16 bump ratio 2.11x -> 0.68x; L30 ratio 5.05 -> 1.80); LQS
+-0.102 -> +0.335. A scale-clamp variant (phase3d: every s clipped to [0.5, 2.0]) fixes the L0-4
+blowup and strictly dominates: KL at L0-4 21.9 -> 7.0 (better than unbiased 9.6-15.6), rank
+ratio 706 -> 46 (unbiased 281-647), LQS 0.335 -> 0.766, layers 5-30 unchanged. Cost: a mild KL
+regression at L9-16 (+0.4-0.7) that the clamp does not touch. Artifacts: step4/bias-text.pt,
+step4d/bias-text.pt (clamped), lens_zoo_biased{,_clamped}.json.
+
+REVISED CONCLUSION (supersedes D39(c)): with bias+clamp the L17-24 region is the lens's BEST
+zone (lens KL 2.6-4.0 vs unbiased 5.0-6.6; L20 rank ratio 19.0 vs 64.6) - the "do not use
+mid-layer" caveat was substantially the uncorrected mean shift, not only A2's variance limit.
+D39 (a)/(b)/(d) stand. A per-layer gated variant (apply the correction where it helps) is the
+natural refinement for the L9-16 regression.
+
+4. ALPHA SWEEP (P3/x9b: 2800 greedy generations, held-out captions, add/ablate/swap at L16/L24).
+Dose-response at L16: ablate alpha 0.5/1/2/4 -> 7/16/24/34% of generations change; swap ->
+7/12/24/39% (swap steepest; swap@L24 reaches 35% at alpha 4). The add grid was designed in
+k units and runs entirely at alpha ~= 27-1035 (its summary "k=1" label is really alpha ~= 27 at
+L16, 58 at L24 - report alpha, never the k label); combined with D39's add grid (alpha
+1.34-14.68, 10-80% change) the change-rate curve is monotone. Concept-directedness validated:
+the stored per-row flags reproduce an independent word-boundary recomputation 2800/2800, and
+within the sane window (alpha <= 4) directedness is 0.5-3% (ablate 1-2/200, swap 0-6/200); at
+alpha >= 27 the add "directed" rows are dominated by degeneration, not injection (example:
+dog->cat add@L16 yields "cat cat cat cat ...", a repetition collapse). So: change is cheap,
+direction is rare (D39's 7/215 = 3.3% of changed remains the reference), and large-alpha effects
+are breakdown. Artifact: step4/x9b_alpha_sweep.json.
+
+Campaign status: P1 done (bias+clamp validated; per-layer gating open), P2 done (saturation;
+target_mask=text refit queued), P3 done (dose-response + degeneration boundary), P4 = this entry.
+Note: the first fp32 census attempt OOM'd under a 20 GiB gate - the fp32 census needs >= 31 GiB;
+the 20 GiB gate suffices for the bf16 census that produced the shipped bias file.
