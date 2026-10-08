@@ -1,7 +1,7 @@
 #!/bin/bash
-# Phase-3 launcher: moment census -> lens zoo eval -> x9b alpha sweep, each gated on a
-# >=20 GiB GPU window (the Brev box is shared; windows are first-come-first-served).
-# Skips a step whose output already exists (idempotent re-runs).
+# Phase-3b launcher: bf16 moment census (the fp32 attempt OOM'd on a 20-GiB window) and a
+# merged-only WITH-BIAS zoo run (the bias A/B against the unbiased lens_zoo.json produced by
+# the phase3 launcher). Each step window-gated; idempotent (skips when its output exists).
 set -u
 R=/data/anhnq/NeuronpediaVLM; V=/data/anhnq/vlm-lens-out/validation
 L=$R/results/validation_2026-10-01/logs; C=$R/results/validation_2026-10-01/code
@@ -23,7 +23,7 @@ wait_gpu() {  # $1 = MiB, $2 = label; waits up to 4 h, echoes the GPU index
             echo "$g"; return 0
         fi
         if [ "$waited" -ge 14400 ]; then
-            echo "[$label] NO_GPU after 4h $(date -Is)"; return 1
+            echo "[$label] NO_GPU after 4h $(date -Is)" >&2; return 1
         fi
         sleep 60; waited=$((waited + 60))
     done
@@ -35,7 +35,6 @@ run_step() {  # $1 = label, $2 = MiB needed, rest = command
     CUDA_VISIBLE_DEVICES=$g "$@"
 }
 
-# 1) moment census -> bias/scale artifact for the affine correction
 if [ ! -f "$V/step4/bias-text.pt" ]; then
     run_step census 20000 $P $C/moment_census.py --lens-dir $V/s2-merged/artifacts --mask text \
         --manifest $V/step0/manifest-fit.jsonl --out $V/step4/bias-text.pt --json $V/step4/bias-text.json \
@@ -45,27 +44,12 @@ else
     echo "[census] bias-text.pt present - skip"
 fi
 
-# 2) lens zoo eval -> the data-scaling curve + LQS
-if [ ! -f "$V/step4/lens_zoo.json" ]; then
-    run_step zoo 20000 $P $C/lens_zoo_eval.py --heldout-manifest $V/step0/manifest-heldout.jsonl \
-        --json $V/step4/lens_zoo.json \
-        --lens x1_all=$V/x1-all/artifacts --lens x1_text=$V/x1-text/artifacts \
-        --lens half_a=$V/s2-half-a/artifacts --lens half_b=$V/s2-half-b/artifacts \
-        --lens merged=$V/s2-merged/artifacts \
-        --bias-dir $V/step4 \
-        || echo "ZOO_FAILED"
+if [ -f "$V/step4/bias-text.pt" ] && [ ! -f "$V/step4/lens_zoo_biased.json" ]; then
+    run_step zoobias 20000 $P $C/lens_zoo_eval.py --heldout-manifest $V/step0/manifest-heldout.jsonl \
+        --json $V/step4/lens_zoo_biased.json --lens merged=$V/s2-merged/artifacts --bias-dir $V/step4 \
+        || echo "ZOOBIA_FAILED"
 else
-    echo "[zoo] lens_zoo.json present - skip"
+    echo "[zoobias] lens_zoo_biased.json present or bias missing - skip"
 fi
 
-# 3) alpha sweep -> the minimal effective edit strength
-if [ ! -f "$V/step4/x9b_alpha_sweep.json" ]; then
-    run_step x9b 22000 $P $C/x9b_alpha_sweep.py --lens-dir $V/s2-merged/artifacts \
-        --manifest $V/step0/manifest-heldout.jsonl --n-samples 10 \
-        --norms-json $V/step1/x3_norms.json --json $V/step4/x9b_alpha_sweep.json \
-        || echo "X9B_FAILED"
-else
-    echo "[x9b] x9b_alpha_sweep.json present - skip"
-fi
-
-echo "=== phase3 launcher done $(date -Is) ==="
+echo "=== phase3b launcher done $(date -Is) ==="
