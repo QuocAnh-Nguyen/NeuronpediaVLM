@@ -748,3 +748,39 @@ expected (D34/D35, 544 cells / 0 anomalies / 17 identities exact), X1 V1 confirm
 (D36), X3 reproduced + L24 measured, X7 clean, X9 E5-passed, X11 attribution complete
 (D37: the L17-24 degradation is a property of the fitted average-Jacobian map, A2's limit).
 All artifacts durable under /data/anhnq/vlm-lens-out/validation/ on the Brev box.
+
+## D39 - 2026-10-08 ~16:00Z: final conclusion - the J-lens gives real value for hallucination analysis as a disposition + intervention instrument, not as a detector
+
+Directionality mining of X9's 215 changed generations: only 7 are CONCEPT-DIRECTED (target
+token appears / source disappears; add x4, ablate x2, swap x1; 3.3 % of changed, 0.5 % of all
+1400 edits). The directed cases are real (e.g. `man->woman add@L24 a=13.81` rewrote a caption
+to "The woman is the main focus") but required alpha ~= 5-14x the residual norm - a dominating
+perturbation, not a surgical edit; at alpha ~= 1-3x, 85 % of edits leave the greedy path
+unchanged (the E5 mis-scaling nuance). Edits bite early (first-diff tokens cluster at caption
+positions 10-14 and 1-3) and both edit layers work (add@16 91 vs add@24 70).
+
+CONCLUSION. Yes - qualified: the J-lens is a validated and useful instrument for VLM
+hallucination analysis in three specific roles, with mapped limits.
+* USE IT (a) as a per-position next-token disposition readout on TEXT positions: it beats the
+  untrained logit lens from L12-L27 on rank and KL (L12 1487.5 vs 3875.2; L16 1307.6 vs
+  2201.8; L27 414.2 vs 702.3), exact at L31 (17/17 identities) - including the LAST PATCH
+  (the image->text handoff, where a hallucination-prone commitment forms).
+* USE IT (b) as a causal handle: the directions (rows of W_U J_l, F15) are live - 215 greedy
+  caption changes from add/ablate/swap - and the 2-column swap bases are well-conditioned
+  (cond <= 2.89, X7). Hallucination-mitigation experiments (ablate a hallucinated concept's
+  direction at L16/24) are feasible with this tooling.
+* DO NOT use it (c) for mid-layer (L17-24) fidelity claims: the averaged-Jacobian
+  approximation degrades there (X11: the untrained lens is monotone, both fitted lenses bump;
+  A2's limit - the campaign's main honest limitation, sharpening D19).
+* DO NOT use it (d) to attribute hallucination to image content via the image rows: the
+  image->image cotangent mass dominates them (X1: 24-255x, cos 0.39->0.09) - the image rows
+  are not next-text predictors (V1).
+* OPEN (e): the campaign validated the instrument and the causal handle but did NOT run a
+  hallucination-specific probe. The natural next experiment (cheap on this tooling):
+  identify hallucinated spans in held-out captions (vs annotations or an image-grounding
+  check), then (i) test whether the lens's disposition at those positions deviates from the
+  model's own logits before the unsupported commitment, and (ii) ablate the hallucinated
+  concept's direction and measure whether the hallucination disappears - the causal cure test.
+Also note: n=100 fit / 300 held-out is small (the 15 % lens_b half-gap), the rank-vs-KL
+tension (D19) means metric choice matters, and fp32+TF32 is required (X6). Optional re-runs
+(X1 v2 float64, FD) remain window-gated; a 34 GiB window was observed at 15:54Z.
