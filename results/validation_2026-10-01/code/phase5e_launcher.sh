@@ -1,14 +1,14 @@
 #!/bin/bash
-# P5e: extended shift selection. The fit-split sweep was MONOTONE in the forward shift
-# (P1 +0.158 < P2 +0.255 < P4 +0.465 < P8 +0.622 LQS on half_a) - test whether larger shifts
-# keep helping: build shiftP16/shiftP30 (P30 = J_30 for every layer, the one-matrix lens - a
-# 31x storage/compute reduction if it wins) and re-run the selection sweep with the full family
-# on the fit split.
+# P5e: logit-space bias calibration (the R2/R3-endorsed lever): apply per-layer
+# logit_bias = mean(z_lens - z_model) (the calib run's gap file, computed at the same base
+# config) on top of the census bias+scale, and score the merged lens on the 300-sample
+# held-out. Tests whether the additive vocab correction generalizes (the tuned-lens
+# marginal-bias fix) or overfits (2482 fit positions vs 32k vocab dims).
 set -u
 R=/data/anhnq/NeuronpediaVLM; V=/data/anhnq/vlm-lens-out/validation
 L=$R/results/validation_2026-10-01/logs; C=$R/results/validation_2026-10-01/code
 P=/data/anhnq/envs/vlm_truth_py313/bin/python
-export HF_HOME=/data/anhnq/hf_cache HF_HUB_OFFLINE=1 PYTHONPATH=$R/src PYTHONUNBUFFERED=1
+export HF_HOME=/data/anhnq/hf_cache HF_HUB_OFFLINE=1 PYTHONPATH=$R/src:$R/third_party/jacobian-lens PYTHONUNBUFFERED=1
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 
 pick_gpu() {
@@ -37,24 +37,44 @@ run_step() {
     CUDA_VISIBLE_DEVICES=$g "$@"
 }
 
-OUT=$V/step5; SHIFTS2=$OUT/synth-shifts2
-mkdir -p $OUT
+OUT=$V/step5; LB=$V/step5e
+mkdir -p $OUT $LB
 
-if [ ! -f "$SHIFTS2/variants.json" ]; then
-    $P $C/synth_lenses.py --src-lens-dir $V/s2-merged/artifacts --out-root $SHIFTS2 \
-        --variants "shiftP8,shiftP16,shiftP30,shiftP4,shiftM4" || echo "SHIFTS2_FAILED"
+if [ ! -f "$LB/bias-text.pt" ]; then
+    $P - <<'PYEOF'
+import sys
+sys.path.insert(0, "/data/anhnq/NeuronpediaVLM/src")
+import torch
+from vlm_lens.artifacts import load_bias, save_bias
+gap_payload = torch.load(
+    "/data/anhnq/vlm-lens-out/validation/step5/calib/calib_logitgap.pt", weights_only=True
+)
+if isinstance(gap_payload, dict) and "meta" in gap_payload:
+    gap_payload = {k: v for k, v in gap_payload.items() if k != "meta"}
+base_payload, base_meta = load_bias("/data/anhnq/vlm-lens-out/validation/step4d/bias-text.pt")
+out = {}
+for layer, entry in base_payload.items():
+    key = int(layer) if isinstance(layer, str) else layer
+    g = gap_payload.get(str(key), gap_payload.get(key))
+    if g is None:
+        out[layer] = entry
+        continue
+    # subtract the lens-model gap: E[z_corrected] = E[z_model]
+    out[layer] = {"bias": entry["bias"], "scale": entry["scale"], "logit_bias": (-g).float().cpu()}
+save_bias(
+    "/data/anhnq/vlm-lens-out/validation/step5e/bias-text.pt",
+    {**out, "meta": {**base_meta, "logit_bias_source": "calib_logitgap (mean z_lens - z_model, base config)"}},
+)
+print("wrote logit-bias bias file for", len(out), "layers")
+PYEOF
 else
-    echo "[shifts2] present - skip"
+    echo "[lb] present - skip"
 fi
 
-if [ -f "$SHIFTS2/variants.json" ] && [ ! -f "$OUT/lens_zoo_shifts_fit2.json" ]; then
-    run_step shiftfit2 20000 $P $C/lens_zoo_eval.py --heldout-manifest $V/step3/manifest-half-a.jsonl \
-        --json $OUT/lens_zoo_shifts_fit2.json --mask text --tags text \
-        --lens shiftP4=$SHIFTS2/shiftP4/artifacts --lens shiftP8=$SHIFTS2/shiftP8/artifacts \
-        --lens shiftP16=$SHIFTS2/shiftP16/artifacts --lens shiftP30=$SHIFTS2/shiftP30/artifacts \
-        --lens shiftM4=$SHIFTS2/shiftM4/artifacts || echo "SHIFTFIT2_FAILED"
-else
-    echo "[shiftfit2] present or shifts missing - skip"
+if [ -f "$LB/bias-text.pt" ] && [ ! -f "$OUT/lens_zoo_logitbias.json" ]; then
+    run_step lbzoo 20000 $P $C/lens_zoo_eval.py --heldout-manifest $V/step0/manifest-heldout.jsonl \
+        --json $OUT/lens_zoo_logitbias.json --mask text --tags text --bias-dir $LB \
+        --lens merged=$V/s2-merged/artifacts || echo "LBZOO_FAILED"
 fi
 
 echo "=== phase5e launcher done $(date -Is) ==="

@@ -1,14 +1,14 @@
 #!/bin/bash
-# P5f: the one-matrix lens on the HELD-OUT. The extended fit-split sweep is monotone in the
-# forward shift through P30 (P4 +0.465 < P8 +0.622 < P16 +0.735 < P30 +1.072 LQS on half_a) -
-# J_30 applied to EVERY layer (one [d,d] matrix, 31x smaller than the full set) beats everything
-# uncorrected. This scores shiftP30/shiftP16 on the 300-sample held-out, bare and with the census
-# bias dir (the bias was fitted for the correct pairing; does it transfer to the one-matrix lens?).
+# P5f: readout-span overlap diagnostic (R2/R3 priority-5, zero fits): how much of each fitted
+# J_l lies in W_U's dominant readout directions, plus cross-layer overlap of J_l's top singular
+# directions — explains the alpha-sweep's rare concept-directed edits (concept subspaces
+# ~orthogonal to the readout span) and quantifies mid-layer basis drift. One GPU dump of W_U,
+# then CPU-only analysis.
 set -u
 R=/data/anhnq/NeuronpediaVLM; V=/data/anhnq/vlm-lens-out/validation
 L=$R/results/validation_2026-10-01/logs; C=$R/results/validation_2026-10-01/code
 P=/data/anhnq/envs/vlm_truth_py313/bin/python
-export HF_HOME=/data/anhnq/hf_cache HF_HUB_OFFLINE=1 PYTHONPATH=$R/src PYTHONUNBUFFERED=1
+export HF_HOME=/data/anhnq/hf_cache HF_HUB_OFFLINE=1 PYTHONPATH=$R/src:$R/third_party/jacobian-lens PYTHONUNBUFFERED=1
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 
 pick_gpu() {
@@ -31,31 +31,31 @@ wait_gpu() {
     done
 }
 
-run_step() {
-    local label=$1 need=$2 g; shift 2
-    g=$(wait_gpu "$need" "$label") || return 1
-    CUDA_VISIBLE_DEVICES=$g "$@"
-}
-
-OUT=$V/step5; SHIFTS2=$OUT/synth-shifts2
+OUT=$V/step5
 mkdir -p $OUT
 
-if [ ! -f "$OUT/lens_zoo_onematrix.json" ]; then
-    run_step omzoo 20000 $P $C/lens_zoo_eval.py --heldout-manifest $V/step0/manifest-heldout.jsonl \
-        --json $OUT/lens_zoo_onematrix.json --mask text --tags text \
-        --lens shiftP30=$SHIFTS2/shiftP30/artifacts --lens shiftP16=$SHIFTS2/shiftP16/artifacts \
-        || echo "OMZOO_FAILED"
+if [ ! -f "$OUT/W_U.pt" ]; then
+    g=$(wait_gpu 20000 wudump) || exit 1
+    CUDA_VISIBLE_DEVICES=$g $P - <<'PYEOF'
+import sys
+sys.path.insert(0, "/data/anhnq/NeuronpediaVLM/src")
+import torch
+from vlm_lens.models.llava import LlavaLensModel
+model = LlavaLensModel.from_pretrained(dtype=torch.bfloat16, device="cuda", local_files_only=True)
+w = model.unembed_weight().detach().float().cpu()
+torch.save(w, "/data/anhnq/vlm-lens-out/validation/step5/W_U.pt")
+print("saved W_U", tuple(w.shape))
+PYEOF
 else
-    echo "[omzoo] present - skip"
+    echo "[wudump] present - skip"
 fi
 
-if [ ! -f "$OUT/lens_zoo_onematrix_bias.json" ]; then
-    run_step ombias 20000 $P $C/lens_zoo_eval.py --heldout-manifest $V/step0/manifest-heldout.jsonl \
-        --json $OUT/lens_zoo_onematrix_bias.json --mask text --tags text --bias-dir $V/step4d \
-        --lens shiftP30=$SHIFTS2/shiftP30/artifacts --lens shiftP16=$SHIFTS2/shiftP16/artifacts \
-        || echo "OMBIAS_FAILED"
+if [ -f "$OUT/W_U.pt" ] && [ ! -f "$OUT/span_overlap.json" ]; then
+    $P $C/readout_span_overlap.py --lens-dir $V/s2-merged/artifacts --mask text \
+        --unembed $OUT/W_U.pt --out $OUT/span_overlap.json --digest $OUT/span_overlap_digest.txt \
+        || echo "SPANOVERLAP_FAILED"
 else
-    echo "[ombias] present - skip"
+    echo "[spanoverlap] present or W_U missing - skip"
 fi
 
 echo "=== phase5f launcher done $(date -Is) ==="
