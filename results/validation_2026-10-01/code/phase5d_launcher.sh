@@ -1,13 +1,14 @@
 #!/bin/bash
-# P5d: the re-paired lens. Composes J'_l = J_{l+delta_l} with per-layer deltas selected on the
-# FIT split (phase5c's shift sweep on half_a; no held-out leakage), then scores it on the 300-sample
-# held-out - bare and with the census bias dir (the bias was fitted for the CORRECT pairing; the
-# probe in phase5c tests whether it transfers to a shifted one).
+# P5d: tuned-lens-style KL calibration of the J-lens readout (zero Jacobian fits): fit per-layer
+# output temperature + a refined scale multiplier by minimizing KL(lens || model) on the
+# 40-sample fit split (half_a), then emit a calibrated bias dir and score the merged lens with
+# it on the 300-sample held-out. The (m, T) grid collapses to one effective scalar c = s_l*m/T
+# per layer (the split is a redundant reparameterization; c is the meaningful quantity).
 set -u
 R=/data/anhnq/NeuronpediaVLM; V=/data/anhnq/vlm-lens-out/validation
 L=$R/results/validation_2026-10-01/logs; C=$R/results/validation_2026-10-01/code
 P=/data/anhnq/envs/vlm_truth_py313/bin/python
-export HF_HOME=/data/anhnq/hf_cache HF_HUB_OFFLINE=1 PYTHONPATH=$R/src PYTHONUNBUFFERED=1
+export HF_HOME=/data/anhnq/hf_cache HF_HUB_OFFLINE=1 PYTHONPATH=$R/src:$R/third_party/jacobian-lens PYTHONUNBUFFERED=1
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 
 pick_gpu() {
@@ -36,30 +37,26 @@ run_step() {
     CUDA_VISIBLE_DEVICES=$g "$@"
 }
 
-OUT=$V/step5; REP=$OUT/repaired
-mkdir -p $REP
+OUT=$V/step5; CAL=$OUT/calib; CALDIR=$V/step5d
+mkdir -p $OUT $CALDIR
 
-if [ ! -f "$REP/artifacts/provenance.json" ]; then
-    $P $C/repaired_lens.py --src-lens-dir $V/s2-merged/artifacts \
-        --selection $OUT/lens_zoo_shifts_fit.json --out $REP || echo "REPAIR_FAILED"
+if [ ! -f "$CAL/calib.json" ]; then
+    run_step calib 20000 $P $C/calib_readout.py --lens-dir $V/s2-merged/artifacts \
+        --bias-dir $V/step4d --manifest $V/step3/manifest-half-a.jsonl --mask text \
+        --limit 40 --out $CAL/calib.json --dtype bfloat16 || echo "CALIB_FAILED"
 else
-    echo "[repair] present - skip"
+    echo "[calib] present - skip"
 fi
 
-if [ -f "$REP/artifacts/provenance.json" ] && [ ! -f "$OUT/lens_zoo_repaired.json" ]; then
-    run_step repzoo 20000 $P $C/lens_zoo_eval.py --heldout-manifest $V/step0/manifest-heldout.jsonl \
-        --json $OUT/lens_zoo_repaired.json --mask text --tags text \
-        --lens repaired=$REP/artifacts || echo "REPZOO_FAILED"
-else
-    echo "[repzoo] present or repair missing - skip"
+if [ -f "$CAL/calib.json" ] && [ ! -f "$CALDIR/bias-text.pt" ]; then
+    $P $C/write_calibrated_bias.py --base-bias-dir $V/step4d --calib $CAL/calib.json \
+        --out $CALDIR --mask text || echo "WRITER_FAILED"
 fi
 
-if [ -f "$REP/artifacts/provenance.json" ] && [ ! -f "$OUT/lens_zoo_repaired_bias.json" ]; then
-    run_step repbias 20000 $P $C/lens_zoo_eval.py --heldout-manifest $V/step0/manifest-heldout.jsonl \
-        --json $OUT/lens_zoo_repaired_bias.json --mask text --tags text --bias-dir $V/step4d \
-        --lens repaired=$REP/artifacts || echo "REPBIAS_FAILED"
-else
-    echo "[repbias] present or repair missing - skip"
+if [ -f "$CALDIR/bias-text.pt" ] && [ ! -f "$OUT/lens_zoo_cal.json" ]; then
+    run_step calzoo 20000 $P $C/lens_zoo_eval.py --heldout-manifest $V/step0/manifest-heldout.jsonl \
+        --json $OUT/lens_zoo_cal.json --mask text --tags text --bias-dir $CALDIR \
+        --lens merged=$V/s2-merged/artifacts || echo "CALZOO_FAILED"
 fi
 
 echo "=== phase5d launcher done $(date -Is) ==="
