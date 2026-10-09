@@ -848,3 +848,75 @@ Campaign status: P1 done (bias+clamp validated; per-layer gating open), P2 done 
 target_mask=text refit queued), P3 done (dose-response + degeneration boundary), P4 = this entry.
 Note: the first fp32 census attempt OOM'd under a 20 GiB gate - the fp32 census needs >= 31 GiB;
 the 20 GiB gate suffices for the bf16 census that produced the shipped bias file.
+
+## D41 - 2026-10-09 ~23:20Z: P5 campaign - structural controls, calibration ladder, tuned-lens-style translators - the J-lens's unique value is the late-layer transport
+
+The improvement round (unique ideas from lens literature: logit lens, tuned lens, Patchscopes,
+SAE readouts, span diagnostics; the sources and their fitting-problem lists are in the research
+payloads) produced a complete MODEL-CLASS LADDER for the LLaVA-1.5 J-lens, all on the 300-sample
+held-out (tag=text), zero new Jacobian fits:
+
+| lens | LQS | L8 | L16 | L20 | L30 |
+| --- | --- | --- | --- | --- | --- |
+| untrained logit lens (baseline) | 0.000 | 151.1 | 30.7* | 64.6 | 5.05 |
+| alphaI (scaled identity, no bias) | 0.000 (exact) | 112.9 | 51.7 | 36.5 | 6.68 |
+| rank64 / rank256 truncated J | -0.587 / -0.284 | 229/174 | 65.8/46.6 | 265.6/172.7 | 18.9/9.1 |
+| full J, uncorrected | -0.102 | 151.1 | 30.7 | 64.6 | 5.05 |
+| diag(J) only, no bias | +0.374 | 60.3 | 34.0 | 24.6 | 6.48 |
+| shiftP4 (J_{l+4} on h_l, no bias) | +0.524 | 34.6 | 88.7 | 30.6 | 5.05 |
+| full J + census bias+scale (D40) | +0.766 | 42.1 | 27.8 | 19.0 | 1.80 |
+| **full J + bias + logit_bias (P5e)** | **+0.922** | **37.0** | **21.4** | **15.3** | **1.79** |
+| ident + bias (calibrated logit lens) | +0.647 | - | - | - | - |
+| lowrankJ (J + rank-32 KL translator) | 1.714 | 10.4 | 6.1 | 6.8 | 5.82 |
+| lowrankRaw (pure tuned lens, rank-32) | 1.718 | 9.4 | 5.9 | 4.8 | 5.62 |
+*the baseline's L16 row is the untrained lens; ratios are lens/model mean rank.
+
+STRUCTURE (jacobian_structure.py, CPU): alpha_ls = trace(J)/d crosses 1 at L20-23 (0.05 at L0,
+1.04 peak at L25) - the late average-Jacobian is identity-like; the early J is a few dominant
+asymmetric off-diagonal directions (top-64 energy 87.5% at L0 vs 9.9% at L30; symmetry 1.41 ->
+0.51; column-norm std 0.99 -> 0.03). diag carries only 0.04-5.3% of the Frobenius mass yet
+scores +0.374 uncorrected - the off-diagonal transport is mostly mean-shift noise until the
+bias removes it. RANK COMPRESSION LOSES: truncating J strips the near-identity mass (the
+identity part has ~4096 equal singular values), leaving exactly the uncorrected off-diagonal -
+the J's value is NOT low-rank compressible.
+
+TRANSPORT DECOMPOSITION (ident_lens.py + zoo, R3 P5): with the SAME bias+scale payload, the
+identity lens scores +0.647 vs the J-lens +0.766 - the transport adds +0.119 (16% of the fix).
+Per layer the transport is WORTHLESS at L0-7 (~0), grows -0.05..-0.13 through L8-16, peaks
+-0.10..-0.25 at L17-28, and -0.508 at L30 (127.7 -> 76.9 rank). The affine correction does the
+early work; the transport does the late work.
+
+SPAN OVERLAP (readout_span_overlap.py, R2/R3 P5, zero fits): the J_l top-64 right-singular
+directions carry only 3.5-10.6% energy in W_U's readout span (random baseline 3.1%) - at chance
+at early layers, 3.4x chance at L30; cross-layer overlap vs the final layer ~chance (0.0002-0.006)
+until L16, then 0.018-0.050 at L20-26 (75-200x chance - the tuned lens's covariance drift
+quantified). This MECHANISTICALLY EXPLAINS the alpha thresholds: a J-lens-vector edit moves the
+state along directions with ~3-10% logit-level effect, so ~10-30x the residual-level magnitude
+is needed to move logits (D39's alpha 5-15 transition + the x9b's alpha 27 = 80% change).
+
+CALIBRATION (calib_readout.py + write_calibrated_bias.py, I3a/I3b): per-layer output temperature
+is rank-invariant by construction (a positive scalar on the residual) - the KL-scalar calibration
+changes no LQS, only KL (-3.3% mean, mid-late already KL-optimal: the census L2 scale equals the
+KL optimum there). The LOGIT-SPACE bias (the mean-gap logit_bias, P5e) with the WRONG sign cost
+-0.100 LQS (doubled the marginal bias - caught and fixed); with the CORRECT sign (subtract
+E[z_lens - z_model]) it is a WIN AT EVERY LAYER (2-23%): LQS +0.766 -> +0.922 - the new best
+J-lens readout, generalizing from 2482 fit positions. readout/s2_eval gained temp/logit_bias
+payload keys (bit-identical when absent; pytest 62 green incl. the parity test).
+
+TUNED-LENS-STYLE TRANSLATORS (lowrank_translator.py, I3b+R1, rank-32 KL distillation to the
+model's own logits on 40 fit samples, J FIXED): lowrankJ (x = J_l h_l) 1.714 ~= lowrankRaw
+(x = h_l, the pure tuned lens = the literature's ceiling) 1.718 - the rank-32 translator
+dominates mid-layer (+0.8 LQS over the best J-lens) and both show an L24-28 bump the J-lens+bias
+does not; BUT BOTH ARE 3x WORSE THAN THE J-LENS AT L30 (5.82/5.62 vs 1.79) - the J's full-rank
+late-layer transport is unmatched by rank-32 bottlenecks.
+
+REVISED CONCLUSION (D39/D40 + this): the ladder is complete. The J-lens's unique value over the
+tuned lens is the LATE-LAYER (L25-30) transport; the tuned lens's value is the mid-layer
+translator; the affine bias+scale+logit_bias correction is necessary everywhere. Best J-lens
+readout: z = unembed(s_l (J_l h + b_l)) + logit_bias_l, LQS +0.922, L30 ratio 1.79. The
+practical recipe for deployment: J at the last 6 layers + the moment census + the mean-gap
+logit_bias; for mid-layer readouts prefer KL-distilled translators.
+Status: phase3c's 23.7-h target_mask=text refit COMPLETED 20:44 (its zoo was killed 8 s in by
+an unrelated SIGTERM; re-launched as phase7: the tmtext50 lens bare + with the best payload).
+Artifacts: step5/{jacobian_structure,synth/,ident/,calib/,span_overlap,W_U.pt,lens_zoo_*},
+step6-lowrank, step6-raw, step5e/bias-text.pt; commits 29fa836, 893f8d2.
