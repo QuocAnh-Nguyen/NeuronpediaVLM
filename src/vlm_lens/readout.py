@@ -94,6 +94,8 @@ def lens_readout(
     max_seq_len: int = 1536,
     bias: dict[int, torch.Tensor] | None = None,
     scale: dict[int, float] | None = None,
+    temp: dict[int, float] | None = None,
+    logit_bias: dict[int, torch.Tensor] | None = None,
 ) -> LensReadout:
     """Lens logits at ``positions`` for every requested layer, plus the model's logits.
 
@@ -109,7 +111,13 @@ def lens_readout(
             the fitted lens (see the moment census that estimates it). Only layers
             present in the dict are corrected.
         scale: Per-layer scalar multipliers applied to the residual just before
-            ``unembed``. The final-layer readout (the model's own logits) gets neither.
+            ``unembed``.
+        temp: Per-layer output temperatures applied to the lens logits right after
+            ``unembed`` - ``z / temp``. Only layers present in the dict are tempered.
+        logit_bias: Per-layer additive corrections in logit (vocab) space, applied after
+            the temperature - ``z / temp + logit_bias``. Only layers present in the dict
+            are corrected. The final-layer readout (the model's own logits) gets none of
+            these corrections.
     """
     batch = as_batch(model, sample, max_seq_len)
     fitted = set(lens.source_layers)
@@ -149,7 +157,12 @@ def lens_readout(
                 residual = residual + bias[layer].to(residual.device)
         if scale is not None and layer in scale:
             residual = residual * scale[layer]
-        lens_logits[layer] = model.unembed(residual).float().cpu()
+        logits = model.unembed(residual).float().cpu()
+        if temp is not None and layer in temp:
+            logits = logits / temp[layer]
+        if logit_bias is not None and layer in logit_bias:
+            logits = logits + logit_bias[layer].to(logits.device)
+        lens_logits[layer] = logits
 
     model_logits = model.unembed(select(final_layer)).float().cpu()
     input_ids_cpu = batch.input_ids[0].detach().cpu()

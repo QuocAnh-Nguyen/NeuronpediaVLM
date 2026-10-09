@@ -6,6 +6,7 @@ from __future__ import annotations
 import torch
 from jlens.hooks import ActivationRecorder
 
+from vlm_lens.artifacts import load_bias, save_bias
 from vlm_lens.interventions import (
     ResidualEdit,
     ResidualEditor,
@@ -171,6 +172,79 @@ def test_lens_readout_final_layer_is_the_model_logits(tiny_model, tiny_lenses, t
     readout = lens_readout(tiny_model, tiny_lenses["text"], tiny_batch, layers=[final], positions=[-1])
     assert set(readout.lens_logits) == {final}
     assert torch.allclose(readout.lens_logits[final], readout.model_logits)
+
+
+def test_lens_readout_temp_and_logit_bias(tiny_model, tiny_lenses, tiny_batch, tmp_path):
+    """Affine payloads may carry per-layer ``temp``/``logit_bias``: lens logits become
+    ``z / temp + logit_bias`` right after ``unembed``; absent keys or explicit ``None``
+    reproduce the prior logits bit-exactly, and the model's own logits are never touched.
+    """
+    lens = tiny_lenses["text"]
+    vocab = tiny_model.hf_model.config.text_config.vocab_size
+    d_model = lens.jacobians[LAYER].shape[-1]
+    baseline = lens_readout(tiny_model, lens, tiny_batch, layers=[LAYER], positions=[-1])
+    payload = {
+        str(LAYER): {
+            "bias": torch.zeros(d_model),
+            "scale": 1.0,
+            "temp": 2.0,
+            "logit_bias": torch.ones(vocab),
+        }
+    }
+    corrected = lens_readout(
+        tiny_model,
+        lens,
+        tiny_batch,
+        layers=[LAYER],
+        positions=[-1],
+        bias={LAYER: payload[str(LAYER)]["bias"]},
+        scale={LAYER: 1.0},
+        temp={LAYER: 2.0},
+        logit_bias={LAYER: payload[str(LAYER)]["logit_bias"]},
+    )
+    # (1) lens logits are exactly untempered/2 + 1 (bias zeros + scale 1.0 are no-ops)
+    assert torch.equal(corrected.lens_logits[LAYER], baseline.lens_logits[LAYER] / 2.0 + 1.0)
+    # (2) explicit temp=None/logit_bias=None reproduces the prior logits bit-exactly
+    corrected_none = lens_readout(
+        tiny_model,
+        lens,
+        tiny_batch,
+        layers=[LAYER],
+        positions=[-1],
+        bias={LAYER: payload[str(LAYER)]["bias"]},
+        scale={LAYER: 1.0},
+        temp=None,
+        logit_bias=None,
+    )
+    assert torch.equal(corrected_none.lens_logits[LAYER], baseline.lens_logits[LAYER])
+    # (3) the model's own logits are never tempered or biased
+    assert torch.equal(corrected.model_logits, baseline.model_logits)
+    # (4) save_bias/load_bias round-trip keeps the new keys under weights_only=True
+    path = tmp_path / "bias-text.pt"
+    save_bias(path, payload)
+    loaded, _ = load_bias(path)
+    assert float(loaded[str(LAYER)]["temp"]) == 2.0
+    assert torch.equal(loaded[str(LAYER)]["logit_bias"], torch.ones(vocab))
+    assert torch.equal(loaded[str(LAYER)]["bias"], torch.zeros(d_model))
+    direct = torch.load(path, weights_only=True)
+    assert float(direct[str(LAYER)]["temp"]) == 2.0
+    assert torch.equal(direct[str(LAYER)]["logit_bias"], torch.ones(vocab))
+
+    # a payload lacking the keys loads and applies as pure bias/scale (prior behavior)
+    plain_payload = {str(LAYER): {"bias": torch.zeros(d_model), "scale": 1.0}}
+    plain_path = tmp_path / "bias-text-plain.pt"
+    save_bias(plain_path, plain_payload)
+    loaded_plain, _ = load_bias(plain_path)
+    plain = lens_readout(
+        tiny_model,
+        lens,
+        tiny_batch,
+        layers=[LAYER],
+        positions=[-1],
+        bias={LAYER: loaded_plain[str(LAYER)]["bias"]},
+        scale={LAYER: float(loaded_plain[str(LAYER)]["scale"])},
+    )
+    assert torch.equal(plain.lens_logits[LAYER], baseline.lens_logits[LAYER])
 
 
 def test_apply_edit_aligns_vectors_to_the_residual(tiny_model, tiny_lenses):

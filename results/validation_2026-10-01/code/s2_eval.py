@@ -197,8 +197,10 @@ def score_table_fast(
     distribution's median and the top-k (1/5/10/50) hit rates accumulated per cell.
     With ``bias_dir`` set, the ``bias-<mask>.pt`` affine correction (moment census) is
     loaded for the requested mask and applied inside every ``lens_readout`` call - the
-    lens readouts become ``unembed(s_l * (J_l @ h + b_l))``; the model's own final-layer
-    logits are never corrected, so the final-layer rows stay exact.
+    lens readouts become ``unembed(s_l * (J_l @ h + b_l))``; per-layer ``temp`` and
+    ``logit_bias`` keys, when present in the payload, temper and shift the lens logits
+    after ``unembed`` (``z / temp + logit_bias``); the model's own final-layer logits are
+    never corrected, so the final-layer rows stay exact.
     A missing bias file warns and scores unbiased (the launcher runs the zoo even when
     the census step failed), so a census-less run must not crash.
     """
@@ -206,6 +208,8 @@ def score_table_fast(
     lens = lenses[mask]
     bias: dict[int, torch.Tensor] | None = None
     scale: dict[int, float] | None = None
+    temp: dict[int, float] | None = None
+    logit_bias: dict[int, torch.Tensor] | None = None
     if bias_dir is not None:
         try:
             bias_payload, _ = load_bias(os.path.join(bias_dir, f"bias-{mask}.pt"))
@@ -214,6 +218,16 @@ def score_table_fast(
         else:
             bias = {int(layer): entry["bias"] for layer, entry in bias_payload.items()}
             scale = {int(layer): float(entry["scale"]) for layer, entry in bias_payload.items()}
+            temp = {
+                int(layer): float(entry["temp"])
+                for layer, entry in bias_payload.items()
+                if "temp" in entry
+            }
+            logit_bias = {
+                int(layer): entry["logit_bias"]
+                for layer, entry in bias_payload.items()
+                if "logit_bias" in entry
+            }
     device = torch.device(
         "cuda" if (torch.cuda.is_available() and model.unembed_weight().is_cuda) else "cpu"
     )
@@ -256,6 +270,8 @@ def score_table_fast(
             max_seq_len=max_seq_len,
             bias=bias,
             scale=scale,
+            temp=temp,
+            logit_bias=logit_bias,
         )
         row_of = {position: row for row, position in enumerate(readout.positions)}
         input_ids = readout.input_ids

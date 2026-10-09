@@ -8,7 +8,9 @@ sidecar ``.json`` next to each lens (and optionally embedded under an extra ``pr
 key, which upstream ``load`` ignores). The bias family (``bias-<mask>.pt``, written by the
 moment census) holds the per-layer affine correction ``readout.lens_readout`` applies -
 ``unembed(s_l * (J_l @ h + b_l))`` - as ``{"bias": Tensor[d_model], "scale": float}`` per
-layer string plus a ``"meta"`` key, loadable with ``weights_only=True``.
+layer string plus a ``"meta"`` key; entries may additionally carry ``"temp": float`` and
+``"logit_bias": Tensor[vocab]`` (applied after ``unembed`` as ``z / temp + logit_bias``),
+loadable with ``weights_only=True``.
 """
 
 from __future__ import annotations
@@ -225,9 +227,11 @@ def save_bias(path: str | Path, payload: Mapping[str, Any]) -> Path:
     """Write an affine-correction bias file (the ``bias-<mask>.pt`` family).
 
     ``payload`` maps each layer string to ``{"bias": Tensor[d_model], "scale": float}``
-    plus a ``"meta"`` key. Tensors are stored verbatim (``weights_only=True`` accepts
-    them); every other non-primitive goes through :func:`_plainify`, so exotic types
-    cannot break the load the way a ``TorchVersion`` would break the lens provenance.
+    plus a ``"meta"`` key; entries may additionally carry ``"temp": float`` and
+    ``"logit_bias": Tensor[vocab]`` (both round-trip through the same path). Tensors are
+    stored verbatim (``weights_only=True`` accepts them); every other non-primitive goes
+    through :func:`_plainify`, so exotic types cannot break the load the way a
+    ``TorchVersion`` would break the lens provenance.
     """
     path = Path(path)
     entries: dict[str, Any] = {}
@@ -258,7 +262,8 @@ def load_bias(path: str | Path) -> tuple[dict[str, Any], dict[str, Any]]:
     """Load a bias file written by :func:`save_bias`.
 
     Returns ``(payload, meta)``: ``payload`` maps each layer string to its
-    ``{"bias": Tensor[d_model], "scale": float}`` entry (``meta`` excluded) and
+    ``{"bias": Tensor[d_model], "scale": float}`` entry (``meta`` excluded); entries may
+    carry the optional ``"temp"``/``"logit_bias"`` keys, and
     ``meta`` is the provenance dict. Raises ``FileNotFoundError`` on a missing path.
     """
     path = Path(path)
