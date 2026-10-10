@@ -945,3 +945,42 @@ FINAL RECOMMENDATION (the complete ladder, 300-sample held-out):
 * The J-lens's unique value over the tuned lens remains the L30 transport (1.30 vs 5.6-5.8);
   for mid-layer fidelity prefer distilled translators.
 Artifacts: step4/lens_zoo_tmtext{,_cal}.json; phase7 launcher; commit follows.
+
+## D43 - 2026-10-10 ~13:00Z: DATA SCALING - the J-class saturates at ~100, the translator class does NOT; the production recommendation flips to the translator
+
+Two scaling curves on disjoint corpora, all metrics 300-sample held-out (tag=text) except
+noted.
+
+J-CLASS (average-Jacobian + moment calibration). Inter-fit LQS flat 20->100 (D40). NEW: an
+online probe (fit_masked --probe-every; the running mean-J scored on 16 held-out samples every
+5 fit samples) gives the intra-fit curve: text-KL 6.305 (n=5) -> 6.043 (n=10) -> 5.989 (n=15)
+- improving but decelerating; image-position KL flat throughout (11.51/11.58/11.53 - the image
+rows are not next-token predictors, V1's echo). The J-class is data-saturated: its value is the
+moment-based affine correction, which converges ~1/sqrt(n) over 7k positions by n~100.
+
+TRANSLATOR CLASS (rank-32 KL distillation to the model's own logits; CPU-resident activation
+cache so fits are OOM-robust on the co-tenant-heavy box). Fit-side mean best val_kl: 1.424
+(n=40) -> 1.049 -> 0.934 -> 0.888 (n=1000) - decelerating ~1/sqrt(n). BUT the held-out LQS
+KEEPS RISING and is ~linear in log n: 1.714 (40) -> 2.043 (100) -> 2.691 (500) -> **3.009
+(1000)**; +0.33/+0.65/+0.32 across the rungs (~0.4 LQS per e-fold of data). The fit-KL and the
+rank metric DECOUPLE: KL approaches its asymptote while the rank ordering keeps sharpening
+(the D19 rank-vs-KL tension at scale).
+
+PER-LAYER (rank ratios, lower better): lrJ1000 = L0 3.06, L8 3.72, L16 1.45, L20 1.22, L24 2.25,
+L28 4.03, L30 **1.30** vs the best J-lens (tmtext50+bias+scale+logit_bias) L0 42.6, L16 21.4,
+L20 15.9, L24 12.5, L30 **1.30**. The J-lens's L30 parity means the D41/D42 claim "the J's
+unique value is the late-layer transport" WAS A SMALL-DATA ARTIFACT: the translator's late-layer
+weakness (5.82 at n=40) decays with data (3.90/2.05/1.30) exactly to the J-lens's level.
+
+REVISED PRODUCTION RECOMMENDATION (supersedes D42):
+* Mid/late-layer readouts: rank-32 KL translator fitted at n >= 1000 (LQS 3.009); keep scaling
+  - the curve is not saturated at n=1000, recommend n=2000-5000 (~+0.3-0.7 LQS per e-fold;
+  ~1-2 h per 1000 samples with the CPU cache).
+* Cheap zero-fit fallback (~1 h total): the J-lens (moment census + bias+scale + logit_bias),
+  LQS 0.92-0.95 - 3x below the n=1000 translator but needs no distillation fit.
+* Causal edits: the J-lens keeps the edit handle; composing edit directions through the
+  translator lens (W_U[t] @ A_l J_l) is the natural follow-up.
+Tools shipped this round: the online probe (fit_masked --probe-every/--probe-manifest, bit-
+identical when off; pytest 64 green), build_caption_manifest_n.py (disjoint nested scaling
+corpora), the CPU-cache lowrank_translator (bit-parity verified). Artifacts: step8/{n100,n500,
+n1000}, step8/lens_zoo_scaling.json, step9-jprobe (probe fit, running), manifest-scaling.jsonl.

@@ -37,12 +37,21 @@ Three passes: (1) cache - one forward pass per fit sample, residuals at the lens
 the per-layer seeded Adam distillation; (3) write - the composed lens as a synthetic lens
 dir plus a bias payload, evaluable by the standard zoo (``--lens name=OUT/artifacts
 --bias-dir OUT``).
+
+Placement. The pass-1 cache is CPU-resident, NOT on the (co-tenant-heavy) GPU: each
+sample's ``x_l`` batch, the ``z_model``/``model_log_probs`` target and the true next-token
+ids land on host RAM (~15/30 GiB at n=500/1000 samples; a guard prints the host-RAM total
+against the estimated cache size and errors below 1.5x). Pass 2 keeps the train/val splits
+on host RAM and streams each minibatch/eval chunk up to the model/W_U device - only the
+storage/compute placement differs: the KL objective, the PCA init, the seeded Adam and the
+val split are unchanged.
 """
 
 from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -192,8 +201,8 @@ def split_positions(n_pos: int, seed: int) -> tuple[torch.Tensor, torch.Tensor]:
 class _Cache:
     """Pass-1 cache: per-layer translator inputs plus the shared distillation target."""
 
-    x: dict[int, torch.Tensor]  # layer -> [n_positions, d] float32 on the fit device
-    model_log_probs: torch.Tensor  # [n_positions, vocab] float32, log_softmax(z_model)
+    x: dict[int, torch.Tensor]  # layer -> [n_positions, d] float32 CPU (host RAM)
+    model_log_probs: torch.Tensor  # [n_positions, vocab] float32 CPU, log_softmax(z_model)
     targets: torch.Tensor  # [n_positions] long CPU: true next-token ids (reporting only)
     model_top1_agreement: float  # the model's own next-token top-1 rate (the reference)
     n_used: int  # samples that contributed
@@ -216,10 +225,11 @@ def cache_translator_inputs(
     Positions are exactly the text-tag scoring positions of ``s2_eval.score_table_fast``:
     mask nonzero, a next token exists, and (the default mode, not
     ``include_placeholders``) the next token is not the image placeholder. Per layer the
-    cache keeps ``x_l`` ([n_positions, d] float32 on ``device``; one batched matmul per
-    (sample, layer)); the final logits ``z_model`` and the true next-token ids (reporting
-    only) are shared across layers. Residuals are recorded at the lens layers plus the
-    final (the readout's capture pattern: block outputs, each block's pre-norm residual).
+    cache keeps ``x_l`` ([n_positions, d] float32, computed on ``device`` then moved to
+    host RAM; one batched matmul per (sample, layer)); the final logits ``z_model`` and
+    the true next-token ids (reporting only) are shared across layers, all CPU-resident.
+    Residuals are recorded at the lens layers plus the final (the readout's capture
+    pattern: block outputs, each block's pre-norm residual).
     """
     final_layer = model.n_layers - 1
     # The zoo scores the final-layer row as the model's own logits, so no translator is
@@ -279,26 +289,48 @@ def cache_translator_inputs(
                 activations = {layer: recorder.activations[layer].detach() for layer in record_at}
             final_act = activations[final_layer][0]  # [seq_len, d_model]
             hf = final_act[pos_idx.to(final_act.device)].float()
-            z_rows.append(model.unembed(hf).float())  # [n_pos, vocab]; the model's own logits
+            # the model's own logits, moved to host RAM as computed: [n_pos, vocab]
+            z_rows.append(model.unembed(hf).float().cpu())
             target_rows.append(pos_idx)
             for layer in fit_layers:
                 act = activations[layer][0]
                 h = act[pos_idx.to(act.device)].float()
                 x = h @ j_dev[layer].T if translator_input == "jacobian" else h
-                per_layer[layer].append(x.to(device=device, dtype=torch.float32))
+                # the computed batch moves off-GPU: the cache is CPU-resident (host RAM)
+                per_layer[layer].append(x.cpu())
             n_used += 1
             if (index + 1) % 10 == 0:
                 print(f"  cached {index + 1}/{len(samples)} samples", flush=True)
 
     if n_used == 0:
         raise ValueError(f"no samples with valid {mask!r} scoring positions in the fit manifest")
-    cache_x = {layer: torch.cat(rows, dim=0).to(device) for layer, rows in per_layer.items()}
-    z_model = torch.cat(z_rows, dim=0).to(device)
+    cache_x = {layer: torch.cat(rows, dim=0) for layer, rows in per_layer.items()}
+    z_model = torch.cat(z_rows, dim=0)  # the z rows were moved to host RAM per sample
     model_log_probs = torch.log_softmax(z_model, dim=-1)
     targets = torch.cat(target_rows, dim=0)  # CPU long, reporting only
     model_top1 = float(
         (z_model.argmax(dim=-1) == targets.to(z_model.device)).float().sum() / z_model.shape[0]
     )
+
+    # The cache is CPU-resident (host RAM, not the co-tenant-heavy GPU): check the box
+    # has it before the fits commit - below ~1.5x the estimate the host pages or OOMs.
+    cache_bytes = (
+        sum(t.numel() * t.element_size() for t in cache_x.values())
+        + model_log_probs.numel() * model_log_probs.element_size()
+        + targets.numel() * targets.element_size()
+    )
+    host_bytes = os.sysconf("SC_PAGE_SIZE") * os.sysconf("SC_PHYS_PAGES")
+    print(
+        f"  pass-1 cache: {cache_bytes / 2**30:.1f} GiB on host RAM "
+        f"(host total {host_bytes / 2**30:.1f} GiB)",
+        flush=True,
+    )
+    if host_bytes < 1.5 * cache_bytes:
+        raise RuntimeError(
+            f"host RAM ({host_bytes / 2**30:.1f} GiB) is below 1.5x the estimated "
+            f"{cache_bytes / 2**30:.1f} GiB pass-1 cache; the fits will thrash or OOM - "
+            "reduce --limit (fewer samples) or free host RAM"
+        )
     return _Cache(
         x=cache_x,
         model_log_probs=model_log_probs,
@@ -310,17 +342,20 @@ def cache_translator_inputs(
 
 
 def _kl_mean(
-    x: torch.Tensor, logits_fn, log_probs: torch.Tensor, chunk_size: int
+    x: torch.Tensor, logits_fn, log_probs: torch.Tensor, chunk_size: int, device: torch.device
 ) -> float:
     """Mean KL(softmax(z_model) || softmax(lens(x))) over positions, chunked to bound memory.
 
     ``logits_fn`` maps an ``x`` chunk to lens logits; ``log_probs`` is the model's
     ``log_softmax(z_model)`` (precomputed once, shared by every layer). Eval only.
+    ``x``/``log_probs`` are CPU-resident (the pass-1 cache); each chunk moves to
+    ``device`` for the lens math, exactly like the training minibatches.
     """
     total = 0.0
     for start in range(0, int(x.shape[0]), chunk_size):
-        target = log_probs[start : start + chunk_size]
-        lens_log_probs = torch.log_softmax(logits_fn(x[start : start + chunk_size]), dim=-1)
+        x_chunk = x[start : start + chunk_size].to(device)
+        target = log_probs[start : start + chunk_size].to(device)
+        lens_log_probs = torch.log_softmax(logits_fn(x_chunk), dim=-1)
         total += float(
             torch.nn.functional.kl_div(
                 lens_log_probs, target, reduction="none", log_target=True
@@ -363,17 +398,25 @@ def fit_layer(
     best rank-r approximation under the data covariance); ``b_0 = 0``. 10% of positions
     are the fit-side val set; the KL is evaluated at the first, every ``EVAL_EVERY``-th,
     and the last step.
+
+    Placement: ``x_all``/``model_log_probs`` are CPU-resident (the pass-1 cache). The
+    train/val splits stay on host RAM; each minibatch and eval chunk moves to the model
+    device, and the PCA runs on the device (its seeded test matrix draws from the same
+    generator as before - the SVD placement is unchanged).
     """
-    device = x_all.device
+    device = w_u.device  # the model/W_U device; the pass-1 cache stays on host RAM
     d = int(x_all.shape[1])
-    x_val = x_all[val_idx.to(device)]
-    x_train = x_all[train_idx.to(device)]
-    lp_val = model_log_probs[val_idx.to(model_log_probs.device)]
-    lp_train = model_log_probs[train_idx.to(model_log_probs.device)]
+    x_val = x_all[val_idx]  # CPU-resident splits; minibatches and chunks move below
+    x_train = x_all[train_idx]
+    lp_val = model_log_probs[val_idx]
+    lp_train = model_log_probs[train_idx]
     n_train = int(x_train.shape[0])
 
     r = min(rank, d, n_train)
-    _, _, v_r = torch.svd_lowrank(x_train, q=r, niter=PCA_NITER)
+    # The SVD stays on the fit device (its seeded test matrix draws from the same global
+    # generator): the train split moves up for it only, then frees - the per-step
+    # minibatches stream from host RAM instead.
+    _, _, v_r = torch.svd_lowrank(x_train.to(device), q=r, niter=PCA_NITER)
     u = v_r.detach().clone().requires_grad_(True)  # [d, r]
     v = v_r.detach().clone().requires_grad_(True)  # [d, r]
     b = torch.zeros(d, device=device, dtype=torch.float32).requires_grad_(True)
@@ -388,8 +431,8 @@ def fit_layer(
 
     def evaluate(step: int) -> None:
         with torch.no_grad():
-            train_kl = _kl_mean(x_train, logits, lp_train, chunk_size)
-            val_kl = _kl_mean(x_val, logits, lp_val, chunk_size)
+            train_kl = _kl_mean(x_train, logits, lp_train, chunk_size, device)
+            val_kl = _kl_mean(x_val, logits, lp_val, chunk_size, device)
         history.append(
             {"step": step, "train_kl": round(train_kl, 6), "val_kl": round(val_kl, 6)}
         )
@@ -402,10 +445,10 @@ def fit_layer(
         if cursor + batch > n_train:
             perm = torch.randperm(n_train)  # global seeded RNG: the run is deterministic
             cursor = 0
-        idx = perm[cursor : cursor + batch].to(device)
-        lens_log_probs = torch.log_softmax(logits(x_train[idx]), dim=-1)
+        idx = perm[cursor : cursor + batch]  # CPU indices into the CPU-resident split
+        lens_log_probs = torch.log_softmax(logits(x_train[idx].to(device)), dim=-1)
         loss = torch.nn.functional.kl_div(
-            lens_log_probs, lp_train[idx], reduction="none", log_target=True
+            lens_log_probs, lp_train[idx].to(device), reduction="none", log_target=True
         ).sum(dim=-1).mean()
         optimizer.zero_grad()
         loss.backward()
@@ -472,7 +515,10 @@ def main() -> int:
     # hard-wires the model's own lm_head, but the fit reads W_U from --unembed.
     final_norm = model._final_norm
     w_u = load_unembed(args, model, device)
-    print(f"pass 1: caching translator inputs ({args.translator_input}) on {device}")
+    print(
+        f"pass 1: caching translator inputs ({args.translator_input}) on {device}; "
+        "the cache itself is kept on host RAM"
+    )
 
     cache = cache_translator_inputs(
         model, lens, samples,

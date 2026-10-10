@@ -24,8 +24,8 @@ wait_gpu() {
             echo "[$label] GPU $g >= ${need}MiB $(date -Is)" >&2
             echo "$g"; return 0
         fi
-        if [ "$waited" -ge 14400 ]; then
-            echo "[$label] NO_GPU after 4h $(date -Is)" >&2; return 1
+        if [ "$waited" -ge 86400 ]; then
+            echo "[$label] NO_GPU after 24h $(date -Is)" >&2; return 1
         fi
         sleep 60; waited=$((waited + 60))
     done
@@ -46,8 +46,9 @@ if [ ! -f "$MS" ]; then
 fi
 
 for N in 100 500 1000; do
+    GATE=20000  # the cache is host-RAM-resident (ImplCacheCPU); the GPU holds only the model + the working set
     if [ ! -f "$OUT/n$N/artifacts/provenance.json" ] && [ -f "$MS" ] && [ -f "$WU" ]; then
-        run_step lrfit$N 20000 $P $C/lowrank_translator.py --lens-dir $V/s2-merged/artifacts \
+        run_step lrfit$N $GATE $P $C/lowrank_translator.py --lens-dir $V/s2-merged/artifacts \
             --manifest $MS --mask text --limit $N --rank 32 --steps 800 --lr 1e-3 --seed 0 \
             --unembed $WU --translator-input jacobian --out-root $OUT/n$N \
             --backend hf-llava --dtype bfloat16 || echo "LRFIT${N}_FAILED"
