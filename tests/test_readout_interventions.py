@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import pytest
 import torch
 from jlens.hooks import ActivationRecorder
 
@@ -91,6 +92,71 @@ def test_apply_edit_math():
     unit = v_t / v_t.norm()
     removed = h - ablated
     torch.testing.assert_close(removed, (h * unit).sum() * unit.reshape(1, 1, -1), rtol=1e-4, atol=1e-5)
+
+
+def test_apply_edit_mean_replacement(tiny_model, tiny_lenses, tiny_batch):
+    """Mean-replacement ablation (Belrose App. D): ``x' = x + P_v(mean - x)``.
+
+    With ``mean=m`` the residual's ``v̂``-component is replaced by the mean's — the
+    ``(x - m)`` projection along ``v̂`` vanishes and the orthogonal complement survives.
+    ``mean=None`` must be the legacy ablate bit-for-bit, the tensor field stays invisible
+    to equality/hash/to_json, and the same semantics must hold through the hook path.
+    """
+    torch.manual_seed(0)
+    d_model = 6
+    v = torch.randn(d_model)
+    unit = v / v.norm()
+    mean = torch.randn(d_model)
+    perp = torch.randn(d_model)
+    perp = perp - (perp * unit).sum() * unit  # lives entirely orthogonal to v
+    h = (3.0 * unit + 0.5 * perp).reshape(1, 1, d_model)
+
+    edited = apply_edit(h, ResidualEdit(layer=0, mode="ablate", token="t", mean=mean), {"target": v})
+    # closed form: x' = x - ((x - mean) . v̂) v̂  ==  x + P_v(mean - x)
+    coeff = ((h.reshape(-1) - mean) * unit).sum()
+    torch.testing.assert_close(edited, h - coeff * unit.reshape(1, 1, -1), rtol=1e-4, atol=1e-5)
+    # the (x - mean) component along v is zero  <=>  x' . v̂ == mean . v̂
+    torch.testing.assert_close(float(edited.reshape(-1) @ unit), float(mean @ unit), rtol=1e-4, atol=1e-5)
+    # the orthogonal complement is untouched
+    torch.testing.assert_close(
+        edited.reshape(-1) - float(edited.reshape(-1) @ unit) * unit,
+        h.reshape(-1) - float(h.reshape(-1) @ unit) * unit,
+        rtol=1e-4,
+        atol=1e-5,
+    )
+
+    # mean=None reproduces the legacy ablate bit-exactly
+    legacy = apply_edit(h, ResidualEdit(layer=0, mode="ablate", token="t"), {"target": v})
+    explicit = apply_edit(h, ResidualEdit(layer=0, mode="ablate", token="t", mean=None), {"target": v})
+    assert torch.equal(explicit, legacy)
+
+    # the tensor field opts out of equality/hash and is excluded from to_json
+    spec = ResidualEdit(layer=0, mode="ablate", token="t", mean=mean)
+    assert spec == ResidualEdit(layer=0, mode="ablate", token="t", mean=torch.zeros(d_model))
+    assert hash(spec) == hash(ResidualEdit(layer=0, mode="ablate", token="t"))
+    assert "mean" not in spec.to_json()
+    with pytest.raises(ValueError):
+        ResidualEdit(layer=0, mode="add", token="t", mean=mean)  # mean= is ablate-only
+
+    # the same semantics through the ResidualEditor hook path on the tiny model
+    vector = lens_vectors(tiny_model, tiny_lenses["text"], [" dog"], layers=[LAYER])[LAYER][0]
+    hook_mean = torch.randn(tiny_model.d_model)
+    hook_edit = ResidualEdit(layer=LAYER, mode="ablate", token=" dog", positions="all", mean=hook_mean)
+    with ActivationRecorder(tiny_model.layers, at=[LAYER]) as recorder:
+        tiny_model.forward_mm(tiny_batch)
+        clean = recorder.activations[LAYER].detach().clone()
+    with ResidualEditor(tiny_model, tiny_lenses["text"], [hook_edit]):
+        with ActivationRecorder(tiny_model.layers, at=[LAYER]) as recorder:
+            tiny_model.forward_mm(tiny_batch)
+            hooked = recorder.activations[LAYER].detach().clone()
+    hook_unit = (vector / vector.norm()).to(hooked.dtype)
+    # every edited position's v-component became the mean's v-component
+    torch.testing.assert_close(
+        hooked.float() @ hook_unit,
+        torch.full_like(clean[..., 0].float(), float(hook_mean @ hook_unit)),
+        rtol=1e-3,
+        atol=1e-4,
+    )
 
 
 def test_lens_vectors_are_readout_gradients(tiny_model, tiny_lenses):

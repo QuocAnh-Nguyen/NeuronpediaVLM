@@ -10,7 +10,12 @@ same tensor the lens reads):
 ``add``
     ``h + alpha * v_t`` (steering toward a concept).
 ``ablate``
-    ``h - alpha * (h . v̂_t) v̂_t`` (removing token ``t``'s direction).
+    ``h - alpha * (h . v̂_t) v̂_t`` (removing token ``t``'s direction). With ``mean=m``
+    set, the removed projection is ``(h - m) . v̂_t`` instead — the Belrose App. D mean
+    replacement ``h' = h + P_v(m - h)``: the residual's ``v̂_t``-component is swapped for
+    the mean residual's, so at ``alpha=1`` the ``(h - m)`` projection along ``v̂_t`` is
+    exactly zero. ``m`` is a per-layer tensor on the edit spec (excluded from
+    ``to_json``).
 ``swap``
     replace the coordinates of ``h`` in the subspace spanned by ``[v_s, v_t]`` with their
     swapped values, using the pseudoinverse basis — the paper's "coordinate swap", the
@@ -24,7 +29,7 @@ hallucinated object's direction change what the caption says?).
 from __future__ import annotations
 
 from collections.abc import Callable, Sequence
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from typing import Any
 
 import torch
@@ -97,14 +102,23 @@ def apply_edit(
     edit: ResidualEdit,
     vectors: dict[str, torch.Tensor],
 ) -> torch.Tensor:
-    """Apply one edit to a residual tensor ``[..., d_model]`` (dtype preserved)."""
+    """Apply one edit to a residual tensor ``[..., d_model]`` (dtype preserved).
+
+    For ``ablate``, ``edit.mean`` (when given) retargets the projection removal at
+    ``h - m``: the ``v̂_t``-component of ``h`` is replaced by the mean residual's
+    (``h' = h + P_v(m - h)``); ``mean=None`` removes ``h``'s component outright.
+    """
     dtype = hidden.dtype
     h = hidden.float()
     if edit.mode == "add":
         out = h + edit.alpha * _aligned(vectors["target"], h)
     elif edit.mode == "ablate":
         direction = _as_direction(_aligned(vectors["target"], h))
-        coeff = (h * direction).sum(dim=-1, keepdim=True)
+        if edit.mean is None:
+            coeff = (h * direction).sum(dim=-1, keepdim=True)
+        else:
+            mean = _aligned(edit.mean, h)
+            coeff = ((h - mean) * direction).sum(dim=-1, keepdim=True)
         out = h - edit.alpha * coeff * direction
     elif edit.mode == "swap":
         basis = torch.stack(
@@ -121,7 +135,13 @@ def apply_edit(
 
 @dataclass(frozen=True)
 class ResidualEdit:
-    """One edit spec: what to do, at which layer, with which vector(s)."""
+    """One edit spec: what to do, at which layer, with which vector(s).
+
+    ``mean`` (``ablate`` only) is the per-layer mean residual for the Belrose App. D
+    mean replacement (see module docstring). It is a tensor, so it opts out of equality
+    and hash (``compare=False``) and is excluded from :meth:`to_json` — a tensor field
+    would otherwise break both frozen-dataclass comparison and JSON spec reporting.
+    """
 
     layer: int
     mode: str
@@ -129,6 +149,7 @@ class ResidualEdit:
     token: str | None = None  # target token (all modes)
     source_token: str | None = None  # source token for "swap"
     positions: str = "last"  # "last" (current token) | "all"
+    mean: torch.Tensor | None = field(default=None, compare=False, repr=False)
 
     def __post_init__(self) -> None:
         if self.mode not in EDIT_MODES:
@@ -139,9 +160,13 @@ class ResidualEdit:
             raise ValueError("mode 'swap' needs token= (target) and source_token=")
         if self.positions not in {"last", "all"}:
             raise ValueError(f"positions must be 'last' or 'all', got {self.positions!r}")
+        if self.mean is not None and self.mode != "ablate":
+            raise ValueError(f"mean= is only used with mode 'ablate', got {self.mode!r}")
 
     def to_json(self) -> dict[str, Any]:
-        return asdict(self)
+        payload = asdict(self)
+        del payload["mean"]  # tensor field: JSON specs carry the mode/alpha/token only
+        return payload
 
 
 def _vectors_for(
