@@ -984,3 +984,70 @@ Tools shipped this round: the online probe (fit_masked --probe-every/--probe-man
 identical when off; pytest 64 green), build_caption_manifest_n.py (disjoint nested scaling
 corpora), the CPU-cache lowrank_translator (bit-parity verified). Artifacts: step8/{n100,n500,
 n1000}, step8/lens_zoo_scaling.json, step9-jprobe (probe fit, running), manifest-scaling.jsonl.
+
+## D44 - 2026-10-10 ~15:40Z: the workspace round - the visual->verbal handoff, the prior-vs-grounding race, and a training-free causal cure
+
+Literature frame (R4/R5/R6; ~30 sources): Anthropic's J-space/global-workspace paper (mid-layer
+verbalizable band, motor-regime flip in the final layers; only an anecdotal multimodal check);
+Zhang et al.'s staged cross-modal flow (early=global features, mid=object-specific, high layers
+propagate to the LAST INPUT position); FastV (image tokens processed mainly early); DAMRO
+(attention mirrors the ViT and favors background); OPERA/VCD/PAI/LURE (prior dominance,
+summary-token over-trust, text inertia); Fazli et al.'s commitment-depth gap; VRP (LLaVA "locks
+its prediction in a fragile late-stage bottleneck"); HALP (pre-generation hallucination
+detectability); Dual-Pathway Circuits (grounding vs hallucination pathways with a polarity
+flip); Endognostics (decodability != causal control). THE GAP: no systematic test of a
+visual->verbal workspace handoff in VLMs existed - this round fills it with three zero-fitting
+instruments (cross-image patching x12, mean-replacement cure x13, calibrated-lens workspace
+trajectories x14).
+
+X12 CROSS-IMAGE PATCHING (8 disjoint-object COCO pairs; replace A's image-token rows with B's;
+300-sample quality swings):
+  layer:  0     8     12    16    20    24    28    30  (image variant)
+  changed:1.00  1.00  1.00  1.00  0.875 0.125 0.50  0.25
+  A-objects vanish: 1.00/1.00/1.00/0.81/0.31/0/0.125/0 ; B-objects appear: 0.41-0.49 through
+L16 then ~0. Single-position (last-image-token) patches do nothing (<=0.25) - the content is
+distributed, not stored in one handoff token. Text-position controls stay at the 0.12-0.37
+floor. THE COMMITMENT BOUNDARY: visual content is causally live at image positions only until
+L16-20; re-writing image tokens after L20-24 no longer changes the caption.
+
+X13 CURE TEST (39 images, 10 hallucinations vs COCO instances ground truth; mean-replacement
+ablation of the hallucinated category's J-lens-vector direction, alpha=1):
+  layer 16/24/28/30 -> removed 0.50/0.60/0.70/**0.90**, grounded-category retention
+  1.00/1.00/1.00/**1.00**, clean-cure 0.50/0.60/0.70/**0.90**.
+  CONTROL (ablating a GROUNDED category's direction): retention 0.97/0.79/0.52/**0.35** -
+  grounded-direction ablation is destructive; hallucinated-direction ablation at L30 is
+  surgical. A training-free 90%-effective causal cure with a clean layer dose-response.
+
+X14 WORKSPACE TRAJECTORIES (24 images, calibrated logit lens = identity transport + the moment
+payload, zero fitting beyond moments):
+* THE PRIOR-VS-GROUNDING RACE: hallucinated generated words are high-ranked FROM L0 (rank ~787
+  vs grounded ~5358 - the language prior leads 7x before visual computation), while grounded
+  words are built up by the model (5358 -> 1.18 monotone); they CROSS at L24-26 (grounded 4.86
+  vs halluc 6.50 at L24; grounded 1.18 vs halluc 4.5 at L26). Grounding is a computation that
+  must overtake the prior; hallucination is the prior's default.
+* TEXT-MEDIATED HANDOFF CONFIRMED: the image's true categories rank ~1200-2000 at the last
+  IMAGE-token position at every layer (never decodable there), but at the LAST PROMPT position
+  (the handoff whose distribution predicts the first caption token) the best-per-image true
+  object rank falls 1423 (L16) -> 34 (L20) -> 6-15 (L22-25), then the L31 readout flips to the
+  imminent token (3464 mean; the motor regime). The visual->verbal handoff is text-mediated and
+  completes ~L20-25 - exactly the X12 boundary and the D41-D43 transport zone.
+* DOES-THE-MODEL-KNOW (negative): at hallucinated words' decoding positions the image's actual
+  categories rank ~16-35 through L20-30 (vs the hallucinated word's 2-6) - the model does NOT
+  represent the truth competitively at those positions; hallucination is the prior winning, not
+  a late suppression of better knowledge (sharpens the knows-but-commits hypothesis).
+* SEPARABILITY: grounded vs hallucinated word ranks at L30: 1.18 vs 6.0 (gap 4.8) - the
+  calibrated lens is a training-free hallucination-risk signal during generation.
+
+THE INSTRUMENT (the round's goal - cheap, training-free, causal): the calibrated logit lens
+(identity transport + moment census payload; one forward per sample) for readout, its
+J-lens-vector directions for causal edits (mean-replacement ablation per Belrose App. D), and
+cross-image residual patching for localization. It produced: the commitment boundary (L20-24),
+the prior-vs-grounding race and crossing (L24-26), the text-handoff localization (L20-25), a
+90%-effective hallucination cure at L30 with zero collateral, and the layer-dose-response
+matching the L30 transport: the workspace commits late, and the late layers are where both the
+readout value and the causal handle concentrate.
+Held-out predictions for the next round: sink-clamp on massive activations (H6), hesitation
+prediction (H7), attention-mirror correlation (H3), POPE pre-generation AUROC from the handoff
+readout (HALP-style, H4), irreversibility horizon (R6 H9).
+Artifacts: step10/{x12_cross_image_patch,x13_cure_test,x14_workspace_probe}.json; commits
+4fc07e1, 96380fc; launchers phase10-12.
