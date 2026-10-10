@@ -1051,3 +1051,46 @@ prediction (H7), attention-mirror correlation (H3), POPE pre-generation AUROC fr
 readout (HALP-style, H4), irreversibility horizon (R6 H9).
 Artifacts: step10/{x12_cross_image_patch,x13_cure_test,x14_workspace_probe}.json; commits
 4fc07e1, 96380fc; launchers phase10-12.
+
+## D45 - 2026-10-10 ~20:00Z: round 2 - the held-out predictions, tested (pre-generation truth detection 0.985, the BOS sink is load-bearing, the CLIP-mirror curve, hesitation direction confirmed but underpowered)
+
+Deployment: four experiments as one sequential chain on the shared node (all 8 GPUs held
+54-79 GB by other tenants when launched; parallel launchers would race the free-memory guard,
+which always sorts to the same GPU). Chain x18 -> x16 -> x17 -> x15: ~45 min total, each step
+gated on >=20 GB free and skip-if-present. JSONs: step11/{x18_pope_handoff,x16_sink_clamp,
+x17_attention_mirror,x15_hesitation}.json. Scripts committed 352e044 (x16/x17/x18 + launchers)
+and d14d55e (x15).
+
+X18 POPE PRE-GENERATION HANDOFF (H4): 49 images, 185 questions (87 present / 98 absent).
+Model POPE accuracy 94.1% (present 96.6 / absent 91.8), 8 hallucinated yes. ONE forward at the
+last prompt position + the calibrated lens (identity transport + moment payload):
+AUROC(present vs absent) = 0.985 at L28 (0.982-0.985 across L20-30); mean gap +5.28 (present)
+vs -4.97 (absent). The lens disagrees with the model exactly on its wrong affirmations:
+hallucinated-yes items rank LOW on the gap (AUROC 0.105 with hallucinated as positive class =
+0.895 as a low-gap hallucination detector). A training-free, single-forward, pre-generation
+truth/risk readout - the HALP-style promise, delivered with near-ceiling discrimination.
+
+X16 MASSIVE-ACTIVATION SINK CLAMP (H6): 20 images, top-16 dims per (layer x position group),
+zero-clamp at L16/24/28/30. THE BOS SINK IS LOAD-BEARING: clamping it collapses grounded
+retention (0.278 at L16 bos; 0.222 for all-groups) and explodes the handoff true-object rank
+(+1433 at L16, +550 at L28). IMAGE-TOKEN MASSIVE DIMS ARE NEARLY INERT: retention 0.94-1.00
+and rank deltas -43..+330 while captions surface-change (changed 0.3-0.8). The sink is a causal
+bottleneck at BOS, decorative at image tokens - consistent with "image tokens are streamed,
+not stored". CAVEAT: baseline had only 1 hallucinating image / 20; the hallucination_removed
+column is uninformative at this n.
+
+X17 CROSS-MODAL ATTENTION MIRROR (H3): 20 images, eager attention, CLS->patch vs text->image.
+THE MIRROR IS REAL AND DEPTH-DEPENDENT: mean Spearman rho rises 0.10 (L0) -> 0.29 (L1) ->
+0.38-0.52 (L5-L10) -> 0.58 (L16) -> 0.66 (L20), then DECOUPLES in the final layers (0.17-0.43,
+L27-30) - the LLM's access to the image first mirrors the vision tower, then the verbal
+workspace takes over. Image-attention share peaks at L0 (0.75) and settles to 0.05-0.19.
+Hallucination join UNDER-POWERED: 1 hallucinating / 19 clean images; no claim. Needs ~200.
+
+X15 DECODING HESITATION (H7): 40 images. Direction CONFIRMED, sample small: grounded word
+completion steps (n=76): entropy 0.513, top1-margin 5.91, logprob -0.179; hallucinated (n=6):
+entropy 0.989 (~2x), margin 4.37, logprob -0.488. AUROC with hallucinated positive: model
+entropy 0.636, margin 0.394 (~0.61 inverse), CALIBRATED-LENS ENTROPY beats the model's own
+entropy (0.834 at L6, 0.794 L7, 0.748 L5). The lens uncertainty is the better hallucination
+signal; the 6-word positive class makes this a direction, not a magnitude.
+Next: enlarge n (x15/x17 joins), list the census dims, fuse x18+x15 into a pre-generation
+risk score, and the x14/x13-style scale-out (200+ images).
