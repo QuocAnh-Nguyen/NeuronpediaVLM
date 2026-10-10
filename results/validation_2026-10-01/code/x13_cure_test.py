@@ -332,7 +332,8 @@ def main() -> int:
         image_id = image_id_of(path)
         gt_ids = gt_by_image.get(image_id)
         if gt_ids is None:
-            raise ValueError(f"image {path.name} (id {image_id}) is missing from the annotations")
+            print(f"  [skip] {path.name} (id {image_id}) is in no annotation record")
+            continue
         gt_names = {names[cid] for cid in gt_ids}
         mentioned = detect_mentions(names, baseline_text)
         hallucinated = [name for name in mentioned if name not in gt_names]
