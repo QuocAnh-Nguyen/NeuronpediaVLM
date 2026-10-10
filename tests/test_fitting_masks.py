@@ -9,10 +9,15 @@ cotangent, joint mask reduction) is wrong.
 
 from __future__ import annotations
 
+import importlib.util
+import math
+from pathlib import Path
+
 import pytest
 import torch
 from jlens.hooks import ActivationRecorder
 
+from vlm_lens.data.manifest import FitSample, write_manifest
 from vlm_lens.fitting import drop_stats, fit_masked, jacobian_for_sample
 from vlm_lens.models.tiny_llava import random_image
 from vlm_lens.positions import build_position_masks
@@ -217,3 +222,63 @@ def test_drop_stats_reports_rate_and_examples():
     assert stats["drop_rate"] == pytest.approx(11 / 8)
     assert stats["skipped_examples"] == skipped[:10]
     assert drop_stats(0, [])["drop_rate"] == 0.0
+
+
+def test_online_probe_records_learning_curve_without_disturbing_fit(tiny_model, tmp_path):
+    """The online probe appends a held-out learning curve and leaves the fit untouched."""
+    probe_manifest = write_manifest(
+        tmp_path / "probe.jsonl",
+        [
+            FitSample(sample_id=f"probe-{index}", text=f"probe prompt {index}")
+            for index in range(2)
+        ],
+    )
+    samples = [
+        tiny_model.encode_mm(
+            "USER: <image>\nDescribe this image.\nASSISTANT:", random_image(seed, image_size=56)
+        )
+        for seed in (30, 31, 32, 33)
+    ]
+    kwargs = dict(source_layers=[0, 1], dim_batch=8, skip_first=1, masks=("text",))
+    result = fit_masked(
+        tiny_model,
+        samples,
+        probe_every=2,
+        probe_manifest=probe_manifest,
+        probe_n=2,
+        **kwargs,
+    )
+
+    # Probes fire after used sample 2, after used sample 4, and once at the end.
+    assert len(result.probe_history) >= 3
+    expected_keys = {"n_samples", "mask", "layer", "kl", "rank", "top1", "elapsed_s"}
+    for row in result.probe_history:
+        assert set(row) == expected_keys
+        assert row["mask"] == "text"
+        assert row["layer"] in (0, 1, 2)  # fitted layers 0, 1 plus the final layer 2
+        assert row["n_samples"] in (2, 4)
+        for key in ("kl", "rank", "top1", "elapsed_s"):
+            assert math.isfinite(row[key])
+
+    control = fit_masked(tiny_model, samples, **kwargs)
+    assert control.probe_history == []
+    for layer in (0, 1):
+        assert torch.equal(
+            result.lenses["text"].jacobians[layer], control.lenses["text"].jacobians[layer]
+        )
+
+
+def test_fit_cli_parses_probe_flags():
+    """The fit CLI exposes the online probe as passthrough flags."""
+    spec = importlib.util.spec_from_file_location(
+        "fit_llava", Path(__file__).resolve().parents[1] / "scripts" / "fit_llava.py"
+    )
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    args = module.parse_args(
+        ["--out", "out", "--probe-every", "2", "--probe-manifest", "x", "--probe-n", "3"]
+    )
+    assert args.probe_every == 2
+    assert args.probe_manifest == "x"
+    assert args.probe_n == 3

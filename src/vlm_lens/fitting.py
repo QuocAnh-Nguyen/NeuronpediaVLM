@@ -27,17 +27,20 @@ import shutil
 import time
 from collections.abc import Sequence
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any
 
 import torch
+import torch.nn.functional as F
 from jlens.fitting import _check_layer_indices
 from jlens.hooks import ActivationRecorder
 from jlens.lens import JacobianLens
 
 from vlm_lens._batch import as_batch
-from vlm_lens.data.manifest import FitSample
+from vlm_lens.data.manifest import FitSample, read_manifest
 from vlm_lens.models.llava import LlavaLensModel, MultimodalBatch
 from vlm_lens.positions import DEFAULT_MASKS, build_position_masks
+from vlm_lens.readout import lens_readout
 
 logger = logging.getLogger(__name__)
 
@@ -45,6 +48,11 @@ logger = logging.getLogger(__name__)
 TEXT_SKIP_FIRST = 16
 #: Multimodal fits: only BOS is a pure sink; every image position carries content.
 MM_SKIP_FIRST = 1
+
+#: The online probe always scores with s2_eval's protocol: only the BOS sink dropped
+#: (independent of the fit's ``skip_first``), one-step next-token targets, last position
+#: and placeholder-continuation targets excluded.
+PROBE_SKIP_FIRST = 1
 
 CHECKPOINT_VERSION = 1
 
@@ -64,12 +72,17 @@ class FitInfo:
 
 @dataclass
 class FitResult:
-    """Masked lenses plus the per-sample history the fit script reports on."""
+    """Masked lenses plus the per-sample history the fit script reports on.
+
+    ``probe_history`` holds the optional online-probe learning curve (see
+    :func:`fit_masked`): one row per scored layer per probe.
+    """
 
     lenses: dict[str, JacobianLens]
     history: list[dict[str, Any]] = field(default_factory=list)
     config: dict[str, Any] = field(default_factory=dict)
     skipped: list[str] = field(default_factory=list)
+    probe_history: list[dict[str, Any]] = field(default_factory=list)
 
     @property
     def n_prompts(self) -> dict[str, int]:
@@ -245,6 +258,100 @@ def jacobian_for_sample(
     )
 
 
+def _probe_positions(
+    model: LlavaLensModel,
+    batch: MultimodalBatch,
+    tag: str,
+) -> list[int] | None:
+    """Scored positions for one probe sample (s2_eval's default mode), or ``None``.
+
+    The ``tag`` mask selects the positions (``skip_first=PROBE_SKIP_FIRST``); each is
+    scored against its *next* token, so the final position (no target) and
+    placeholder-continuation targets are excluded, exactly like s2_eval's text-tag
+    scoring.
+    """
+    mask = build_position_masks(
+        batch.input_ids, model.image_token_id, skip_first=PROBE_SKIP_FIRST, masks=(tag,)
+    )[tag]
+    if not bool(mask.any()):
+        return None
+    input_ids = batch.input_ids.detach().cpu().reshape(-1)
+    seq_len = int(input_ids.shape[0])
+    positions = [
+        int(p)
+        for p in mask.cpu().nonzero(as_tuple=True)[0]
+        if int(p) + 1 < seq_len and int(input_ids[int(p) + 1]) != model.image_token_id
+    ]
+    return positions or None
+
+
+@torch.no_grad()
+def _probe_eval(
+    model: LlavaLensModel,
+    lens: JacobianLens,
+    samples: Sequence[MultimodalBatch | FitSample | str],
+    tag: str,
+    *,
+    max_seq_len: int,
+) -> list[dict[str, float]]:
+    """Score one (running) lens on held-out ``samples``; one dict per scored layer.
+
+    Positions and targets follow :func:`_probe_positions`; every metric is a mean over
+    the scored positions of all samples: ``kl`` is the mean true-token
+    ``KL(lens_softmax || model_softmax)``, ``rank`` the mean 1-based rank of the true
+    token in the lens's logit row (ties count as better ranks), ``top1`` the fraction of
+    positions where the lens's argmax matches the model's. The final layer is always
+    scored (it reads out the model's own logits unless it was itself fitted). Returns
+    ``[]`` when no sample has a valid position.
+    """
+    final_layer = model.n_layers - 1
+    score_layers = sorted(set(lens.source_layers) | {final_layer})
+    sums = {layer: {"kl": 0.0, "rank": 0.0, "top1": 0.0} for layer in score_layers}
+    n_positions = 0
+    for sample in samples:
+        batch = as_batch(model, sample, max_seq_len)
+        positions = _probe_positions(model, batch, tag)
+        if positions is None:
+            continue
+        readout = lens_readout(
+            model,
+            lens,
+            batch,
+            layers=score_layers,
+            positions=positions,
+            max_seq_len=max_seq_len,
+        )
+        targets = readout.input_ids[torch.tensor([p + 1 for p in positions], dtype=torch.long)]
+        model_top1 = readout.model_logits.argmax(dim=1)
+        model_log_probs = torch.log_softmax(readout.model_logits, dim=-1)
+        for layer in score_layers:
+            lens_rows = readout.lens_logits[layer]
+            target_logit = lens_rows.gather(1, targets[:, None]).squeeze(1)
+            rank = (lens_rows > target_logit[:, None]).sum(dim=1) + 1
+            sums[layer]["kl"] += float(
+                F.kl_div(
+                    model_log_probs,
+                    torch.log_softmax(lens_rows, dim=-1),
+                    reduction="none",
+                    log_target=True,
+                ).sum()
+            )
+            sums[layer]["rank"] += float(rank.sum())
+            sums[layer]["top1"] += float((lens_rows.argmax(dim=1) == model_top1).sum())
+        n_positions += len(positions)
+    if n_positions == 0:
+        return []
+    return [
+        {
+            "layer": int(layer),
+            "kl": sums[layer]["kl"] / n_positions,
+            "rank": sums[layer]["rank"] / n_positions,
+            "top1": sums[layer]["top1"] / n_positions,
+        }
+        for layer in score_layers
+    ]
+
+
 def fit_masked(
     model: LlavaLensModel,
     samples: Sequence[FitSample | MultimodalBatch | str],
@@ -262,6 +369,10 @@ def fit_masked(
     limit: int | None = None,
     shard: tuple[int, int] = (0, 1),
     log_every: int = 1,
+    probe_every: int | None = None,
+    probe_manifest: str | Path | None = None,
+    probe_n: int = 16,
+    probe_tag: str = "text",
 ) -> FitResult:
     """Fit one lens per modality mask over a sample list, with resumable checkpoints.
 
@@ -282,10 +393,19 @@ def fit_masked(
         shard: ``(index, count)`` — fit only ``samples[index::count]``; merge shards later
             with :meth:`jlens.lens.JacobianLens.merge`.
         log_every: Log cadence in samples.
+        probe_every: Online-probe cadence in *used* samples (skipped samples do not
+            count); ``None`` disables probing entirely.
+        probe_manifest: Held-out manifest the running lens is scored on; probing
+            requires both this and ``probe_every``.
+        probe_n: Score the running lens on the first ``probe_n`` probe-manifest samples.
+        probe_tag: Which position tag the probe scores (a mask name, e.g. ``text``).
 
     Returns:
         :class:`FitResult` with one :class:`JacobianLens` per mask that received at least
-        one sample (``n_prompts`` is per mask).
+        one sample (``n_prompts`` is per mask). With the online probe active,
+        ``probe_history`` holds one row per scored layer per probe —
+        ``{"n_samples", "mask", "layer", "kl", "rank", "top1", "elapsed_s"}`` — recording
+        the running lens's held-out performance while fitting.
     """
     n_layers, d_model = model.n_layers, model.d_model
     source_layers, target_layer = _check_layer_indices(source_layers, target_layer, n_layers)
@@ -367,6 +487,79 @@ def fit_masked(
         list(masks),
     )
 
+    probe_history: list[dict[str, Any]] = []
+    probe_active = False
+    probe_stride = 0
+    probe_batches: list[MultimodalBatch] = []
+    probe_started = 0.0
+    if probe_every is not None:
+        if probe_manifest is None:
+            logger.info("online probe requested but no probe manifest given; probe disabled")
+        elif probe_every < 1:
+            raise ValueError(f"probe_every must be >= 1, got {probe_every}")
+        elif probe_n < 1:
+            raise ValueError(f"probe_n must be >= 1, got {probe_n}")
+        else:
+            probe_stride = int(probe_every)
+            for probe_sample in read_manifest(probe_manifest)[: int(probe_n)]:
+                try:
+                    probe_batches.append(as_batch(model, probe_sample, max_seq_len))
+                except ValueError as exc:
+                    logger.warning(
+                        "  probe: skipping probe sample %s (%s)", probe_sample.sample_id, exc
+                    )
+            if not probe_batches or not any(
+                _probe_positions(model, batch, probe_tag) for batch in probe_batches
+            ):
+                logger.info(
+                    "online probe disabled: no valid %r positions in %d probe sample(s)",
+                    probe_tag,
+                    len(probe_batches),
+                )
+            else:
+                probe_active = True
+                probe_started = time.perf_counter()
+
+    def run_probe(n_seen: int) -> list[dict[str, Any]]:
+        """One online probe: score each mask's running lens on the held-out samples.
+
+        Read-only w.r.t. the estimator: the per-layer means are new tensors (exactly the
+        ones the final write builds), wrapped in a throwaway :class:`JacobianLens` and
+        scored under ``torch.no_grad``; ``jacobian_sum``/``n_done`` are never touched.
+        """
+        elapsed = time.perf_counter() - probe_started
+        rows: list[dict[str, Any]] = []
+        for mask in masks:
+            if n_done[mask] == 0:
+                continue
+            mean = {layer: jacobian_sum[mask][layer] / n_done[mask] for layer in source_layers}
+            running = JacobianLens(jacobians=mean, n_prompts=n_done[mask], d_model=d_model)
+            for score in _probe_eval(
+                model, running, probe_batches, probe_tag, max_seq_len=max_seq_len
+            ):
+                rows.append(
+                    {
+                        "n_samples": n_seen,
+                        "mask": mask,
+                        "layer": score["layer"],
+                        "kl": score["kl"],
+                        "rank": score["rank"],
+                        "top1": score["top1"],
+                        "elapsed_s": round(elapsed, 2),
+                    }
+                )
+        if rows:
+            kl_by_mask: dict[str, list[float]] = {}
+            for row in rows:
+                kl_by_mask.setdefault(str(row["mask"]), []).append(float(row["kl"]))
+            logger.info(
+                "  probe n=%d %.1fs  kl(%s)",
+                n_seen,
+                elapsed,
+                ", ".join(f"{mask}={sum(kls) / len(kls):.4f}" for mask, kls in kl_by_mask.items()),
+            )
+        return rows
+
     for sample_idx, sample in enumerate(sample_list):
         if sample_idx < next_idx:
             continue
@@ -422,6 +615,9 @@ def fit_masked(
         next_idx = sample_idx + 1
         history.append(record)
 
+        if probe_active and len(history) % probe_stride == 0:
+            probe_history.extend(run_probe(len(history)))
+
         if log_every and (next_idx % log_every == 0 or next_idx == len(sample_list)):
             change = ", ".join(
                 f"{mask}:{record['mean_rel_change'][mask]:.1e}" for mask in record["mean_rel_change"]
@@ -440,6 +636,12 @@ def fit_masked(
         if checkpoint_every is not None and next_idx % checkpoint_every == 0:
             write_checkpoint()
 
+    if probe_active:
+        # The final probe fires even when the last used sample is not a multiple of
+        # probe_every (or when a resume processed no new samples): the curve must end
+        # at the final state.
+        probe_history.extend(run_probe(len(history)))
+
     write_checkpoint()
 
     lenses: dict[str, JacobianLens] = {}
@@ -457,7 +659,13 @@ def fit_masked(
         "fit: done; %s",
         ", ".join(f"{mask}={lens.n_prompts} prompts" for mask, lens in lenses.items()),
     )
-    return FitResult(lenses=lenses, history=history, config=config, skipped=skipped)
+    return FitResult(
+        lenses=lenses,
+        history=history,
+        config=config,
+        skipped=skipped,
+        probe_history=probe_history,
+    )
 
 
 def configure_tf32(enabled: bool = True) -> dict[str, bool]:

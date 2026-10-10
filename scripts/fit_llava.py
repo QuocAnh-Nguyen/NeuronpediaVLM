@@ -120,6 +120,22 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     fit.add_argument("--no-resume", action="store_true")
     fit.add_argument("--log-every", type=int, default=1)
     fit.add_argument(
+        "--probe-every",
+        type=int,
+        default=None,
+        metavar="N",
+        help="online probe: score the running lens every N used samples (needs --probe-manifest)",
+    )
+    fit.add_argument(
+        "--probe-manifest",
+        default=None,
+        help="online probe: held-out manifest the running lens is scored on",
+    )
+    fit.add_argument(
+        "--probe-n", type=int, default=16, help="online probe: first N probe samples to score"
+    )
+    fit.add_argument("--probe-tag", default="text", help="online probe: position tag to score")
+    fit.add_argument(
         "--allow-tf32",
         action="store_true",
         help="enable TF32 matmul/cuDNN for fp32 fits (much faster on Hopper; changes numerics)",
@@ -319,6 +335,10 @@ def main(argv: list[str] | None = None) -> int:
         limit=args.limit,
         shard=shard,
         log_every=args.log_every,
+        probe_every=args.probe_every,
+        probe_manifest=args.probe_manifest,
+        probe_n=args.probe_n,
+        probe_tag=args.probe_tag,
     )
 
     provenance = build_provenance(
