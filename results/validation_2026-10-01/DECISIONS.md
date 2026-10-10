@@ -1094,3 +1094,51 @@ entropy (0.834 at L6, 0.794 L7, 0.748 L5). The lens uncertainty is the better ha
 signal; the 6-word positive class makes this a direction, not a magnitude.
 Next: enlarge n (x15/x17 joins), list the census dims, fuse x18+x15 into a pre-generation
 risk score, and the x14/x13-style scale-out (200+ images).
+
+## D46 - 2026-10-10 ~22:00Z: round 3 - the scale-up verdicts at power (what predicts hallucination) + the full-disk incident
+
+DEPLOYMENT INCIDENT + fix: /data (the shared 18T nvme) hit 100% full (20K free; other tenants'
+data dominates; our footprint 86 GB). Launcher rsync failed (ENOSPC) and outputs could not be
+written. Fix: outputs+logs were moved to /home/nvidia (31G free on /); reads (code, repo, lens
+artifacts, COCO, envs) stay on /data with PYTHONDONTWRITEBYTECODE=1; launchers phase21/22
+implement this (x19's live copy is /home/nvidia/vlm-run). New output root:
+/home/nvidia/vlm-lens-out/validation/step11/.
+
+S1 X15 n=200 (H7 hesitation): 385 grounded / 39 hallucinated word-completion steps (powered).
+Hallucinated steps: entropy 0.963 vs 0.620 (1.55x), margin 4.53 vs 5.55, logprob -0.384 vs
+-0.230. AUROC (hallucinated positive): model entropy 0.593, margin 0.426 (inverse ~0.574),
+calibrated-lens entropy BEST AT L4-L7 (L7: 0.730; L4-L7 0.63-0.73; near chance L11+). The
+hypothesis direction holds at power; the lens uncertainty beats the model's own entropy, but
+as a detector it is modest.
+S1b X17 n=200 (H3): the cross-modal mirror curve REPLICATES at 10x n: rho_mean 0.105 (L0) ->
+0.341 (L4) -> 0.463 (L12) -> 0.577 (L16) -> 0.645 (L20) -> 0.403 (L24) -> 0.199 (L30). The
+HALLUCINATION JOIN IS NULL at power (27 hallucinating / 170 clean images): share_mid AUROC
+0.501, rho_mid 0.414 / rho_mean 0.402 (r_pb -0.10, delta -0.03 on a 0.4-0.57 mean) - the LLM's
+attention-to-image structure mirrors the vision tower but does NOT predict caption
+hallucination. Clean negative.
+
+S2 X16 CENSUS DIMS (recorded; per (layer x group) in results[i].dims): the BOS sink uses the
+IDENTICAL dim set across L16/24/28/30: [2533, 1415, 1076, 1512, 2789, 2298, 2158, 3431, 339,
+3209, 2469, 257, 4071, 2350, 788, 2235] (top-16; the classic stable massive-activation set).
+Image/text groups share 1512/2789/1076 and drop the BOS-specific 2533/1415 - the sink is
+position-typed exactly as the clamp results implied (BOS-clamp destructive, image-clamp inert).
+
+S3 X19 IMAGE-LEVEL RISK (fused detector, 197 images, 27 hallucinating): mean per-step lens
+entropy AUROC 0.620 (L28); max 0.548 (L30); pre-generation true-category gap 0.632 (L30);
+FUSED z(mean entropy)+z(gap) 0.666 (L30) - the fusion beats its components. Modest but real:
+a single greedy pass + calibrated moments separates hallucinating captions at ~0.67.
+
+THE DETECTOR LEDGER (all training-free, moments only, single pass unless noted):
+  pre-generation yes/no gap, per question:      0.985 (185 questions; 0.895 catches the
+                                                 model's own hallucinated yes)
+  pre-generation true-category gap, per image:  0.632 (197)
+  per-step lens entropy L7, per word:           0.730 (39/385)
+  per-step model entropy, per word:             0.593
+  image mean lens entropy, per image:           0.620 (197)
+  fused (mean entropy + category gap):          0.666 (197)
+  cross-modal attention share / mirror rho:     0.50 / 0.41 (NULL)
+Reading: hallucination is best predicted by the calibrated WORKSPACE content (what the lens
+says at the handoff/decoding positions), not by attention allocation; the pre-generation
+object-presence question is nearly solved; caption-level prediction is a ~0.6-0.73 problem.
+Artifacts: step11 JSONs (box /data for rounds 1-2; /home/nvidia for round 3 + slimmed copies
+in raw/step11); commits 48bb2d9 (+ this D46); scripts x15/x16/x17/x18/x19 + phase13-22.
