@@ -18,7 +18,7 @@ if [ ! -f "$OUT/x14_workspace_probe.json" ]; then
         --lens-dir $V/s2-merged/artifacts --bias-dir $V/step5e \
         --images-dir /data/baodq/coco2014/val2014 \
         --annotations /data/baodq/coco2014/annotations/instances_val2014.json \
-        --n-images 24 --max-new-tokens 40 \
+        --n-images 24 --max-new-tokens 40 --handoff-rank \
         --json $OUT/x14_workspace_probe.json || echo "X14_FAILED"
 else
     echo "[x14] present - skip"

@@ -1,0 +1,5119 @@
+{
+  "experiment": "x13_cure_test",
+  "lens_dir": "/data/anhnq/vlm-lens-out/validation/s2-merged/artifacts",
+  "lens_mask": "text",
+  "n_prompts": 100,
+  "backend": "hf-llava",
+  "images_dir": "/data/baodq/coco2014/val2014",
+  "annotations": "/data/baodq/coco2014/annotations/instances_val2014.json",
+  "n_categories": 80,
+  "n_images": 40,
+  "seed": 0,
+  "question": "Describe this image in detail.",
+  "prompt_template": "USER: <image>\n{question}\nASSISTANT:",
+  "prompt_template_hash": "1cf033c083cb1f064cd6525c8b6363cd2fd597d8fb9a7fe111e7a4e554c9c3a0",
+  "layers": [
+    16,
+    24,
+    28,
+    30
+  ],
+  "max_new_tokens": 60,
+  "mean_positions": "positions='last' edits the residual at the last prompt position during the prefill forward and at each single-token decode step during generation; the per-layer mean is the average block output over the same slice [prompt_len - 1 : prompt_len + n_new] of the baseline pass replayed teacher-forced on inputs_embeds (generated ids appended at the token level, prompt image features merged once, ActivationRecorder on the edit layers)",
+  "samples": [
+    {
+      "image": "COCO_val2014_000000036773.jpg",
+      "image_id": 36773,
+      "question": "Describe this image in detail.",
+      "baseline_text": "The image captures a tennis match in progress, with a man in a white shirt and white shorts playing tennis on a court. He is in the middle of a swing, holding a tennis racket and preparing to hit the ball. \n\nThere are several other people in the",
+      "baseline_n_tokens": 60,
+      "n_gt_categories": 3,
+      "mentioned": [
+        "tennis racket"
+      ],
+      "hallucinated": [],
+      "grounded": [
+        "tennis racket"
+      ],
+      "mean_norms": {
+        "16": 21.53604507446289,
+        "24": 61.330562591552734,
+        "28": 88.15652465820312,
+        "30": 102.0314712524414
+      },
+      "arms": [
+        {
+          "kind": "control",
+          "category": "tennis racket",
+          "layer": 16,
+          "edit": {
+            "layer": 16,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " tennis racket",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image captures a tennis match in progress, with a man in a white shirt and white shorts playing tennis on a court. He is in the middle of a swing, holding a tennis racket and preparing to hit the ball. Another person is standing nearby, possibly watching the game",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "tennis racket",
+          "layer": 24,
+          "edit": {
+            "layer": 24,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " tennis racket",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image captures a tennis match in progress, with a man in a white shirt and white shorts playing tennis on a court. He is in the middle of a swing, holding a tennis racket and preparing to hit the ball. Another person is standing nearby, possibly watching the game",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "tennis racket",
+          "layer": 28,
+          "edit": {
+            "layer": 28,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " tennis racket",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image captures a tennis match in progress, with a man in a white shirt and white shorts playing tennis on a court. He is in the middle of a swing, holding a tennis racket and preparing to hit the ball. \n\nThere are several other people in the",
+          "changed": false,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "tennis racket",
+          "layer": 30,
+          "edit": {
+            "layer": 30,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " tennis racket",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image captures a tennis match in progress, with a man in a white shirt and white shorts playing tennis on a court. He is in the middle of a swing, holding a tennis raquette and preparing to hit the ball. \n\nThere are several other people in",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": true,
+          "removed_categories": [
+            "tennis racket"
+          ],
+          "grounded_retention": 0.0,
+          "n_edit_forwards": 60
+        }
+      ]
+    },
+    {
+      "image": "COCO_val2014_000000057286.jpg",
+      "image_id": 57286,
+      "question": "Describe this image in detail.",
+      "baseline_text": "The image captures a thrilling moment of a young man performing a skateboard trick in mid-air. He is the main focus of the scene, with his skateboard visible beneath him. The skateboarder is surrounded by a group of onlookers, including a man standing",
+      "baseline_n_tokens": 60,
+      "n_gt_categories": 2,
+      "mentioned": [
+        "skateboard"
+      ],
+      "hallucinated": [],
+      "grounded": [
+        "skateboard"
+      ],
+      "mean_norms": {
+        "16": 21.5438289642334,
+        "24": 59.09832000732422,
+        "28": 86.22593688964844,
+        "30": 98.92302703857422
+      },
+      "arms": [
+        {
+          "kind": "control",
+          "category": "skateboard",
+          "layer": 16,
+          "edit": {
+            "layer": 16,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " skateboard",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image captures a thrilling moment of a young man performing a skateboard trick in mid-air. He is the main focus of the scene, with his skateboard visible beneath him. The skateboarder is surrounded by a group of onlookers, including a man standing",
+          "changed": false,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "skateboard",
+          "layer": 24,
+          "edit": {
+            "layer": 24,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " skateboard",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image captures a thrilling moment of a young man performing a skate trick on a ramp. He is in the air, showcasing his skill and balance. There are several other people in the scene, watching the skate trick being performed. Some of them are standing closer to",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": true,
+          "removed_categories": [
+            "skateboard"
+          ],
+          "grounded_retention": 0.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "skateboard",
+          "layer": 28,
+          "edit": {
+            "layer": 28,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " skateboard",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image captures a thrilling moment of a young man performing a skate trick on a ramp. He is in the air, showcasing his skill and balance. There are several other people in the scene, watching the skate trick and enjoying the spectacle.\n\nIn",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": true,
+          "removed_categories": [
+            "skateboard"
+          ],
+          "grounded_retention": 0.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "skateboard",
+          "layer": 30,
+          "edit": {
+            "layer": 30,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " skateboard",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image captures a thrilling moment of a young man performing a skate trick on a ramp. He is in the air, holding his skate, while his friends watch the impressive display. There are a total of four people in the scene, with one person standing on the r",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": true,
+          "removed_categories": [
+            "skateboard"
+          ],
+          "grounded_retention": 0.0,
+          "n_edit_forwards": 60
+        }
+      ]
+    },
+    {
+      "image": "COCO_val2014_000000068409.jpg",
+      "image_id": 68409,
+      "question": "Describe this image in detail.",
+      "baseline_text": "The image is a black and white photograph of a group of young boys wearing suits and ties. They are sitting together, with some of them posing for a picture. The boys are arranged in a semi-circle, with some sitting closer to the front and others further back.\n",
+      "baseline_n_tokens": 60,
+      "n_gt_categories": 2,
+      "mentioned": [
+        "tie"
+      ],
+      "hallucinated": [],
+      "grounded": [
+        "tie"
+      ],
+      "mean_norms": {
+        "16": 22.206348419189453,
+        "24": 60.244476318359375,
+        "28": 86.21202087402344,
+        "30": 100.91262817382812
+      },
+      "arms": [
+        {
+          "kind": "control",
+          "category": "tie",
+          "layer": 16,
+          "edit": {
+            "layer": 16,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " tie",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image is a black and white photograph of a group of young boys sitting together. They are all wearing suits and ties, which suggests that they might be attending a formal event or a special occasion. The boys are sitting on a bench, with some of them sitting closer to",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "tie",
+          "layer": 24,
+          "edit": {
+            "layer": 24,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " tie",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image is a black and white photograph of a group of young boys sitting together. They are all wearing suits and are posing for a picture. The boys are arranged in a semi-circle, with some sitting closer to the front and others further back.\n\nThere are a total",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": true,
+          "removed_categories": [
+            "tie"
+          ],
+          "grounded_retention": 0.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "tie",
+          "layer": 28,
+          "edit": {
+            "layer": 28,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " tie",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image is a black and white photograph of a group of young boys sitting together. They are all wearing ties, which suggests that they might be attending a formal event or a school function. The boys are sitting on a bench, with some of them sitting closer to the front and",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "tie",
+          "layer": 30,
+          "edit": {
+            "layer": 30,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " tie",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image is a black and white photograph of a group of young boys sitting together. They are all wearing ties, which suggests that they might be attending a formal event or a school function. The boys are sitting on a bench, with some of them sitting closer to the front and",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        }
+      ]
+    },
+    {
+      "image": "COCO_val2014_000000089405.jpg",
+      "image_id": 89405,
+      "question": "Describe this image in detail.",
+      "baseline_text": "The image features a vase filled with white roses, placed on a table. The vase is positioned in the center of the scene, and the roses are spread throughout the vase, creating a beautiful and elegant display. \n\nIn the background, there is a booksh",
+      "baseline_n_tokens": 60,
+      "n_gt_categories": 3,
+      "mentioned": [
+        "vase"
+      ],
+      "hallucinated": [],
+      "grounded": [
+        "vase"
+      ],
+      "mean_norms": {
+        "16": 21.744447708129883,
+        "24": 60.80404281616211,
+        "28": 86.16850280761719,
+        "30": 99.47036743164062
+      },
+      "arms": [
+        {
+          "kind": "control",
+          "category": "vase",
+          "layer": 16,
+          "edit": {
+            "layer": 16,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " vase",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a vase filled with white roses, placed on a table. The vase is positioned in the center of the scene, and the roses are spread throughout the vase, creating a beautiful and elegant display. \n\nIn the background, there is a booksh",
+          "changed": false,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "vase",
+          "layer": 24,
+          "edit": {
+            "layer": 24,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " vase",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a vase filled with white roses, placed on a table. The vibrant bouquet of roses is the main focus of the scene, with some of the flowers appearing to be slightly wilted. The table is surrounded by numerous books, indicating a cozy and",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "vase",
+          "layer": 28,
+          "edit": {
+            "layer": 28,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " vase",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a vibrant bouquet of white roses placed in a shiny metal vase. The roses are arranged in various positions, creating a visually appealing display. The vibrant bouquet is situated on a table, surrounded by numerous books. The books are arranged",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "vase",
+          "layer": 30,
+          "edit": {
+            "layer": 30,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " vase",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a vibrant bouquet of white roses placed in a shiny metal vial. The roses are arranged in a visually appealing manner, with some of them positioned closer to the top of the vial and others near the bottom. The vial is situated",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": true,
+          "removed_categories": [
+            "vase"
+          ],
+          "grounded_retention": 0.0,
+          "n_edit_forwards": 60
+        }
+      ]
+    },
+    {
+      "image": "COCO_val2014_000000092801.jpg",
+      "image_id": 92801,
+      "question": "Describe this image in detail.",
+      "baseline_text": "The image features a brown and white cat lying down in an open suitcase. The cat appears to be relaxed and comfortable in the suitcase. The suitcase is filled with various items, including a handbag and a cell phone. The handbag is placed on the left side of the suit",
+      "baseline_n_tokens": 60,
+      "n_gt_categories": 3,
+      "mentioned": [
+        "cat",
+        "cell phone",
+        "handbag",
+        "suitcase"
+      ],
+      "hallucinated": [
+        "cell phone"
+      ],
+      "grounded": [
+        "cat",
+        "handbag",
+        "suitcase"
+      ],
+      "mean_norms": {
+        "16": 21.209646224975586,
+        "24": 58.95302200317383,
+        "28": 85.87002563476562,
+        "30": 99.3465576171875
+      },
+      "arms": [
+        {
+          "kind": "hallucination",
+          "category": "cell phone",
+          "layer": 16,
+          "edit": {
+            "layer": 16,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " cell phone",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a brown and white cat lying on top of a suitcase. The cat appears to be relaxed and comfortable in the suitcase. The suitcase is placed on a bed, and there are a few other items in the scene.\n\nThere is a handbag located near the",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": true,
+          "removed_categories": [
+            "cell phone"
+          ],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "hallucination",
+          "category": "cell phone",
+          "layer": 24,
+          "edit": {
+            "layer": 24,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " cell phone",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a brown and white cat lying on top of a suitcase. The cat appears to be relaxed and comfortable in the suitcase. The suitcase is placed on a bed, and there are a few other items in the scene.\n\nThere is a handbag located near the",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": true,
+          "removed_categories": [
+            "cell phone"
+          ],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "hallucination",
+          "category": "cell phone",
+          "layer": 28,
+          "edit": {
+            "layer": 28,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " cell phone",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a brown and white cat lying on top of a suitcase. The cat appears to be relaxed and comfortable in the suitcase. The suitcase is placed on a bed, and there are a few other items in the scene.\n\nThere is a handbag located near the",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": true,
+          "removed_categories": [
+            "cell phone"
+          ],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "hallucination",
+          "category": "cell phone",
+          "layer": 30,
+          "edit": {
+            "layer": 30,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " cell phone",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a brown and white cat lying on top of a suitcase. The cat appears to be relaxed and comfortable in the suitcase. The suitcase is placed on a bed, and there are a few other items in the scene.\n\nThere is a handbag located near the",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": true,
+          "removed_categories": [
+            "cell phone"
+          ],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "cat",
+          "layer": 16,
+          "edit": {
+            "layer": 16,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " cat",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a brown and white cat lying on top of a suitcase. The cat appears to be relaxed and comfortable in the suitcase. The suitcase is placed on a bed, and there are a few other items in the scene.\n\nThere is a handbag located near the",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [
+            "cell phone"
+          ],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "cat",
+          "layer": 24,
+          "edit": {
+            "layer": 24,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " cat",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a brown and white Siamese cat lying on top of a suitcase. The suitcase is open, and the cat appears to be resting comfortably on it. The scene also includes a handbag placed nearby, adding to the travel-related atmosphere.",
+          "changed": true,
+          "n_tokens": 57,
+          "token_length_ratio": 0.95,
+          "removed": false,
+          "removed_categories": [
+            "cell phone"
+          ],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 57
+        },
+        {
+          "kind": "control",
+          "category": "cat",
+          "layer": 28,
+          "edit": {
+            "layer": 28,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " cat",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a brown and white Siamese kitten lying on top of a suitcase. The kitten appears to be relaxed and comfortable in the suitcase. The suitcase is placed on a bed, and there are a few other items in the scene, including a handbag and",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": true,
+          "removed_categories": [
+            "cat",
+            "cell phone"
+          ],
+          "grounded_retention": 0.6666666666666666,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "cat",
+          "layer": 30,
+          "edit": {
+            "layer": 30,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " cat",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a brown and white Siamese kitten lying on top of a suitcase. The kitten appears to be relaxed and comfortable in the suitcase. The suitcase is placed on a bed, and there are a few other items in the scene.\n\nThere is a",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": true,
+          "removed_categories": [
+            "cat",
+            "cell phone",
+            "handbag"
+          ],
+          "grounded_retention": 0.3333333333333333,
+          "n_edit_forwards": 60
+        }
+      ]
+    },
+    {
+      "image": "COCO_val2014_000000094531.jpg",
+      "image_id": 94531,
+      "question": "Describe this image in detail.",
+      "baseline_text": "The image features a group of giraffes in a zoo enclosure. There are four giraffes in total, with two of them standing close to each other, while the other two are positioned further apart. The giraffes are standing near a fence, which separ",
+      "baseline_n_tokens": 60,
+      "n_gt_categories": 2,
+      "mentioned": [
+        "giraffe"
+      ],
+      "hallucinated": [],
+      "grounded": [
+        "giraffe"
+      ],
+      "mean_norms": {
+        "16": 22.094600677490234,
+        "24": 59.85199737548828,
+        "28": 84.8507308959961,
+        "30": 98.54074096679688
+      },
+      "arms": [
+        {
+          "kind": "control",
+          "category": "giraffe",
+          "layer": 16,
+          "edit": {
+            "layer": 16,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " giraffe",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a group of giraffes in a zoo enclosure. There are four giraffes in total, with two of them standing close to each other, while the other two are positioned further apart. The giraffes are standing near a fence, which separ",
+          "changed": false,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "giraffe",
+          "layer": 24,
+          "edit": {
+            "layer": 24,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " giraffe",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a group of giraffes in a zoo enclosure. There are four giraffes in total, with two of them standing close to each other, while the other two are positioned further apart. The giraffes are standing near a fence, which separ",
+          "changed": false,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "giraffe",
+          "layer": 28,
+          "edit": {
+            "layer": 28,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " giraffe",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a group of giraffes in a zoo enclosure. There are four giraffes in total, with two of them standing close to each other, while the other two are positioned further apart. The giraffes are standing near a fence, which separ",
+          "changed": false,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "giraffe",
+          "layer": 30,
+          "edit": {
+            "layer": 30,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " giraffe",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a group of giraffes in a zoo enclosure. There are four giraffes in total, with two of them standing close to each other, while the other two are positioned further apart. The giraffes are standing near a fence, which separ",
+          "changed": false,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        }
+      ]
+    },
+    {
+      "image": "COCO_val2014_000000131969.jpg",
+      "image_id": 131969,
+      "question": "Describe this image in detail.",
+      "baseline_text": "The image features a yellow fire hydrant situated on a sidewalk near a busy street. The fire hydrant is located close to a bus stop, with a bus visible in the background. There are several people walking around the area, some of them carrying handbags.\n\nIn addition to",
+      "baseline_n_tokens": 60,
+      "n_gt_categories": 3,
+      "mentioned": [
+        "bus",
+        "fire hydrant",
+        "handbag"
+      ],
+      "hallucinated": [
+        "bus",
+        "handbag"
+      ],
+      "grounded": [
+        "fire hydrant"
+      ],
+      "mean_norms": {
+        "16": 21.37750816345215,
+        "24": 59.21666717529297,
+        "28": 85.84049987792969,
+        "30": 99.54129028320312
+      },
+      "arms": [
+        {
+          "kind": "hallucination",
+          "category": "bus",
+          "layer": 16,
+          "edit": {
+            "layer": 16,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " bus",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a yellow fire hydrant situated on a sidewalk near a busy street. The fire hydrant is located close to a parking lot, where several cars are parked. There are at least five cars visible in the scene, with some parked closer to the fire hydrant and",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": true,
+          "removed_categories": [
+            "bus",
+            "handbag"
+          ],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "hallucination",
+          "category": "bus",
+          "layer": 24,
+          "edit": {
+            "layer": 24,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " bus",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a yellow fire hydrant situated on a sidewalk near a busy street. The fire hydrant is located in front of a building, and there are several cars parked or driving along the street. Some cars are parked closer to the fire hydrant, while others are further away",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": true,
+          "removed_categories": [
+            "bus",
+            "handbag"
+          ],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "hallucination",
+          "category": "bus",
+          "layer": 28,
+          "edit": {
+            "layer": 28,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " bus",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a yellow fire hydrant situated on a sidewalk near a busy street. The fire hydrant is located next to a blue telephone booth, which is a notable element in the scene. \n\nThere are several people walking along the sidewalk, with some of them carrying",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": true,
+          "removed_categories": [
+            "bus",
+            "handbag"
+          ],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "hallucination",
+          "category": "bus",
+          "layer": 30,
+          "edit": {
+            "layer": 30,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " bus",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a yellow fire hydrant situated on a sidewalk near a busy street. The fire hydrant is located close to a parking lot, where several cars are parked. There are at least five cars visible in the scene, with some parked closer to the fire hydrant and",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": true,
+          "removed_categories": [
+            "bus",
+            "handbag"
+          ],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "hallucination",
+          "category": "handbag",
+          "layer": 16,
+          "edit": {
+            "layer": 16,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " handbag",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a yellow fire hydrant situated on a sidewalk near a busy street. The fire hydrant is located close to a bus stop, with a bus visible in the background. There are several people walking around the area, some of them carrying handbags.\n\nIn addition to",
+          "changed": false,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "hallucination",
+          "category": "handbag",
+          "layer": 24,
+          "edit": {
+            "layer": 24,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " handbag",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a yellow fire hydrant situated on a sidewalk near a busy street. The fire hydrant is located close to a bus stop, with a bus visible in the background. There are several people walking around the area, some of them carrying handbags.\n\nIn addition to",
+          "changed": false,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "hallucination",
+          "category": "handbag",
+          "layer": 28,
+          "edit": {
+            "layer": 28,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " handbag",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a yellow fire hydrant situated on a sidewalk near a busy street. The fire hydrant is located close to a bus stop, with a bus visible in the background. There are several people walking around the area, some of them carrying handbags.\n\nIn addition to",
+          "changed": false,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "hallucination",
+          "category": "handbag",
+          "layer": 30,
+          "edit": {
+            "layer": 30,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " handbag",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a yellow fire hydrant situated on a sidewalk near a busy street. The fire hydrant is located close to a bus stop, with a bus visible in the background. There are several people walking around the area, some of them carrying handbags.\n\nIn addition to",
+          "changed": false,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "fire hydrant",
+          "layer": 16,
+          "edit": {
+            "layer": 16,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " fire hydrant",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a yellow fire hydrant situated on a sidewalk near a busy street. The fire hydrant is located close to a bus stop, with a bus visible in the background. There are several people walking around the area, some of them carrying handbags.\n\nIn addition to",
+          "changed": false,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "fire hydrant",
+          "layer": 24,
+          "edit": {
+            "layer": 24,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " fire hydrant",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a yellow fire hydrant situated on a sidewalk near a busy street. The fire hydrant is located close to a bus stop, with a bus visible in the background. There are several people walking around the area, some of them carrying handbags.\n\nIn addition to",
+          "changed": false,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "fire hydrant",
+          "layer": 28,
+          "edit": {
+            "layer": 28,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " fire hydrant",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a yellow fire hydrant situated on a sidewalk near a busy street. The fire hydrant is located close to a bus stop, with a bus visible in the background. There are several people walking around the area, some of them carrying handbags.\n\nIn addition to",
+          "changed": false,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "fire hydrant",
+          "layer": 30,
+          "edit": {
+            "layer": 30,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " fire hydrant",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a yellow fire hydrate situated on a sidewalk near a busy street. The fire hydrate is located close to a parking lot, with several cars parked in the background. There are also a few people walking around the area, with one person standing near the fire hydrate",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": true,
+          "removed_categories": [
+            "bus",
+            "fire hydrant",
+            "handbag"
+          ],
+          "grounded_retention": 0.0,
+          "n_edit_forwards": 60
+        }
+      ]
+    },
+    {
+      "image": "COCO_val2014_000000132389.jpg",
+      "image_id": 132389,
+      "question": "Describe this image in detail.",
+      "baseline_text": "The image features a white and brown dog standing on a brick sidewalk. The dog is wearing a black collar and appears to be on a leash. The dog is positioned in the center of the scene, and the leash is visible, extending from the dog's neck to",
+      "baseline_n_tokens": 60,
+      "n_gt_categories": 1,
+      "mentioned": [
+        "dog"
+      ],
+      "hallucinated": [],
+      "grounded": [
+        "dog"
+      ],
+      "mean_norms": {
+        "16": 20.612369537353516,
+        "24": 58.489627838134766,
+        "28": 84.27693176269531,
+        "30": 98.8401870727539
+      },
+      "arms": [
+        {
+          "kind": "control",
+          "category": "dog",
+          "layer": 16,
+          "edit": {
+            "layer": 16,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " dog",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a white and brown dog standing on a brick sidewalk. The dog is wearing a black collar and appears to be on a leash. The dog is positioned in the center of the scene, and the leash is visible, extending from the dog's neck to",
+          "changed": false,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "dog",
+          "layer": 24,
+          "edit": {
+            "layer": 24,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " dog",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a white and brown mixed breed dog standing on a brick sidewalk. The dog is wearing a black collar and appears to be on a leash. The scene is set in a city environment, with the sidewalk being the main focus.",
+          "changed": true,
+          "n_tokens": 55,
+          "token_length_ratio": 0.9166666666666666,
+          "removed": false,
+          "removed_categories": [],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 55
+        },
+        {
+          "kind": "control",
+          "category": "dog",
+          "layer": 28,
+          "edit": {
+            "layer": 28,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " dog",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a white and brown spotted mixed breed standing on a brick sidewalk. The mixed breed is wearing a black collar and appears to be on a leash. The scene is set in a city environment, with the sidewalk being the main focus.",
+          "changed": true,
+          "n_tokens": 58,
+          "token_length_ratio": 0.9666666666666667,
+          "removed": true,
+          "removed_categories": [
+            "dog"
+          ],
+          "grounded_retention": 0.0,
+          "n_edit_forwards": 58
+        },
+        {
+          "kind": "control",
+          "category": "dog",
+          "layer": 30,
+          "edit": {
+            "layer": 30,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " dog",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a white and brown mixed breed puppy standing on a brick sidewalk. The puppy is wearing a black collar and appears to be looking at the camera. The scene is set in a city environment, with the puppy being the main focus of the image.",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": true,
+          "removed_categories": [
+            "dog"
+          ],
+          "grounded_retention": 0.0,
+          "n_edit_forwards": 60
+        }
+      ]
+    },
+    {
+      "image": "COCO_val2014_000000138644.jpg",
+      "image_id": 138644,
+      "question": "Describe this image in detail.",
+      "baseline_text": "The image features a woman with short hair, wearing a black shirt, and holding a banana in her mouth. She appears to be playfully posing for the camera. The woman is standing in a kitchen, with a refrigerator visible in the background.\n\nThere are",
+      "baseline_n_tokens": 60,
+      "n_gt_categories": 5,
+      "mentioned": [
+        "banana",
+        "refrigerator"
+      ],
+      "hallucinated": [
+        "refrigerator"
+      ],
+      "grounded": [
+        "banana"
+      ],
+      "mean_norms": {
+        "16": 20.872356414794922,
+        "24": 55.332332611083984,
+        "28": 80.85855865478516,
+        "30": 94.83212280273438
+      },
+      "arms": [
+        {
+          "kind": "hallucination",
+          "category": "refrigerator",
+          "layer": 16,
+          "edit": {
+            "layer": 16,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " refrigerator",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a woman with short hair, wearing a black shirt, and holding a banana in her mouth. She appears to be playfully posing for the camera. The woman is standing in a kitchen, with a refrigerator visible in the background.\n\nThere are",
+          "changed": false,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "hallucination",
+          "category": "refrigerator",
+          "layer": 24,
+          "edit": {
+            "layer": 24,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " refrigerator",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a woman with short hair, wearing a black shirt, and holding a banana in her mouth. She appears to be playfully posing for the camera. The woman is standing in a kitchen, with a refrigerator visible in the background.\n\nThere are",
+          "changed": false,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "hallucination",
+          "category": "refrigerator",
+          "layer": 28,
+          "edit": {
+            "layer": 28,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " refrigerator",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a woman with short hair, wearing a black shirt, and holding a banana in her mouth. She appears to be playfully posing for the camera. The woman is standing in a kitchen, with a refrigerator visible in the background.\n\nIn the",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "hallucination",
+          "category": "refrigerator",
+          "layer": 30,
+          "edit": {
+            "layer": 30,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " refrigerator",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a woman with short hair, wearing a black shirt, and holding a banana in her mouth. She is making a funny face while eating the banana. The woman is standing in a kitchen, with a refrigerated area visible in the background.\n",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": true,
+          "removed_categories": [
+            "refrigerator"
+          ],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "banana",
+          "layer": 16,
+          "edit": {
+            "layer": 16,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " banana",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a woman with short hair, wearing a black shirt, and holding a banana in her mouth. She is making a funny face while eating the banana. The woman is standing in a kitchen, with a refrigerator visible in the background.\n\n",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "banana",
+          "layer": 24,
+          "edit": {
+            "layer": 24,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " banana",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a woman with short hair, wearing a black shirt, and holding a banana in her mouth. She appears to be playfully posing for the camera. The woman is standing in a kitchen, with a refrigerator visible in the background.\n\nThere are",
+          "changed": false,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "banana",
+          "layer": 28,
+          "edit": {
+            "layer": 28,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " banana",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a woman with short hair, wearing a black shirt, and holding a bananan in her mouth. She is standing in a kitchen, with a refrigerator visible in the background. The woman appears to be playfully posing with the bananan.\n",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": true,
+          "removed_categories": [
+            "banana"
+          ],
+          "grounded_retention": 0.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "banana",
+          "layer": 30,
+          "edit": {
+            "layer": 30,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " banana",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a woman with short hair, wearing a black shirt, and holding a banan in her mouth. She is standing in a kitchen, with a refrigerator visible in the background. The woman appears to be playfully posing with the banan, possibly for a",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": true,
+          "removed_categories": [
+            "banana"
+          ],
+          "grounded_retention": 0.0,
+          "n_edit_forwards": 60
+        }
+      ]
+    },
+    {
+      "image": "COCO_val2014_000000205332.jpg",
+      "image_id": 205332,
+      "question": "Describe this image in detail.",
+      "baseline_text": "The image features a man standing in a grassy field, holding a green frisbee in his hand. He appears to be preparing to throw the frisbee, possibly engaging in a game of frisbee with others. The man is wearing a black shirt",
+      "baseline_n_tokens": 60,
+      "n_gt_categories": 2,
+      "mentioned": [
+        "frisbee"
+      ],
+      "hallucinated": [],
+      "grounded": [
+        "frisbee"
+      ],
+      "mean_norms": {
+        "16": 20.28408432006836,
+        "24": 54.733917236328125,
+        "28": 79.35255432128906,
+        "30": 92.21267700195312
+      },
+      "arms": [
+        {
+          "kind": "control",
+          "category": "frisbee",
+          "layer": 16,
+          "edit": {
+            "layer": 16,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " frisbee",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a man standing in a grassy field, holding a green frisbee in his hand. He appears to be preparing to throw the frisbee, possibly engaging in a game of frisbee with others. The man is wearing a black shirt",
+          "changed": false,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "frisbee",
+          "layer": 24,
+          "edit": {
+            "layer": 24,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " frisbee",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a man standing in a grassy field, holding a green frisbee in his hand. He appears to be preparing to throw the frisbee, possibly engaging in a game of frisbee with others. The man is wearing a black shirt",
+          "changed": false,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "frisbee",
+          "layer": 28,
+          "edit": {
+            "layer": 28,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " frisbee",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a man standing in a grassy field, holding a green frisbee in his hand. He appears to be preparing to throw the frisbee, possibly engaging in a game of frisbee with others. The man is wearing a black shirt",
+          "changed": false,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "frisbee",
+          "layer": 30,
+          "edit": {
+            "layer": 30,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " frisbee",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a man standing in a grassy field, holding a green frisbee in his hand. He appears to be preparing to throw the frisbee, possibly engaging in a game of frisbe golf or simply enjoying a leisurely outdoor activity",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        }
+      ]
+    },
+    {
+      "image": "COCO_val2014_000000235017.jpg",
+      "image_id": 235017,
+      "question": "Describe this image in detail.",
+      "baseline_text": "The image features a woman standing on a sidewalk, holding a red and black umbrella above her head. She is wearing a yellow skirt and appears to be enjoying her time outdoors. The woman is also holding a cell phone in her hand.\n\nIn the background",
+      "baseline_n_tokens": 60,
+      "n_gt_categories": 6,
+      "mentioned": [
+        "cell phone",
+        "umbrella"
+      ],
+      "hallucinated": [],
+      "grounded": [
+        "cell phone",
+        "umbrella"
+      ],
+      "mean_norms": {
+        "16": 19.85450553894043,
+        "24": 55.094295501708984,
+        "28": 80.59873962402344,
+        "30": 94.36975860595703
+      },
+      "arms": [
+        {
+          "kind": "control",
+          "category": "cell phone",
+          "layer": 16,
+          "edit": {
+            "layer": 16,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " cell phone",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a woman standing on a sidewalk, holding a red and black umbrella above her head. She is wearing a yellow skirt and appears to be enjoying her time outdoors. The woman is also holding a cell phone in her hand.\n\nIn the background",
+          "changed": false,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "cell phone",
+          "layer": 24,
+          "edit": {
+            "layer": 24,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " cell phone",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a woman standing on a sidewalk, holding a red and black umbrella above her head. She is wearing a yellow skirt and appears to be enjoying her time outdoors. The woman is also holding a cellular device in her hand.\n\nIn the",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": true,
+          "removed_categories": [
+            "cell phone"
+          ],
+          "grounded_retention": 0.5,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "cell phone",
+          "layer": 28,
+          "edit": {
+            "layer": 28,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " cell phone",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a woman standing on a sidewalk, holding a red and black umbrella above her head. She is wearing a yellow skirt and appears to be enjoying her time outdoors. The woman is also holding a cellular device in her hand.\n\nIn the",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": true,
+          "removed_categories": [
+            "cell phone"
+          ],
+          "grounded_retention": 0.5,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "cell phone",
+          "layer": 30,
+          "edit": {
+            "layer": 30,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " cell phone",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a woman standing on a sidewalk, holding a red and black umbrella above her head. She is wearing a yellow skirt and appears to be enjoying her time outdoors. The woman is also holding a cellular device in her hand.\n\nIn the",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": true,
+          "removed_categories": [
+            "cell phone"
+          ],
+          "grounded_retention": 0.5,
+          "n_edit_forwards": 60
+        }
+      ]
+    },
+    {
+      "image": "COCO_val2014_000000243218.jpg",
+      "image_id": 243218,
+      "question": "Describe this image in detail.",
+      "baseline_text": "The image features a black cat lying on a bed, stretching out and enjoying its time. The cat is positioned in the center of the bed, with its body occupying a significant portion of the space. The cat's paws are visible, with one paw on the left",
+      "baseline_n_tokens": 60,
+      "n_gt_categories": 2,
+      "mentioned": [
+        "bed",
+        "cat"
+      ],
+      "hallucinated": [],
+      "grounded": [
+        "bed",
+        "cat"
+      ],
+      "mean_norms": {
+        "16": 21.91256332397461,
+        "24": 61.59606170654297,
+        "28": 87.39383697509766,
+        "30": 100.77821350097656
+      },
+      "arms": [
+        {
+          "kind": "control",
+          "category": "bed",
+          "layer": 16,
+          "edit": {
+            "layer": 16,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " bed",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a black cat lying on a bed, stretching out and enjoying its time. The cat is positioned in the center of the bed, with its body occupying a significant portion of the space. The cat's paws are visible, as it lays on its back",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "bed",
+          "layer": 24,
+          "edit": {
+            "layer": 24,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " bed",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a black cat lying on a couch, stretching out and enjoying its time. The cat is positioned in the center of the couch, occupying a significant portion of the space. The couch appears to be a comfortable spot for the cat to relax and sleep.",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": true,
+          "removed_categories": [
+            "bed"
+          ],
+          "grounded_retention": 0.5,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "bed",
+          "layer": 28,
+          "edit": {
+            "layer": 28,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " bed",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a black cat lying on a couch, stretching out and enjoying its time. The cat is positioned in the center of the couch, occupying a significant portion of the space. The couch appears to be a comfortable spot for the cat to relax and sleep.",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": true,
+          "removed_categories": [
+            "bed"
+          ],
+          "grounded_retention": 0.5,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "bed",
+          "layer": 30,
+          "edit": {
+            "layer": 30,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " bed",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a black cat lying on a couch, stretching out and enjoying its time. The cat is positioned in the center of the couch, occupying a significant portion of the space. The couch appears to be a comfortable spot for the cat to relax and sleep.",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": true,
+          "removed_categories": [
+            "bed"
+          ],
+          "grounded_retention": 0.5,
+          "n_edit_forwards": 60
+        }
+      ]
+    },
+    {
+      "image": "COCO_val2014_000000244823.jpg",
+      "image_id": 244823,
+      "question": "Describe this image in detail.",
+      "baseline_text": "The image features a television set sitting on a rocky beach near the water. The TV is placed on a rock, and it appears to be an old model. The beach is surrounded by a rock wall, and the sky above is cloudy.\n\nIn the background, there are several birds",
+      "baseline_n_tokens": 60,
+      "n_gt_categories": 1,
+      "mentioned": [
+        "bird",
+        "tv"
+      ],
+      "hallucinated": [
+        "bird"
+      ],
+      "grounded": [
+        "tv"
+      ],
+      "mean_norms": {
+        "16": 21.842208862304688,
+        "24": 61.324913024902344,
+        "28": 88.10144805908203,
+        "30": 101.50672149658203
+      },
+      "arms": [
+        {
+          "kind": "hallucination",
+          "category": "bird",
+          "layer": 16,
+          "edit": {
+            "layer": 16,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " bird",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a television set sitting on a rocky beach near the water. The TV is placed on a rock, and it appears to be an old model. The beach is surrounded by a rocky landscape, and the sky above is cloudy.\n\nIn the background, there are several",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": true,
+          "removed_categories": [
+            "bird"
+          ],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "hallucination",
+          "category": "bird",
+          "layer": 24,
+          "edit": {
+            "layer": 24,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " bird",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a television set sitting on a rocky beach near the water. The TV is placed on a rock, and it appears to be an old model. The beach is surrounded by a rocky landscape, and the sky can be seen in the background. The scene evokes a sense of",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": true,
+          "removed_categories": [
+            "bird"
+          ],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "hallucination",
+          "category": "bird",
+          "layer": 28,
+          "edit": {
+            "layer": 28,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " bird",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a television set sitting on a rocky beach near the water. The TV is placed on a rock, and it appears to be an old model. The beach is surrounded by a rocky landscape, and the sky can be seen in the background. The scene evokes a sense of",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": true,
+          "removed_categories": [
+            "bird"
+          ],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "hallucination",
+          "category": "bird",
+          "layer": 30,
+          "edit": {
+            "layer": 30,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " bird",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a television set sitting on a rocky beach near the water. The TV is placed on a rock, and it appears to be an old model. The beach is surrounded by a rock wall, and the sky above is cloudy.\n\nIn the background, there are several people",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": true,
+          "removed_categories": [
+            "bird"
+          ],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "tv",
+          "layer": 16,
+          "edit": {
+            "layer": 16,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " tv",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a television set sitting on a rocky beach near the water. The TV is placed on a rock, and it appears to be an old model. The beach is surrounded by a rock wall, and the sky above is cloudy.\n\nIn the background, there are several birds",
+          "changed": false,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "tv",
+          "layer": 24,
+          "edit": {
+            "layer": 24,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " tv",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a television set sitting on a rocky beach near the water. The TV is placed on a rock, and it appears to be an old model. The beach is surrounded by a rocky landscape, and the sky above is cloudy.\n\nIn the background, there are a",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [
+            "bird"
+          ],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "tv",
+          "layer": 28,
+          "edit": {
+            "layer": 28,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " tv",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a large, old-fashioned, black and silver television set sitting on a rocky beach near the water. The beach is rocky, and the ocean is visible in the background. The scene appears to be a serene and peaceful location, with the old-f",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": true,
+          "removed_categories": [
+            "bird",
+            "tv"
+          ],
+          "grounded_retention": 0.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "tv",
+          "layer": 30,
+          "edit": {
+            "layer": 30,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " tv",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a large, old-fashioned, black and silver television set sitting on a rocky beach near the water. The beach is rocky, and the ocean is visible in the background. The scene appears to be a serene and peaceful location, with the old-f",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": true,
+          "removed_categories": [
+            "bird",
+            "tv"
+          ],
+          "grounded_retention": 0.0,
+          "n_edit_forwards": 60
+        }
+      ]
+    },
+    {
+      "image": "COCO_val2014_000000264853.jpg",
+      "image_id": 264853,
+      "question": "Describe this image in detail.",
+      "baseline_text": "The image features a man wearing a black jacket and a white cap, standing on a tennis court and holding a tennis racket. He appears to be in a defensive stance, ready to return a serve. The tennis court is surrounded by a chain-link fence, which adds",
+      "baseline_n_tokens": 60,
+      "n_gt_categories": 2,
+      "mentioned": [
+        "tennis racket"
+      ],
+      "hallucinated": [],
+      "grounded": [
+        "tennis racket"
+      ],
+      "mean_norms": {
+        "16": 20.655590057373047,
+        "24": 59.204078674316406,
+        "28": 84.90050506591797,
+        "30": 98.5347671508789
+      },
+      "arms": [
+        {
+          "kind": "control",
+          "category": "tennis racket",
+          "layer": 16,
+          "edit": {
+            "layer": 16,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " tennis racket",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a man wearing a black jacket and a white cap, standing on a tennis court and holding a tennis racket. He appears to be in a defensive stance, ready to return a serve. The tennis court is surrounded by a chain-link fence, which adds",
+          "changed": false,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "tennis racket",
+          "layer": 24,
+          "edit": {
+            "layer": 24,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " tennis racket",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a man wearing a black jacket and a white cap, standing on a tennis court and holding a tennis racket. He appears to be in a defensive stance, ready to return a serve. The tennis court is surrounded by a chain-link fence, which adds",
+          "changed": false,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "tennis racket",
+          "layer": 28,
+          "edit": {
+            "layer": 28,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " tennis racket",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a man wearing a black jacket and a white cap, standing on a tennis court and holding a tennis racket. He appears to be in a defensive stance, ready to return a serve. The tennis court is surrounded by a chain-link fence, which adds",
+          "changed": false,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "tennis racket",
+          "layer": 30,
+          "edit": {
+            "layer": 30,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " tennis racket",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a man wearing a black jacket and a white cap, standing on a tennis court and holding a tennis raquette. He appears to be in a defensive stance, ready to return a serve. The tennis court is surrounded by a chain-link fence, which",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": true,
+          "removed_categories": [
+            "tennis racket"
+          ],
+          "grounded_retention": 0.0,
+          "n_edit_forwards": 60
+        }
+      ]
+    },
+    {
+      "image": "COCO_val2014_000000285451.jpg",
+      "image_id": 285451,
+      "question": "Describe this image in detail.",
+      "baseline_text": "The image features a man wearing glasses and a blue sweater, sitting at a desk and talking on his cell phone. He appears to be smiling while engaged in the conversation. The man is holding the cell phone in his hand, and there is a TV in the background.\n",
+      "baseline_n_tokens": 60,
+      "n_gt_categories": 3,
+      "mentioned": [
+        "cell phone",
+        "tv"
+      ],
+      "hallucinated": [],
+      "grounded": [
+        "cell phone",
+        "tv"
+      ],
+      "mean_norms": {
+        "16": 21.03365707397461,
+        "24": 55.69736099243164,
+        "28": 81.61520385742188,
+        "30": 95.90385437011719
+      },
+      "arms": [
+        {
+          "kind": "control",
+          "category": "cell phone",
+          "layer": 16,
+          "edit": {
+            "layer": 16,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " cell phone",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a man wearing glasses and a blue sweater, sitting at a desk and talking on his cell phone. He is smiling while engaged in the conversation. The man is also holding a remote control in his hand.\n\nThe room has a TV mounted on the wall",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "cell phone",
+          "layer": 24,
+          "edit": {
+            "layer": 24,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " cell phone",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a man wearing glasses and a blue sweater, sitting at a desk and talking on his cell phone. He appears to be smiling while engaged in the conversation. The man is holding the cell phone in his hand, and there is a TV in the background.\n",
+          "changed": false,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "cell phone",
+          "layer": 28,
+          "edit": {
+            "layer": 28,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " cell phone",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a man wearing glasses and a blue sweater, sitting at a desk and talking on his cellular device. He appears to be smiling while engaged in the conversation. The man is holding the cellular device in his hand, and there is a TV in the background",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": true,
+          "removed_categories": [
+            "cell phone"
+          ],
+          "grounded_retention": 0.5,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "cell phone",
+          "layer": 30,
+          "edit": {
+            "layer": 30,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " cell phone",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a man wearing glasses and a blue sweater, sitting at a desk and talking on his cellular device. He appears to be engaged in a conversation, possibly at work. The man is smiling, which suggests that he is enjoying the conversation or receiving good news",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": true,
+          "removed_categories": [
+            "cell phone",
+            "tv"
+          ],
+          "grounded_retention": 0.0,
+          "n_edit_forwards": 60
+        }
+      ]
+    },
+    {
+      "image": "COCO_val2014_000000292060.jpg",
+      "image_id": 292060,
+      "question": "Describe this image in detail.",
+      "baseline_text": "The image depicts a clean and well-organized kitchen with white cabinets and a white stove. The kitchen features a sink, an oven, and a refrigerator. The refrigerator is located on the right side of the kitchen, while the oven is",
+      "baseline_n_tokens": 60,
+      "n_gt_categories": 7,
+      "mentioned": [
+        "oven",
+        "refrigerator",
+        "sink"
+      ],
+      "hallucinated": [],
+      "grounded": [
+        "oven",
+        "refrigerator",
+        "sink"
+      ],
+      "mean_norms": {
+        "16": 21.584136962890625,
+        "24": 59.539710998535156,
+        "28": 84.48297119140625,
+        "30": 97.06907653808594
+      },
+      "arms": [
+        {
+          "kind": "control",
+          "category": "oven",
+          "layer": 16,
+          "edit": {
+            "layer": 16,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " oven",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image depicts a clean and well-organized kitchen with white cabinets and a white stove. The kitchen features a sink, an oven, and a refrigerator. The refrigerator is located on the right side of the kitchen, while the oven is",
+          "changed": false,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "oven",
+          "layer": 24,
+          "edit": {
+            "layer": 24,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " oven",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image depicts a clean and well-organized kitchen with white cabinets and a white stove. The kitchen features a sink, an oven, and a refrigerator. The refrigerator is located on the right side of the kitchen, while the oven is",
+          "changed": false,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "oven",
+          "layer": 28,
+          "edit": {
+            "layer": 28,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " oven",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image depicts a clean and well-organized kitchen with white cabinets and a white stove. The kitchen features a sink, an oven, and a microwave. There are several knives placed on the counter, and a bottle can be seen near the sink.",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [
+            "refrigerator"
+          ],
+          "grounded_retention": 0.6666666666666666,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "oven",
+          "layer": 30,
+          "edit": {
+            "layer": 30,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " oven",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image depicts a clean and well-organized kitchen with white cabinets and a white stove. The kitchen features a sink, an oval light fixture hanging above it, and a refrigerator on the right side of the room. The countertops are black",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": true,
+          "removed_categories": [
+            "oven"
+          ],
+          "grounded_retention": 0.6666666666666666,
+          "n_edit_forwards": 60
+        }
+      ]
+    },
+    {
+      "image": "COCO_val2014_000000297372.jpg",
+      "image_id": 297372,
+      "question": "Describe this image in detail.",
+      "baseline_text": "The image features a small brown dog standing on a carpeted floor, wearing a leash. The dog appears to be sniffing the ground, possibly exploring its surroundings. A bicycle is parked nearby, with its wheel visible in the background. The scene also",
+      "baseline_n_tokens": 60,
+      "n_gt_categories": 2,
+      "mentioned": [
+        "bicycle",
+        "dog"
+      ],
+      "hallucinated": [],
+      "grounded": [
+        "bicycle",
+        "dog"
+      ],
+      "mean_norms": {
+        "16": 20.072235107421875,
+        "24": 55.272945404052734,
+        "28": 80.01509857177734,
+        "30": 92.88356018066406
+      },
+      "arms": [
+        {
+          "kind": "control",
+          "category": "bicycle",
+          "layer": 16,
+          "edit": {
+            "layer": 16,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " bicycle",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a small brown dog standing on a carpeted floor, wearing a leash. The dog appears to be sniffing the ground, possibly exploring its surroundings. A bicycle is parked nearby, with its wheel visible in the background. The scene seems",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "bicycle",
+          "layer": 24,
+          "edit": {
+            "layer": 24,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " bicycle",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a small brown dog standing on a carpeted floor, wearing a leash. The dog appears to be sniffing the ground, possibly exploring its surroundings. A bicycle is parked nearby, with its wheel positioned close to the dog. The",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "bicycle",
+          "layer": 28,
+          "edit": {
+            "layer": 28,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " bicycle",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a small brown dog standing on a carpeted floor, wearing a leash. The dog appears to be sniffing the ground, possibly exploring its surroundings. A bicycle is parked nearby, with its wheel visible in the background. The scene also",
+          "changed": false,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "bicycle",
+          "layer": 30,
+          "edit": {
+            "layer": 30,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " bicycle",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a small brown dog standing on a carpeted floor, wearing a leash. The dog appears to be sniffing the ground, possibly exploring its surroundings. A bicyke is parked nearby, with its wheel visible in the background. The scene also",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": true,
+          "removed_categories": [
+            "bicycle"
+          ],
+          "grounded_retention": 0.5,
+          "n_edit_forwards": 60
+        }
+      ]
+    },
+    {
+      "image": "COCO_val2014_000000309836.jpg",
+      "image_id": 309836,
+      "question": "Describe this image in detail.",
+      "baseline_text": "The image features a vast, cloudy sky with a few wispy clouds scattered throughout. The sky appears to be a mix of blue and white, creating a serene atmosphere. The clouds are of various sizes and shapes, adding depth and interest to the scene. The overall impression is one of a",
+      "baseline_n_tokens": 60,
+      "n_gt_categories": 1,
+      "mentioned": [],
+      "hallucinated": [],
+      "grounded": [],
+      "mean_norms": {
+        "16": 24.500064849853516,
+        "24": 67.13957977294922,
+        "28": 94.54777526855469,
+        "30": 106.99290466308594
+      },
+      "arms": []
+    },
+    {
+      "image": "COCO_val2014_000000332480.jpg",
+      "image_id": 332480,
+      "question": "Describe this image in detail.",
+      "baseline_text": "The image showcases a well-lit kitchen with a focus on the sink area. The kitchen features a microwave placed on the counter, and a refrigerator is located nearby. The room is filled with natural light, as there are multiple windows in the space.\n\nThe kitchen",
+      "baseline_n_tokens": 60,
+      "n_gt_categories": 2,
+      "mentioned": [
+        "microwave",
+        "refrigerator",
+        "sink"
+      ],
+      "hallucinated": [
+        "refrigerator"
+      ],
+      "grounded": [
+        "microwave",
+        "sink"
+      ],
+      "mean_norms": {
+        "16": 22.90128517150879,
+        "24": 60.29553985595703,
+        "28": 86.0600814819336,
+        "30": 99.24757385253906
+      },
+      "arms": [
+        {
+          "kind": "hallucination",
+          "category": "refrigerator",
+          "layer": 16,
+          "edit": {
+            "layer": 16,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " refrigerator",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a large, bright kitchen with a yellow color scheme. The kitchen is equipped with a microwave, which is placed on a countertop. There are two sinks in the kitchen, one on the left side and another on the right side.\n\nThe kitchen is well",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": true,
+          "removed_categories": [
+            "refrigerator"
+          ],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "hallucination",
+          "category": "refrigerator",
+          "layer": 24,
+          "edit": {
+            "layer": 24,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " refrigerator",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a large, bright kitchen with a yellow color scheme. The kitchen is well-equipped with a microwave placed on a counter, a sink located towards the right side of the room, and a refrigerator situated in the middle of the kitchen. \n\nThere",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "hallucination",
+          "category": "refrigerator",
+          "layer": 28,
+          "edit": {
+            "layer": 28,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " refrigerator",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a large, bright kitchen with a yellow color scheme. The kitchen is well-equipped with a microwave placed on a counter, a sink located towards the right side of the room, and a refrigerator situated in the middle of the kitchen. \n\nThere",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "hallucination",
+          "category": "refrigerator",
+          "layer": 30,
+          "edit": {
+            "layer": 30,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " refrigerator",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a large, bright kitchen with a yellow color scheme. The kitchen is well-equipped with a microwave placed on a countertop, a sink located towards the right side of the room, and a refrigeration unit positioned in the middle of the kitchen.\n",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": true,
+          "removed_categories": [
+            "refrigerator"
+          ],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "microwave",
+          "layer": 16,
+          "edit": {
+            "layer": 16,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " microwave",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a large, bright kitchen with a yellow color scheme. The kitchen is well-equipped with a microwave placed on a countertop, a sink located towards the right side of the room, and a refrigerator situated in the middle of the kitchen. \n\n",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "microwave",
+          "layer": 24,
+          "edit": {
+            "layer": 24,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " microwave",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a large, bright kitchen with a yellow color scheme. The kitchen is well-equipped with a microwave placed on a counter, a sink located towards the right side of the room, and a refrigerator situated in the middle of the kitchen. \n\nThere",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "microwave",
+          "layer": 28,
+          "edit": {
+            "layer": 28,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " microwave",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image showcases a well-lit kitchen with a focus on the sink area. The kitchen features a microwave placed on the counter, and a refrigerator is located nearby. The room is filled with natural light, as there are multiple windows in the space.\n\nIn addition",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "microwave",
+          "layer": 30,
+          "edit": {
+            "layer": 30,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " microwave",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a large, bright kitchen with a yellow color scheme. The kitchen is well-equipped with a microware oven placed on the countertop, a sink located towards the right side of the room, and a refrigerator situated in the middle of the kitchen.\n",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": true,
+          "removed_categories": [
+            "microwave"
+          ],
+          "grounded_retention": 0.5,
+          "n_edit_forwards": 60
+        }
+      ]
+    },
+    {
+      "image": "COCO_val2014_000000336340.jpg",
+      "image_id": 336340,
+      "question": "Describe this image in detail.",
+      "baseline_text": "The image features a wooden bench situated near a body of water, possibly a river or a lake. A duck is swimming in the water close to the bench, adding a sense of tranquility to the scene. The bench is positioned on a rocky path, providing",
+      "baseline_n_tokens": 60,
+      "n_gt_categories": 2,
+      "mentioned": [
+        "bench"
+      ],
+      "hallucinated": [],
+      "grounded": [
+        "bench"
+      ],
+      "mean_norms": {
+        "16": 21.300413131713867,
+        "24": 59.098533630371094,
+        "28": 84.91329956054688,
+        "30": 97.16853332519531
+      },
+      "arms": [
+        {
+          "kind": "control",
+          "category": "bench",
+          "layer": 16,
+          "edit": {
+            "layer": 16,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " bench",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a wooden bench situated near a body of water, possibly a river or a lake. A duck is swimming in the water close to the bench, adding a sense of tranquility to the scene. The bench is positioned on a rocky path, providing",
+          "changed": false,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "bench",
+          "layer": 24,
+          "edit": {
+            "layer": 24,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " bench",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a wooden bench situated near a body of water, possibly a river or a lake. A duck is swimming in the water close to the bench, adding a sense of tranquility to the scene. The bench is positioned on a rocky path, providing",
+          "changed": false,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "bench",
+          "layer": 28,
+          "edit": {
+            "layer": 28,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " bench",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a wooden bench situated near a body of water, possibly a river or a lake. A duck is swimming in the water close to the bench, adding a sense of tranquility to the scene. The bench is positioned on a rocky path, providing",
+          "changed": false,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "bench",
+          "layer": 30,
+          "edit": {
+            "layer": 30,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " bench",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a wooden bench situated near a body of water, possibly a river or a lake. A duck is swimming in the water close to the bench, adding a sense of tranquility to the scene. The benches are placed on a rocky path, providing a",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        }
+      ]
+    },
+    {
+      "image": "COCO_val2014_000000361860.jpg",
+      "image_id": 361860,
+      "question": "Describe this image in detail.",
+      "baseline_text": "The image captures a snowboarder in mid-air, performing a jump on a snow-covered slope. The snowboarder is wearing a striped jacket and is the main focus of the scene. The snowboard is clearly visible beneath the snowboarder, as they so",
+      "baseline_n_tokens": 60,
+      "n_gt_categories": 2,
+      "mentioned": [
+        "snowboard"
+      ],
+      "hallucinated": [],
+      "grounded": [
+        "snowboard"
+      ],
+      "mean_norms": {
+        "16": 20.938447952270508,
+        "24": 59.60081481933594,
+        "28": 86.12964630126953,
+        "30": 98.9328384399414
+      },
+      "arms": [
+        {
+          "kind": "control",
+          "category": "snowboard",
+          "layer": 16,
+          "edit": {
+            "layer": 16,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " snowboard",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image captures a snowboarder in mid-air, performing a jump on a snow-covered slope. The snowboarder is wearing a striped jacket and is the main focus of the scene. The snowboard is clearly visible beneath the snowboarder, as they so",
+          "changed": false,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "snowboard",
+          "layer": 24,
+          "edit": {
+            "layer": 24,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " snowboard",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image captures a snowy scene with a snowboarder in the air, performing a trick. The snowboarder is wearing a striped jacket and is the main focus of the scene. The snowy landscape and the snow-covered ground create a winter sports atmosphere.\n",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": true,
+          "removed_categories": [
+            "snowboard"
+          ],
+          "grounded_retention": 0.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "snowboard",
+          "layer": 28,
+          "edit": {
+            "layer": 28,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " snowboard",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image captures a snowy scene with a snow skier in the air, performing a trick on a snowy hill. The skier is wearing a striped jacket and is the main focus of the scene. The skis are clearly visible beneath the skier, as they so",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": true,
+          "removed_categories": [
+            "snowboard"
+          ],
+          "grounded_retention": 0.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "snowboard",
+          "layer": 30,
+          "edit": {
+            "layer": 30,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " snowboard",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image captures a snowy scene with a snow skier in the air, performing a trick on a snowy hill. The skier is wearing a striped jacket and is the main focus of the scene. The skis are clearly visible beneath the skier, as they so",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": true,
+          "removed_categories": [
+            "snowboard"
+          ],
+          "grounded_retention": 0.0,
+          "n_edit_forwards": 60
+        }
+      ]
+    },
+    {
+      "image": "COCO_val2014_000000380828.jpg",
+      "image_id": 380828,
+      "question": "Describe this image in detail.",
+      "baseline_text": "The image depicts a group of people sitting on a bench outside a bookstore. There are at least five people in the scene, with some sitting on the bench and others standing nearby. A dog is also present in the scene, walking past the people and the bench.\n",
+      "baseline_n_tokens": 60,
+      "n_gt_categories": 7,
+      "mentioned": [
+        "bench",
+        "dog"
+      ],
+      "hallucinated": [],
+      "grounded": [
+        "bench",
+        "dog"
+      ],
+      "mean_norms": {
+        "16": 22.227148056030273,
+        "24": 62.24427795410156,
+        "28": 89.87782287597656,
+        "30": 104.77790069580078
+      },
+      "arms": [
+        {
+          "kind": "control",
+          "category": "bench",
+          "layer": 16,
+          "edit": {
+            "layer": 16,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " bench",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image depicts a group of people sitting on a bench outside a bookstore. There are at least five people in the scene, with some sitting on the bench and others standing nearby. A dog is also present in the scene, walking past the people and the bench.\n",
+          "changed": false,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "bench",
+          "layer": 24,
+          "edit": {
+            "layer": 24,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " bench",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image depicts a group of people sitting on a bench outside a bookstore. There are at least six people in the scene, with some sitting on the bench and others standing nearby. A dog is also present in the scene, walking past the group of people.\n\nThe",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "bench",
+          "layer": 28,
+          "edit": {
+            "layer": 28,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " bench",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image depicts a group of people gathered on a sidewalk, with a man walking his dog. The dog is positioned near the center of the scene, while the man is walking it on a leash. There are several other people in the scene, some of them sitting on a",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": true,
+          "removed_categories": [
+            "bench"
+          ],
+          "grounded_retention": 0.5,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "bench",
+          "layer": 30,
+          "edit": {
+            "layer": 30,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " bench",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image depicts a group of people sitting on a bench outside a bookstore. There are at least five people in the scene, with some sitting on the benches and others standing nearby. A dog is also present in the scene, walking past the people and the benches.\n",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        }
+      ]
+    },
+    {
+      "image": "COCO_val2014_000000395714.jpg",
+      "image_id": 395714,
+      "question": "Describe this image in detail.",
+      "baseline_text": "The image features a BBQ grill with a total of nine hot dogs cooking on it. The hot dogs are placed in various positions on the grill, with some closer to the front and others further back. The grill is filled with the delicious smell of cooking hot dogs",
+      "baseline_n_tokens": 60,
+      "n_gt_categories": 1,
+      "mentioned": [
+        "hot dog"
+      ],
+      "hallucinated": [],
+      "grounded": [
+        "hot dog"
+      ],
+      "mean_norms": {
+        "16": 21.223064422607422,
+        "24": 59.70502471923828,
+        "28": 82.81775665283203,
+        "30": 96.28081512451172
+      },
+      "arms": [
+        {
+          "kind": "control",
+          "category": "hot dog",
+          "layer": 16,
+          "edit": {
+            "layer": 16,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " hot dog",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a BBQ grill with a total of nine hot dogs cooking on it. The hot dogs are arranged in a row, with some placed closer to the front and others further back. The grill is filled with the delicious food, creating a mouth-watering scene.",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "hot dog",
+          "layer": 24,
+          "edit": {
+            "layer": 24,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " hot dog",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a BBQ grill with several hot dogs cooking on it. There are a total of nine hot dogs on the grill, with some of them being closer to the front and others towards the back. The hot dogs are arranged in a way that they are evenly distributed across",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "hot dog",
+          "layer": 28,
+          "edit": {
+            "layer": 28,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " hot dog",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a BBQ grill with several hotdogs cooking on it. There are a total of nine hotdogs on the grill, with some of them being closer to the front and others towards the back. The hotdogs are arranged in a way that they are even",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": true,
+          "removed_categories": [
+            "hot dog"
+          ],
+          "grounded_retention": 0.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "hot dog",
+          "layer": 30,
+          "edit": {
+            "layer": 30,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " hot dog",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a BBQ grill with several hotdogs cooking on it. There are a total of nine hotdogs on the grill, with some of them being closer to the front and others towards the back. The hotdogs are arranged in a way that they are even",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": true,
+          "removed_categories": [
+            "hot dog"
+          ],
+          "grounded_retention": 0.0,
+          "n_edit_forwards": 60
+        }
+      ]
+    },
+    {
+      "image": "COCO_val2014_000000408253.jpg",
+      "image_id": 408253,
+      "question": "Describe this image in detail.",
+      "baseline_text": "The image features a woman standing on a beach, wearing a blue jacket and holding a blue bag. She appears to be talking on her cell phone while enjoying her time at the beach. Another person can be seen in the background, possibly walking or engaging in beach activities.\n\n",
+      "baseline_n_tokens": 60,
+      "n_gt_categories": 3,
+      "mentioned": [
+        "cell phone",
+        "person"
+      ],
+      "hallucinated": [],
+      "grounded": [
+        "cell phone",
+        "person"
+      ],
+      "mean_norms": {
+        "16": 20.715797424316406,
+        "24": 57.85795974731445,
+        "28": 84.49468994140625,
+        "30": 98.48426055908203
+      },
+      "arms": [
+        {
+          "kind": "control",
+          "category": "cell phone",
+          "layer": 16,
+          "edit": {
+            "layer": 16,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " cell phone",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a woman standing on a beach, holding a blue bag. She is wearing a blue jacket and appears to be talking on her cell phone. Another person is visible in the background, standing further away from the woman.\n\nThe beach setting includes a handbag placed on the",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "cell phone",
+          "layer": 24,
+          "edit": {
+            "layer": 24,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " cell phone",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a woman standing on a beach, holding a blue bag. She is wearing a blue jacket and appears to be engaged in a conversation on her cellular device. Another person is visible in the background, possibly enjoying the beach as well.\n\nThe beach setting includes a",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": true,
+          "removed_categories": [
+            "cell phone"
+          ],
+          "grounded_retention": 0.5,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "cell phone",
+          "layer": 28,
+          "edit": {
+            "layer": 28,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " cell phone",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a woman standing on a beach, holding a blue bag. She is wearing a blue jacket and appears to be engaged in a conversation on her cellular device. Another person is visible in the background, possibly enjoying the beach as well.\n\nThe beach setting includes a",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": true,
+          "removed_categories": [
+            "cell phone"
+          ],
+          "grounded_retention": 0.5,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "cell phone",
+          "layer": 30,
+          "edit": {
+            "layer": 30,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " cell phone",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a woman standing on a beach, holding a blue bag. She appears to be talking on her cellular device, possibly enjoying a conversation while taking in the beautiful surroundings. Another person can be seen in the background, possibly walking or engaging in their own beach activities.",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": true,
+          "removed_categories": [
+            "cell phone"
+          ],
+          "grounded_retention": 0.5,
+          "n_edit_forwards": 60
+        }
+      ]
+    },
+    {
+      "image": "COCO_val2014_000000416308.jpg",
+      "image_id": 416308,
+      "question": "Describe this image in detail.",
+      "baseline_text": "The image depicts a lively beach scene with several people enjoying their time. There are at least 13 people visible in the scene, some of them sitting on the sand, while others are standing or walking around. \n\nIn addition to the people, there are numerous k",
+      "baseline_n_tokens": 60,
+      "n_gt_categories": 5,
+      "mentioned": [],
+      "hallucinated": [],
+      "grounded": [],
+      "mean_norms": {
+        "16": 22.49524688720703,
+        "24": 62.45977783203125,
+        "28": 88.69428253173828,
+        "30": 102.20686340332031
+      },
+      "arms": []
+    },
+    {
+      "image": "COCO_val2014_000000444531.jpg",
+      "image_id": 444531,
+      "question": "Describe this image in detail.",
+      "baseline_text": "The image showcases a large, well-lit kitchen with white cabinets and a tile floor. The kitchen is equipped with a stove, oven, and sink, as well as a refrigerator. There is a clock on the wall, and a microwave can be",
+      "baseline_n_tokens": 60,
+      "n_gt_categories": 7,
+      "mentioned": [
+        "clock",
+        "microwave",
+        "oven",
+        "refrigerator",
+        "sink"
+      ],
+      "hallucinated": [],
+      "grounded": [
+        "clock",
+        "microwave",
+        "oven",
+        "refrigerator",
+        "sink"
+      ],
+      "mean_norms": {
+        "16": 21.682188034057617,
+        "24": 58.00048065185547,
+        "28": 83.0510482788086,
+        "30": 96.21519470214844
+      },
+      "arms": [
+        {
+          "kind": "control",
+          "category": "clock",
+          "layer": 16,
+          "edit": {
+            "layer": 16,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " clock",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image showcases a large, well-lit kitchen with white cabinets and a tile floor. The kitchen is equipped with a stove, oven, and sink, as well as a refrigerator. There is a clock on the wall, and a microwave can be",
+          "changed": false,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "clock",
+          "layer": 24,
+          "edit": {
+            "layer": 24,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " clock",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image showcases a large, well-lit kitchen with white cabinets and a tile floor. The kitchen is equipped with a stove, oven, and sink, as well as a microwave and a refrigerator. There is a dining table in the room,",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": true,
+          "removed_categories": [
+            "clock"
+          ],
+          "grounded_retention": 0.8,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "clock",
+          "layer": 28,
+          "edit": {
+            "layer": 28,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " clock",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image showcases a large, well-lit kitchen with white cabinets and a tile floor. The kitchen is equipped with a stove, oven, and sink, as well as a microwave and a refrigerator. There is a dining table in the room,",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": true,
+          "removed_categories": [
+            "clock"
+          ],
+          "grounded_retention": 0.8,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "clock",
+          "layer": 30,
+          "edit": {
+            "layer": 30,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " clock",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image showcases a large, well-lit kitchen with white cabinets and a tile floor. The kitchen is equipped with a stove, oven, and sink, as well as a microwave and a refrigerator. There is a dining table in the room,",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": true,
+          "removed_categories": [
+            "clock"
+          ],
+          "grounded_retention": 0.8,
+          "n_edit_forwards": 60
+        }
+      ]
+    },
+    {
+      "image": "COCO_val2014_000000448974.jpg",
+      "image_id": 448974,
+      "question": "Describe this image in detail.",
+      "baseline_text": "The image features a person holding a cell phone in their hand. The cell phone is positioned in the center of the scene, with the person's hand surrounding it. The person is also holding a remote control in their hand, which is located towards the left side of the image.\n\n",
+      "baseline_n_tokens": 60,
+      "n_gt_categories": 3,
+      "mentioned": [
+        "cell phone",
+        "person",
+        "remote"
+      ],
+      "hallucinated": [
+        "remote"
+      ],
+      "grounded": [
+        "cell phone",
+        "person"
+      ],
+      "mean_norms": {
+        "16": 22.31479263305664,
+        "24": 63.025917053222656,
+        "28": 89.81861877441406,
+        "30": 103.96562194824219
+      },
+      "arms": [
+        {
+          "kind": "hallucination",
+          "category": "remote",
+          "layer": 16,
+          "edit": {
+            "layer": 16,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " remote",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a person holding a cell phone in their hand. The cell phone is positioned in the center of the scene, with the person's hand surrounding it. The person is also holding a remote control in their hand, which is located towards the left side of the image.\n\n",
+          "changed": false,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "hallucination",
+          "category": "remote",
+          "layer": 24,
+          "edit": {
+            "layer": 24,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " remote",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a person holding a cell phone in their hand. The cell phone is positioned in the center of the scene, with the person's hand surrounding it. The person is also holding a pair of scissors, which can be seen in the lower part of the image.\n",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": true,
+          "removed_categories": [
+            "remote"
+          ],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "hallucination",
+          "category": "remote",
+          "layer": 28,
+          "edit": {
+            "layer": 28,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " remote",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a person holding a cell phone in their hand. The cell phone is positioned in the center of the scene, with the person's hand surrounding it. The person is also holding a pair of scissors, which can be seen in the lower part of the image.\n",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": true,
+          "removed_categories": [
+            "remote"
+          ],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "hallucination",
+          "category": "remote",
+          "layer": 30,
+          "edit": {
+            "layer": 30,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " remote",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a person holding a cell phone in their hand. The cell phone is positioned in the center of the scene, with the person's hand surrounding it. The person is also holding a pair of scissors, which can be seen in the lower part of the image.\n",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": true,
+          "removed_categories": [
+            "remote"
+          ],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "cell phone",
+          "layer": 16,
+          "edit": {
+            "layer": 16,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " cell phone",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a person holding a cell phone in their hand. The cell phone is positioned in the center of the scene, with the person's hand surrounding it. The person is also holding a remote control in their hand, which is located towards the left side of the image.\n\n",
+          "changed": false,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "cell phone",
+          "layer": 24,
+          "edit": {
+            "layer": 24,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " cell phone",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a person holding a cellular device, possibly an LG phone, in their hand. The person is standing in a room with a wooden floor. The cellular device is positioned in the center of the scene, with the person's hand holding it securely.\n\n",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": true,
+          "removed_categories": [
+            "cell phone",
+            "remote"
+          ],
+          "grounded_retention": 0.5,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "cell phone",
+          "layer": 28,
+          "edit": {
+            "layer": 28,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " cell phone",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a person holding a silver LG cellular flip-style smartphone in their hand. The person is positioned in the center of the scene, with the flip-style smartphone prominently displayed in their hand.\n\nIn the background, there is a chair",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": true,
+          "removed_categories": [
+            "cell phone",
+            "remote"
+          ],
+          "grounded_retention": 0.5,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "cell phone",
+          "layer": 30,
+          "edit": {
+            "layer": 30,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " cell phone",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a person holding a silver LG cellular flip-style smartphone in their hand. The person is positioned in the center of the scene, with the flip-style smartphone prominently displayed in their hand.\n\nIn the background, there is a chair",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": true,
+          "removed_categories": [
+            "cell phone",
+            "remote"
+          ],
+          "grounded_retention": 0.5,
+          "n_edit_forwards": 60
+        }
+      ]
+    },
+    {
+      "image": "COCO_val2014_000000449338.jpg",
+      "image_id": 449338,
+      "question": "Describe this image in detail.",
+      "baseline_text": "The image features two ducks swimming in a body of water, possibly a lake or a pond. The ducks are floating on the water, with one duck slightly ahead of the other. The scene is set against a beautiful sunset, creating a serene and picturesque atmosphere.",
+      "baseline_n_tokens": 60,
+      "n_gt_categories": 1,
+      "mentioned": [],
+      "hallucinated": [],
+      "grounded": [],
+      "mean_norms": {
+        "16": 21.71385955810547,
+        "24": 60.01620101928711,
+        "28": 85.57472229003906,
+        "30": 98.02003479003906
+      },
+      "arms": []
+    },
+    {
+      "image": "COCO_val2014_000000457566.jpg",
+      "image_id": 457566,
+      "question": "Describe this image in detail.",
+      "baseline_text": "The image features a dining table with a plate of food placed on it. The plate contains a sandwich, which appears to be a club sandwich, and a side of salad. There are also two glasses of juice on the table, one near the left side and the other",
+      "baseline_n_tokens": 60,
+      "n_gt_categories": 4,
+      "mentioned": [
+        "dining table",
+        "sandwich"
+      ],
+      "hallucinated": [],
+      "grounded": [
+        "dining table",
+        "sandwich"
+      ],
+      "mean_norms": {
+        "16": 21.392791748046875,
+        "24": 59.46934127807617,
+        "28": 85.50953674316406,
+        "30": 100.71308898925781
+      },
+      "arms": [
+        {
+          "kind": "control",
+          "category": "dining table",
+          "layer": 16,
+          "edit": {
+            "layer": 16,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " dining table",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a dining table with a plate of food placed on it. The plate contains a sandwich, which is cut in half, and a side of vegetables. There are two cups on the table, one near the top left corner and the other near the top right corner.",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "dining table",
+          "layer": 24,
+          "edit": {
+            "layer": 24,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " dining table",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a dining room with a white plate on a dining table. The plate is topped with a delicious sandwich, which appears to be a club sandwich. The sandwich is accompanied by a side of salad, adding to the meal's appeal. ",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "dining table",
+          "layer": 28,
+          "edit": {
+            "layer": 28,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " dining table",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a dining room with a white plate on a dining room counter. The plate is topped with a delicious sandwich, which appears to be a club sandwich. The sandwich is accompanied by a side of salad, adding to the meal's appeal.",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": true,
+          "removed_categories": [
+            "dining table"
+          ],
+          "grounded_retention": 0.5,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "dining table",
+          "layer": 30,
+          "edit": {
+            "layer": 30,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " dining table",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a dining area with a white plate on a dining room counter. The plate is topped with a delicious sandwich, which appears to be a club sandwich. The sandwich is accompanied by a side of salad, adding to the meal's appeal.",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": true,
+          "removed_categories": [
+            "dining table"
+          ],
+          "grounded_retention": 0.5,
+          "n_edit_forwards": 60
+        }
+      ]
+    },
+    {
+      "image": "COCO_val2014_000000475229.jpg",
+      "image_id": 475229,
+      "question": "Describe this image in detail.",
+      "baseline_text": "The image features a man wearing a blue jacket and goggles, standing on a snow-covered slope with a snowboard attached to his feet. He is smiling and appears to be enjoying his time on the mountain. The man is positioned in the center of the",
+      "baseline_n_tokens": 60,
+      "n_gt_categories": 2,
+      "mentioned": [
+        "snowboard"
+      ],
+      "hallucinated": [],
+      "grounded": [
+        "snowboard"
+      ],
+      "mean_norms": {
+        "16": 20.889230728149414,
+        "24": 58.68379211425781,
+        "28": 85.11062622070312,
+        "30": 99.14134216308594
+      },
+      "arms": [
+        {
+          "kind": "control",
+          "category": "snowboard",
+          "layer": 16,
+          "edit": {
+            "layer": 16,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " snowboard",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a man wearing a blue jacket and goggles, standing on a snow-covered slope with a snowboard attached to his feet. He is smiling and appears to be enjoying his time on the mountain. The man is positioned in the center of the",
+          "changed": false,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "snowboard",
+          "layer": 24,
+          "edit": {
+            "layer": 24,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " snowboard",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a man wearing a blue jacket and goggles, standing on a snow-covered slope with a snow-covered snowboard attached to his feet. He appears to be posing for a picture, possibly enjoying a day of snow sports.\n\nIn",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "snowboard",
+          "layer": 28,
+          "edit": {
+            "layer": 28,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " snowboard",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a man wearing a blue jacket and goggles, standing on a snow-covered slope with a snow-covered snowmobile nearby. He is holding a snow ski and appears to be preparing to ride it down the hill. The man is smiling,",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": true,
+          "removed_categories": [
+            "snowboard"
+          ],
+          "grounded_retention": 0.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "snowboard",
+          "layer": 30,
+          "edit": {
+            "layer": 30,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " snowboard",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a man wearing a blue jacket and goggles, standing on a snow-covered slope with a snow-covered snowmobile nearby. He is holding a snow snowmobile, possibly preparing to ride it down the hill. The man appears to be enjoying",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": true,
+          "removed_categories": [
+            "snowboard"
+          ],
+          "grounded_retention": 0.0,
+          "n_edit_forwards": 60
+        }
+      ]
+    },
+    {
+      "image": "COCO_val2014_000000481518.jpg",
+      "image_id": 481518,
+      "question": "Describe this image in detail.",
+      "baseline_text": "The image features a man and a woman standing in a room, both holding Wii remotes and playing a video game together. They are the main focus of the scene, with the man on the left and the woman on the right.\n\nIn the background, there are several other people present",
+      "baseline_n_tokens": 60,
+      "n_gt_categories": 2,
+      "mentioned": [
+        "remote"
+      ],
+      "hallucinated": [],
+      "grounded": [
+        "remote"
+      ],
+      "mean_norms": {
+        "16": 21.476032257080078,
+        "24": 60.87540817260742,
+        "28": 89.13206481933594,
+        "30": 103.94832611083984
+      },
+      "arms": [
+        {
+          "kind": "control",
+          "category": "remote",
+          "layer": 16,
+          "edit": {
+            "layer": 16,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " remote",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a man and a woman standing in a room, both holding Wii game controllers. They appear to be enjoying a video game together. There are several other people in the room, some of whom are also holding Wii controllers.\n\nThe room is furnished with a d",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": true,
+          "removed_categories": [
+            "remote"
+          ],
+          "grounded_retention": 0.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "remote",
+          "layer": 24,
+          "edit": {
+            "layer": 24,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " remote",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a man and a woman standing in a room, both holding Wii remotes and playing a video game together. They are the main focus of the scene, with the man on the left and the woman on the right.\n\nIn the background, there are several other people present",
+          "changed": false,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "remote",
+          "layer": 28,
+          "edit": {
+            "layer": 28,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " remote",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a man and a woman standing in a room, both holding Wii game controllers. They appear to be playing a video game together, possibly on a Nintendo Wii console. \n\nIn the room, there are several other people, some of whom are also holding Wii",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": true,
+          "removed_categories": [
+            "remote"
+          ],
+          "grounded_retention": 0.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "remote",
+          "layer": 30,
+          "edit": {
+            "layer": 30,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " remote",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a man and a woman standing in a room, both holding Wii game controllers. They appear to be playing a video game together, possibly on a Nintendo Wii console. \n\nIn the room, there are several other people present, some of whom are also holding W",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": true,
+          "removed_categories": [
+            "remote"
+          ],
+          "grounded_retention": 0.0,
+          "n_edit_forwards": 60
+        }
+      ]
+    },
+    {
+      "image": "COCO_val2014_000000491106.jpg",
+      "image_id": 491106,
+      "question": "Describe this image in detail.",
+      "baseline_text": "The image features a woman standing in front of an old, rusted train. She is wearing a black dress and a hat, and she is holding a bottle in her hand. The train occupies a significant portion of the scene, with its rusted appearance and the woman positioned in",
+      "baseline_n_tokens": 60,
+      "n_gt_categories": 2,
+      "mentioned": [
+        "bottle",
+        "train"
+      ],
+      "hallucinated": [
+        "bottle"
+      ],
+      "grounded": [
+        "train"
+      ],
+      "mean_norms": {
+        "16": 21.117097854614258,
+        "24": 57.89289093017578,
+        "28": 83.0674057006836,
+        "30": 96.59351348876953
+      },
+      "arms": [
+        {
+          "kind": "hallucination",
+          "category": "bottle",
+          "layer": 16,
+          "edit": {
+            "layer": 16,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " bottle",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a woman standing in front of an old, rusted train. She is wearing a black dress and a hat, and she is holding a cell phone in her hand. The train occupies a significant portion of the scene, with its rusted appearance and the woman positioned in",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": true,
+          "removed_categories": [
+            "bottle"
+          ],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "hallucination",
+          "category": "bottle",
+          "layer": 24,
+          "edit": {
+            "layer": 24,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " bottle",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a woman standing in front of an old, rusted train. She is wearing a black dress and a hat, and she is holding a cell phone in her hand. The train occupies a significant portion of the scene, with its rusted appearance and the woman positioned in",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": true,
+          "removed_categories": [
+            "bottle"
+          ],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "hallucination",
+          "category": "bottle",
+          "layer": 28,
+          "edit": {
+            "layer": 28,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " bottle",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a woman standing in front of an old, rusted train. She is wearing a black dress and a hat, and she is holding a bottled drink in her hand. The train is positioned behind her, occupying a significant portion of the scene. The woman appears to",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": true,
+          "removed_categories": [
+            "bottle"
+          ],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "hallucination",
+          "category": "bottle",
+          "layer": 30,
+          "edit": {
+            "layer": 30,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " bottle",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a woman standing in front of an old, rusted train. She is wearing a black dress and a hat, and she is holding a bottled drink in her hand. The train is positioned behind her, occupying a significant portion of the scene. The woman appears to",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": true,
+          "removed_categories": [
+            "bottle"
+          ],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "train",
+          "layer": 16,
+          "edit": {
+            "layer": 16,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " train",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a woman standing in front of an old, rusted train. She is wearing a black dress and a hat, and she is holding a bottle in her hand. The train occupies a significant portion of the scene, with its rusted appearance and the woman positioned in",
+          "changed": false,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "train",
+          "layer": 24,
+          "edit": {
+            "layer": 24,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " train",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a woman standing in front of an old, rusted, and abandoned locomotive. She is wearing a black dress and holding a cell phone in her hand. The scene appears to be a mix of a vintage setting and modern technology.\n\nThe locomotive is the",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": true,
+          "removed_categories": [
+            "bottle",
+            "train"
+          ],
+          "grounded_retention": 0.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "train",
+          "layer": 28,
+          "edit": {
+            "layer": 28,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " train",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a woman standing in front of an old, rusted, and abandoned antique steam engine. She is wearing a black dress and a hat, and she is holding a cell phone in her hand. The scene appears to be a mix of a vintage setting and modern technology",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": true,
+          "removed_categories": [
+            "bottle",
+            "train"
+          ],
+          "grounded_retention": 0.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "train",
+          "layer": 30,
+          "edit": {
+            "layer": 30,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " train",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a woman standing in front of an old, rusty, and rusted-out steam engine. She is wearing a black dress and a hat, and she is holding a cell phone in her hand. The scene appears to be a vintage setting, with the steam engine",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": true,
+          "removed_categories": [
+            "bottle",
+            "train"
+          ],
+          "grounded_retention": 0.0,
+          "n_edit_forwards": 60
+        }
+      ]
+    },
+    {
+      "image": "COCO_val2014_000000501502.jpg",
+      "image_id": 501502,
+      "question": "Describe this image in detail.",
+      "baseline_text": "The image features a large Delta Airlines airplane parked on a runway at an airport. The airplane is positioned in the middle of the scene, with its nose pointing towards the left side of the image. The airplane appears to be a large passenger jet, possibly a j",
+      "baseline_n_tokens": 60,
+      "n_gt_categories": 1,
+      "mentioned": [
+        "airplane"
+      ],
+      "hallucinated": [],
+      "grounded": [
+        "airplane"
+      ],
+      "mean_norms": {
+        "16": 21.672500610351562,
+        "24": 61.529903411865234,
+        "28": 86.76331329345703,
+        "30": 100.6285171508789
+      },
+      "arms": [
+        {
+          "kind": "control",
+          "category": "airplane",
+          "layer": 16,
+          "edit": {
+            "layer": 16,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " airplane",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a large Delta Airlines airplane parked on a runway at an airport. The airplane is positioned in the middle of the scene, with its nose pointing towards the left side of the image. The airplane appears to be a jumbo jet, and it",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "airplane",
+          "layer": 24,
+          "edit": {
+            "layer": 24,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " airplane",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a large Delta Airlines airliner parked on the runway at an airport. The airliner is positioned in the middle of the scene, with its nose pointing towards the left side of the image. The airport runway extends from the left edge of the",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": true,
+          "removed_categories": [
+            "airplane"
+          ],
+          "grounded_retention": 0.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "airplane",
+          "layer": 28,
+          "edit": {
+            "layer": 28,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " airplane",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a large Delta Airlines airliner parked on the runway at an airport. The airliner is positioned in the middle of the scene, with its nose pointing towards the left side of the image. The airport is located near a city, as eviden",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": true,
+          "removed_categories": [
+            "airplane"
+          ],
+          "grounded_retention": 0.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "airplane",
+          "layer": 30,
+          "edit": {
+            "layer": 30,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " airplane",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a large Delta Airlines airliner parked on the runway at an airport. The airliner is positioned in the middle of the scene, with its nose pointing towards the left side of the image. The airport is located near a city, as eviden",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": true,
+          "removed_categories": [
+            "airplane"
+          ],
+          "grounded_retention": 0.0,
+          "n_edit_forwards": 60
+        }
+      ]
+    },
+    {
+      "image": "COCO_val2014_000000516865.jpg",
+      "image_id": 516865,
+      "question": "Describe this image in detail.",
+      "baseline_text": "The image captures a thrilling moment of a group of skiers performing a jump on a snowy slope. There are five people in the scene, each wearing skis and soaring through the air. The skiers are spread out across the slope, with some closer to the foreground",
+      "baseline_n_tokens": 60,
+      "n_gt_categories": 2,
+      "mentioned": [
+        "skis"
+      ],
+      "hallucinated": [],
+      "grounded": [
+        "skis"
+      ],
+      "mean_norms": {
+        "16": 22.001785278320312,
+        "24": 62.17536163330078,
+        "28": 88.40991973876953,
+        "30": 101.87571716308594
+      },
+      "arms": [
+        {
+          "kind": "control",
+          "category": "skis",
+          "layer": 16,
+          "edit": {
+            "layer": 16,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " skis",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image captures a thrilling moment of a group of skiers performing a jump on a snowy slope. There are five people in the scene, each wearing skis and soaring through the air. The skiers are spread out across the slope, with some closer to the foreground",
+          "changed": false,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "skis",
+          "layer": 24,
+          "edit": {
+            "layer": 24,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " skis",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image captures a thrilling moment of a group of skiers performing a jump on a snowy slope. There are five people in the scene, each wearing skis and soaring through the air. The skiers are spread out across the slope, with some closer to the foreground",
+          "changed": false,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "skis",
+          "layer": 28,
+          "edit": {
+            "layer": 28,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " skis",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image captures a group of people skiing and performing tricks on a snowy slope. There are five skiers in total, with some of them jumping high into the air while others are skiing down the slope. The skiers are spread out across the scene, with some closer",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": true,
+          "removed_categories": [
+            "skis"
+          ],
+          "grounded_retention": 0.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "skis",
+          "layer": 30,
+          "edit": {
+            "layer": 30,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " skis",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image captures a group of people skiing and performing tricks on a snowy slope. There are five skiers in the scene, with some of them jumping in the air while others are skiing down the slope. The skiers are spread out across the slope, with some closer",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": true,
+          "removed_categories": [
+            "skis"
+          ],
+          "grounded_retention": 0.0,
+          "n_edit_forwards": 60
+        }
+      ]
+    },
+    {
+      "image": "COCO_val2014_000000520694.jpg",
+      "image_id": 520694,
+      "question": "Describe this image in detail.",
+      "baseline_text": "The image features a black and white cat sitting inside a black suitcase. The cat appears to be relaxed and comfortable in the suitcase, which is placed on a bed. The cat's position in the suitcase suggests that it might be a favorite spot for the feline.",
+      "baseline_n_tokens": 59,
+      "n_gt_categories": 3,
+      "mentioned": [
+        "bed",
+        "cat",
+        "suitcase"
+      ],
+      "hallucinated": [],
+      "grounded": [
+        "bed",
+        "cat",
+        "suitcase"
+      ],
+      "mean_norms": {
+        "16": 20.45298194885254,
+        "24": 58.34274673461914,
+        "28": 85.25373840332031,
+        "30": 98.902587890625
+      },
+      "arms": [
+        {
+          "kind": "control",
+          "category": "bed",
+          "layer": 16,
+          "edit": {
+            "layer": 16,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " bed",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a black and white cat sitting inside a black suitcase. The cat appears to be relaxed and comfortable in the suitcase, which is placed on a bed. The cat's position in the suitcase suggests that it might be a favorite spot for the feline.",
+          "changed": false,
+          "n_tokens": 59,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 59
+        },
+        {
+          "kind": "control",
+          "category": "bed",
+          "layer": 24,
+          "edit": {
+            "layer": 24,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " bed",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a black and white cat sitting inside an open suitcase. The cat appears to be relaxed and comfortable in the suitcase, which is placed on a surface. The cat's position in the suitcase suggests that it might be a familiar and cozy spot for the feline",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0169491525423728,
+          "removed": true,
+          "removed_categories": [
+            "bed"
+          ],
+          "grounded_retention": 0.6666666666666666,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "bed",
+          "layer": 28,
+          "edit": {
+            "layer": 28,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " bed",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a black and white cat sitting inside an open suitcase. The cat appears to be relaxed and comfortable in the suitcase, which is placed on a surface. The cat's position in the suitcase suggests that it might be accompanying its owner on a trip or simply",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0169491525423728,
+          "removed": true,
+          "removed_categories": [
+            "bed"
+          ],
+          "grounded_retention": 0.6666666666666666,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "bed",
+          "layer": 30,
+          "edit": {
+            "layer": 30,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " bed",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a black and white cat sitting inside a black suitcase. The cat appears to be relaxed and comfortable in the suitcase, which is placed on a surface. The cat's position in the suitcase suggests that it might be a familiar and cozy spot for the feline",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0169491525423728,
+          "removed": true,
+          "removed_categories": [
+            "bed"
+          ],
+          "grounded_retention": 0.6666666666666666,
+          "n_edit_forwards": 60
+        }
+      ]
+    },
+    {
+      "image": "COCO_val2014_000000527528.jpg",
+      "image_id": 527528,
+      "question": "Describe this image in detail.",
+      "baseline_text": "The image captures a lively scene at a park, where a group of people are enjoying a day of kite flying. There are several kites of various sizes and colors soaring in the sky, with some flying higher and others closer to the ground. \n\nIn addition to",
+      "baseline_n_tokens": 60,
+      "n_gt_categories": 3,
+      "mentioned": [
+        "kite"
+      ],
+      "hallucinated": [],
+      "grounded": [
+        "kite"
+      ],
+      "mean_norms": {
+        "16": 21.464731216430664,
+        "24": 60.45075225830078,
+        "28": 86.16521453857422,
+        "30": 98.8506088256836
+      },
+      "arms": [
+        {
+          "kind": "control",
+          "category": "kite",
+          "layer": 16,
+          "edit": {
+            "layer": 16,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " kite",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image captures a lively scene at a park, where a group of people are enjoying a day of kite flying. There are several kites of various sizes and colors soaring in the sky, with some flying higher and others closer to the ground. \n\nIn addition to",
+          "changed": false,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "kite",
+          "layer": 24,
+          "edit": {
+            "layer": 24,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " kite",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image captures a lively scene at a park, where a group of people are enjoying a day of kite flying. There are several kites of various sizes and colors soaring in the sky, with some flying higher and others closer to the ground. \n\nIn addition to",
+          "changed": false,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "kite",
+          "layer": 28,
+          "edit": {
+            "layer": 28,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " kite",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image captures a lively scene of people flying kites in a large, open field. There are several kites of various sizes and colors soaring in the sky, creating a vibrant and dynamic atmosphere.\n\nIn addition to the kites, there are multiple cars and tr",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "kite",
+          "layer": 30,
+          "edit": {
+            "layer": 30,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " kite",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image captures a lively scene at a park, where a group of people are enjoying a day of kiting. There are several kites of various sizes and colors flying in the sky, creating a vibrant and colorful atmosphere. \n\nIn addition to the kiting",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        }
+      ]
+    },
+    {
+      "image": "COCO_val2014_000000549780.jpg",
+      "image_id": 549780,
+      "question": "Describe this image in detail.",
+      "baseline_text": "The image features a person holding a hot dog with chili on it. The hot dog is placed in the center of the scene, and the person is holding it with their right hand. The chili is spread across the hot dog, making it a delicious and hearty meal.",
+      "baseline_n_tokens": 60,
+      "n_gt_categories": 2,
+      "mentioned": [
+        "hot dog",
+        "person"
+      ],
+      "hallucinated": [],
+      "grounded": [
+        "hot dog",
+        "person"
+      ],
+      "mean_norms": {
+        "16": 21.1840877532959,
+        "24": 58.699623107910156,
+        "28": 82.98703002929688,
+        "30": 96.50822448730469
+      },
+      "arms": [
+        {
+          "kind": "control",
+          "category": "hot dog",
+          "layer": 16,
+          "edit": {
+            "layer": 16,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " hot dog",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a person holding a hot dog with chili on it. The hot dog is placed in the center of the scene, and the person is holding it with their right hand. The chili is spread across the hot dog, making it a delicious and hearty meal.",
+          "changed": false,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "hot dog",
+          "layer": 24,
+          "edit": {
+            "layer": 24,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " hot dog",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a person holding a hot dog with chili on it. The hot dog is placed in the center of the scene, and the person is holding it with their right hand. The chili is spread across the hot dog, making it a delicious and hearty meal.",
+          "changed": false,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "hot dog",
+          "layer": 28,
+          "edit": {
+            "layer": 28,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " hot dog",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a person holding a hot chili cheese hotdog in their hand. The hotdog is placed on a bun, and the chili is dripping down the side. The person is wearing a glove, possibly to protect their hand from the hot chili.\n",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": true,
+          "removed_categories": [
+            "hot dog"
+          ],
+          "grounded_retention": 0.5,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "hot dog",
+          "layer": 30,
+          "edit": {
+            "layer": 30,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " hot dog",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a person holding a hot chili cheese hotdogs in their hand. The hotdogs are placed on a bun, and the chili is dripping down the side. The person is wearing a glove, possibly to protect their hand from the hot chili",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": true,
+          "removed_categories": [
+            "hot dog"
+          ],
+          "grounded_retention": 0.5,
+          "n_edit_forwards": 60
+        }
+      ]
+    },
+    {
+      "image": "COCO_val2014_000000567053.jpg",
+      "image_id": 567053,
+      "question": "Describe this image in detail.",
+      "baseline_text": "The image features a small white and blue airplane parked on a runway. The airplane is positioned in the middle of the scene, with its wings visible. The runway appears to be made of asphalt, and the airplane is the main focus of the image.",
+      "baseline_n_tokens": 60,
+      "n_gt_categories": 1,
+      "mentioned": [
+        "airplane"
+      ],
+      "hallucinated": [],
+      "grounded": [
+        "airplane"
+      ],
+      "mean_norms": {
+        "16": 21.633346557617188,
+        "24": 61.65460968017578,
+        "28": 88.07611846923828,
+        "30": 101.0588607788086
+      },
+      "arms": [
+        {
+          "kind": "control",
+          "category": "airplane",
+          "layer": 16,
+          "edit": {
+            "layer": 16,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " airplane",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a small white and blue airplane parked on a runway. The airplane is positioned in the middle of the scene, with its wings visible. The runway appears to be made of asphalt, and the airplane is the main focus of the image.",
+          "changed": false,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "airplane",
+          "layer": 24,
+          "edit": {
+            "layer": 24,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " airplane",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a small white and blue airplane parked on a runway. The airplane is positioned in the middle of the scene, with its wings visible. The runway appears to be made of asphalt, and the airport seems to be surrounded by trees.\n\n",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "airplane",
+          "layer": 28,
+          "edit": {
+            "layer": 28,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " airplane",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a small white and blue airliner parked on a runway. The airliner is positioned in the middle of the scene, with its wings visible. The airliner appears to be a single-engine propeller airliner, possibly a JAS airlin",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": true,
+          "removed_categories": [
+            "airplane"
+          ],
+          "grounded_retention": 0.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "airplane",
+          "layer": 30,
+          "edit": {
+            "layer": 30,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " airplane",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a small white and blue airliner parked on a runway. The airliner is positioned in the middle of the scene, with its wings visible. The airliner appears to be a single-engine propeller airliner, possibly a JAS airlin",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": true,
+          "removed_categories": [
+            "airplane"
+          ],
+          "grounded_retention": 0.0,
+          "n_edit_forwards": 60
+        }
+      ]
+    },
+    {
+      "image": "COCO_val2014_000000575367.jpg",
+      "image_id": 575367,
+      "question": "Describe this image in detail.",
+      "baseline_text": "The image features a kitchen with a stove top oven prominently placed in the center of the room. The oven is surrounded by various items, including a knife and a spoon, which are placed on the countertop. \n\nIn addition to the oven, there",
+      "baseline_n_tokens": 60,
+      "n_gt_categories": 3,
+      "mentioned": [
+        "knife",
+        "oven",
+        "spoon"
+      ],
+      "hallucinated": [
+        "knife",
+        "spoon"
+      ],
+      "grounded": [
+        "oven"
+      ],
+      "mean_norms": {
+        "16": 20.975540161132812,
+        "24": 59.62411880493164,
+        "28": 85.42361450195312,
+        "30": 98.94229888916016
+      },
+      "arms": [
+        {
+          "kind": "hallucination",
+          "category": "knife",
+          "layer": 16,
+          "edit": {
+            "layer": 16,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " knife",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a kitchen with a stove top oven prominently placed in the center of the room. The oven is surrounded by various items, including a knife and a spoon, which are placed on the countertop. There are also a few bottles and a cup scattered",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "hallucination",
+          "category": "knife",
+          "layer": 24,
+          "edit": {
+            "layer": 24,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " knife",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a kitchen with a stove top oven prominently placed in the center of the room. The oven is surrounded by various items, including a knife and a spoon, which are placed on the countertop. There are also a few bottles and a cup scattered",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "hallucination",
+          "category": "knife",
+          "layer": 28,
+          "edit": {
+            "layer": 28,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " knife",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a kitchen with a stove top oven prominently placed in the center of the room. The oven is surrounded by various items, including a bottle, a cup, and a spoon. There are also two knives, one located near the oven and the",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": true,
+          "removed_categories": [
+            "knife"
+          ],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "hallucination",
+          "category": "knife",
+          "layer": 30,
+          "edit": {
+            "layer": 30,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " knife",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a kitchen with a stove top oven prominently placed in the center of the room. The oven is surrounded by various items, including a bottle, a cup, and a spoon. There are also two knives, one located near the oven and the",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": true,
+          "removed_categories": [
+            "knife"
+          ],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "hallucination",
+          "category": "spoon",
+          "layer": 16,
+          "edit": {
+            "layer": 16,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " spoon",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a kitchen with a stove top oven prominently placed in the center of the room. The oven is surrounded by various items, including a knife and a spoon, which are placed on the countertop. There are also a few bottles scattered around the kitchen",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "hallucination",
+          "category": "spoon",
+          "layer": 24,
+          "edit": {
+            "layer": 24,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " spoon",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a kitchen with a stove top oven prominently placed in the center of the scene. The oven is surrounded by various items, including a knife and a spatula, which are likely used for cooking. \n\nIn addition to the oven,",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": true,
+          "removed_categories": [
+            "spoon"
+          ],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "hallucination",
+          "category": "spoon",
+          "layer": 28,
+          "edit": {
+            "layer": 28,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " spoon",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a kitchen with a stove top oven prominently placed in the center of the room. The oven is surrounded by various items, including a knife and a spatula, which are likely used for cooking. \n\nIn addition to the oven,",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": true,
+          "removed_categories": [
+            "spoon"
+          ],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "hallucination",
+          "category": "spoon",
+          "layer": 30,
+          "edit": {
+            "layer": 30,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " spoon",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a kitchen with a stove top oven prominently placed in the center of the room. The oven is surrounded by various items, including a knife and a spatula, which are likely used for cooking. \n\nIn addition to the oven,",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": true,
+          "removed_categories": [
+            "spoon"
+          ],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "oven",
+          "layer": 16,
+          "edit": {
+            "layer": 16,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " oven",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a kitchen with a stove top oven prominently placed in the center of the room. The oven is surrounded by various items, including a knife and a spoon, which are placed on the countertop. There are also a few bottles and a cup scattered",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "oven",
+          "layer": 24,
+          "edit": {
+            "layer": 24,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " oven",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a kitchen with a stove top oven prominently placed in the center of the scene. The oven is surrounded by various items, including a knife and a spoon, which are placed on the countertop. \n\nIn addition to the oven, there",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "oven",
+          "layer": 28,
+          "edit": {
+            "layer": 28,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " oven",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a kitchen with a stove top oven prominently placed in the center. The oven is surrounded by various items, including a knife and a spoon. There are also two bottles on the countertop, one closer to the left side and the other near the",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": false,
+          "removed_categories": [],
+          "grounded_retention": 1.0,
+          "n_edit_forwards": 60
+        },
+        {
+          "kind": "control",
+          "category": "oven",
+          "layer": 30,
+          "edit": {
+            "layer": 30,
+            "mode": "ablate",
+            "alpha": 1.0,
+            "token": " oven",
+            "source_token": null,
+            "positions": "last"
+          },
+          "text": "The image features a kitchen with a stove top oxygen-fueled stove sitting on a wooden counter. The stove is surrounded by various items, including a cup, a bottle, and a spoon. There are also two knives placed on the counter, one closer to",
+          "changed": true,
+          "n_tokens": 60,
+          "token_length_ratio": 1.0,
+          "removed": true,
+          "removed_categories": [
+            "knife",
+            "oven"
+          ],
+          "grounded_retention": 0.0,
+          "n_edit_forwards": 60
+        }
+      ]
+    }
+  ],
+  "per_layer": {
+    "16": {
+      "n_halluc_arms": 10,
+      "removed_rate": 0.5,
+      "grounded_retention": 1.0,
+      "token_length_ratio": 1.0,
+      "changed_rate": 0.7,
+      "clean_cure_rate": 0.5,
+      "control": {
+        "n_arms": 36,
+        "removed_rate": 0.027777777777777776,
+        "grounded_retention": 0.9722222222222222,
+        "token_length_ratio": 1.0,
+        "changed_rate": 0.3888888888888889
+      }
+    },
+    "24": {
+      "n_halluc_arms": 10,
+      "removed_rate": 0.6,
+      "grounded_retention": 1.0,
+      "token_length_ratio": 1.0,
+      "changed_rate": 0.8,
+      "clean_cure_rate": 0.6,
+      "control": {
+        "n_arms": 36,
+        "removed_rate": 0.3055555555555556,
+        "grounded_retention": 0.7907407407407407,
+        "token_length_ratio": 0.99676710608914,
+        "changed_rate": 0.6666666666666666
+      }
+    },
+    "28": {
+      "n_halluc_arms": 10,
+      "removed_rate": 0.7,
+      "grounded_retention": 1.0,
+      "token_length_ratio": 1.0,
+      "changed_rate": 0.9,
+      "clean_cure_rate": 0.7,
+      "control": {
+        "n_arms": 36,
+        "removed_rate": 0.6388888888888888,
+        "grounded_retention": 0.5222222222222223,
+        "token_length_ratio": 0.9995448838669179,
+        "changed_rate": 0.8055555555555556
+      }
+    },
+    "30": {
+      "n_halluc_arms": 10,
+      "removed_rate": 0.9,
+      "grounded_retention": 1.0,
+      "token_length_ratio": 1.0,
+      "changed_rate": 0.9,
+      "clean_cure_rate": 0.9,
+      "control": {
+        "n_arms": 36,
+        "removed_rate": 0.8333333333333334,
+        "grounded_retention": 0.3462962962962963,
+        "token_length_ratio": 1.0004708097928436,
+        "changed_rate": 0.9722222222222222
+      }
+    }
+  },
+  "summary": {
+    "n_images": 39,
+    "n_with_hallucination": 8,
+    "n_hallucinations": 10,
+    "n_grounded_mentions": 56,
+    "halluc_per_caption": 0.2564102564102564
+  }
+}

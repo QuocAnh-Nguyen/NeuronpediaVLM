@@ -18,8 +18,9 @@ step5e moment census). The per-layer math mirrors ``lens_readout``'s
 gets no corrections, as in ``lens_readout``.
 
 Grounding comes from instances_val2014.json: every generated content word matched to one
-of the 80 COCO categories (documented simple matcher below) is GROUNDED when the
-category is annotated on the image, HALLUCINATED otherwise. Per layer the probe reports:
+of the 80 COCO categories (the x13 ``detect_mentions``-style matcher below) is GROUNDED
+when the category is annotated on the image, HALLUCINATED otherwise. Per layer the probe
+reports:
 
   - ``grounded_rank`` / ``halluc_rank``: mean rank of the generated word's true token id
     in the lens distribution at its decoding position (the word's lens trajectory);
@@ -28,7 +29,14 @@ category is annotated on the image, HALLUCINATED otherwise. Per layer the probe 
     know" test: values far below ``halluc_rank`` mean the true object was already
     readable in the same distribution the hallucinated word was drawn from;
   - ``last_patch_object_rank``: the workspace-formation curve — at the LAST image-token
-    position, the mean best rank of the image's true categories, per layer.
+    position, the mean best rank of the image's true categories, per layer;
+  - ``handoff_true_object_rank_mean`` / ``_best`` (``--handoff-rank``): at the LAST
+    PROMPT position — the prefill forward's decoding position, whose distribution
+    predicts generated token 0 (the final ``ASSISTANT:`` prompt token, right before the
+    first generated token) — the mean and best rank of the image's TRUE categories under
+    the same calibrated lens. The prefill record IS ``step_records[0]``, so the
+    measurement reuses the generation pass; the literature predicts objects ARE
+    decodable at this text position even though they are not at image positions.
 """
 
 from __future__ import annotations
@@ -68,12 +76,26 @@ DEFAULT_IMAGES_DIR = "/data/baodq/coco2014/val2014"
 DEFAULT_ANNOTATIONS = "/data/baodq/coco2014/annotations/instances_val2014.json"
 
 MATCHER_NOTE = (
-    "simple word-boundary matcher: case-insensitive match of each COCO category name "
-    "against the generated caption text (per-token decodes joined), words joined by "
-    "\\s+, an optional (e)s plural suffix tolerated; a match is attributed to the token "
-    "where it ends (subword splits complete at their last fragment) and several names "
-    "ending at one token resolve to the longest ('dog' inside 'hot dog'); irregular "
-    "plurals (person/people, mouse/mice) are not matched — a documented gap"
+    "x13 detect_mentions-style matcher: the whole generated sequence is decoded ONCE "
+    "with special tokens dropped (decoding per token and joining would strip every "
+    "sentencepiece '▁' lead space and glue the words together, killing every "
+    "word-boundary match), the text is lowercased, and the 80 COCO category names are "
+    "matched longest-first with word boundaries, an optional (s|es) plural suffix "
+    "tolerated, and span masking (each match is blanked with same-length spaces so "
+    "offsets stay valid and 'hot dog' does not also match 'dog'); each occurrence is "
+    "attributed to the DECODING STEP whose generated token emits the word's final "
+    "character (prefix-decode offsets give each token's character span in the "
+    "caption); irregular plurals (person/people, mouse/mice) are a documented gap"
+)
+HANDOFF_NOTE = (
+    "at the LAST PROMPT position — the prefill forward's decoding position, whose "
+    "distribution predicts generated token 0 (the final 'ASSISTANT:' prompt token, "
+    "right before the first generated token) — the calibrated lens distribution is "
+    "probed with the image's true category token ids (the last subword of ' ' + name); "
+    "per image the best (lowest) rank among the image's categories is kept, then per "
+    "layer the mean over images is handoff_true_object_rank_mean and the best over "
+    "images is handoff_true_object_rank_best; step_records[0] IS this position's "
+    "cached residual, so the measurement reuses the generation pass"
 )
 CATEGORY_TOKEN_RULE = (
     "an image category is probed through the LAST subword id of ' ' + name (the "
@@ -116,6 +138,13 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--backend", choices=("hf-llava", "tiny"), default="hf-llava",
         help="model backend: 'hf-llava' (default, CUDA) or the tiny CPU smoke fixture",
+    )
+    parser.add_argument(
+        "--handoff-rank",
+        action="store_true",
+        help="also probe the image's true categories at the LAST PROMPT position (the "
+        "prefill decoding position whose distribution predicts generated token 0, the "
+        "final 'ASSISTANT:' token): per layer, handoff_true_object_rank_mean/_best",
     )
     parser.add_argument("--json", required=True)
     return parser.parse_args()
@@ -294,12 +323,12 @@ def load_coco_grounding(
 
 
 def _category_patterns(category_ids: dict[str, int]) -> list[tuple[str, int, re.Pattern[str]]]:
-    """Compiled matchers, longest name first (see MATCHER_NOTE)."""
+    """x13 ``detect_mentions`` matchers for lowercased text, longest name first."""
     patterns = []
     for name in sorted(category_ids, key=len, reverse=True):
-        words = [re.escape(word) for word in name.lower().split()]
-        pattern = re.compile(r"\b" + r"\s+".join(words) + r"(?:e?s)?\b", re.IGNORECASE)
-        patterns.append((name, category_ids[name], pattern))
+        cleaned = name.strip().lower()
+        pattern = re.compile(r"\b" + re.escape(cleaned) + r"(?:s|es)?\b")
+        patterns.append((cleaned, category_ids[name], pattern))
     return patterns
 
 
@@ -311,50 +340,57 @@ def classify_generated_words(
 ) -> tuple[str, list[ClassifiedWord]]:
     """Match generated tokens to COCO categories (see MATCHER_NOTE).
 
-    The caption text is the concatenation of the per-token decode with special tokens
-    dropped; the word's token span comes from the cumulative per-token lengths.
+    Mirrors x13's ``detect_mentions``: the caption is ONE whole-sequence decode of the
+    generated tokens with special tokens dropped (per-token decodes strip each
+    sentencepiece '▁' lead and glue the words together, so ``\\b``-anchored patterns
+    never match), matched longest-first on the lowercased text with span masking.
+    Prefix-decode offsets give each surviving token its character span; a match is
+    attributed to the token that emits its final character — the decoding step that
+    completes the word.
     """
     special_ids = set(getattr(tokenizer, "all_special_ids", None) or [])
     token_ids: list[int] = []
-    pieces: list[str] = []
     raw_index_of: list[int] = []  # filtered position -> raw generated position
     for raw_position, raw_id in enumerate(new_token_ids.tolist()):
         if int(raw_id) in special_ids:
             continue
         token_ids.append(int(raw_id))
-        pieces.append(tokenizer.decode([int(raw_id)]))
         raw_index_of.append(raw_position)
-    starts: list[int] = []
-    chunks: list[str] = []
-    offset = 0
-    for piece in pieces:
-        starts.append(offset)
-        chunks.append(piece)
-        offset += len(piece)
-    caption = "".join(chunks)
 
-    # token index -> (longest name length so far, name, category_id)
-    claims: dict[int, tuple[int, str, int]] = {}
-    for name, category_id, pattern in patterns:
-        for match in pattern.finditer(caption):
-            index = bisect_right(starts, match.end() - 1) - 1
-            while index > 0 and not pieces[index]:
-                index -= 1  # zero-length pieces never own a character
-            current = claims.get(index)
-            if current is None or len(name) > current[0]:
-                claims[index] = (len(name), name, category_id)
-
-    instances = [
-        ClassifiedWord(
-            token_index=raw_index_of[index],  # steps are indexed by RAW generated position
-            token_id=token_ids[index],
-            piece=pieces[index].strip(),
-            category=name,
-            category_id=category_id,
-            grounded=category_id in present_category_ids,
-        )
-        for index, (_, name, category_id) in sorted(claims.items())
+    caption = tokenizer.decode(token_ids, skip_special_tokens=True)
+    starts = [
+        len(tokenizer.decode(token_ids[:end], skip_special_tokens=True))
+        for end in range(len(token_ids))
     ]
+    token_ends = starts[1:] + [len(caption)]  # exclusive char end of each token's span
+
+    # x13 detect_mentions: longest first, plural tolerance, each match masks its span
+    # (blanked with same-length spaces so later matches keep valid caption offsets).
+    matches: list[tuple[int, int, str, int]] = []  # (char_start, char_end, name, id)
+    masked = caption.lower()
+    for name, category_id, pattern in patterns:
+        found = list(pattern.finditer(masked))
+        if not found:
+            continue
+        matches.extend((match.start(), match.end(), name, category_id) for match in found)
+        masked = pattern.sub(lambda m: " " * (m.end() - m.start()), masked)
+
+    instances = []
+    for _char_start, char_end, name, category_id in sorted(matches):
+        # The token whose span contains the match's LAST character completes the word;
+        # bisect_right lands on the LAST token with that start, so a zero-span token
+        # (which owns no characters) is never chosen.
+        index = bisect_right(starts, char_end - 1) - 1
+        instances.append(
+            ClassifiedWord(
+                token_index=raw_index_of[index],  # steps are indexed by RAW generated position
+                token_id=token_ids[index],
+                piece=caption[starts[index] : token_ends[index]].strip(),
+                category=name,
+                category_id=category_id,
+                grounded=category_id in present_category_ids,
+            )
+        )
     return caption, instances
 
 
@@ -410,7 +446,13 @@ def main() -> int:
         f"with bias-{args.mask}.pt from {args.bias_dir}"
     )
     per_layer: dict[int, dict[str, list[int]]] = {
-        layer: {"grounded": [], "halluc": [], "true_at_halluc": [], "last_patch": []}
+        layer: {
+            "grounded": [],
+            "halluc": [],
+            "true_at_halluc": [],
+            "last_patch": [],
+            "handoff": [],
+        }
         for layer in layers
     }
     image_summaries: list[dict[str, Any]] = []
@@ -463,6 +505,21 @@ def main() -> int:
                     min(_rank_of_id(patch_logits[layer], cid) for cid in present_token_ids)
                 )
 
+        if args.handoff_rank and step_records and present_token_ids:
+            # step_records[0] is the prefill forward's record: with KV caching its
+            # distribution at the last prompt position (the final 'ASSISTANT:' token,
+            # right before generated token 0) is the handoff position's lens input.
+            handoff_logits = {
+                layer: _calibrated_lens_logits(
+                    model, lens, step_records[0][layer], layer, bias, scale, temp, logit_bias
+                )
+                for layer in layers
+            }
+            for layer in layers:
+                per_layer[layer]["handoff"].append(
+                    min(_rank_of_id(handoff_logits[layer], cid) for cid in present_token_ids)
+                )
+
         n_grounded = sum(1 for word in instances if word.grounded)
         n_grounded_words += n_grounded
         n_hallucinated_words += len(instances) - n_grounded
@@ -488,6 +545,10 @@ def main() -> int:
             "halluc_rank": _mean_or_none(per_layer[layer]["halluc"]),
             "true_object_rank_at_halluc_positions": _mean_or_none(per_layer[layer]["true_at_halluc"]),
             "last_patch_object_rank": _mean_or_none(per_layer[layer]["last_patch"]),
+            "handoff_true_object_rank_mean": _mean_or_none(per_layer[layer]["handoff"]),
+            "handoff_true_object_rank_best": (
+                min(per_layer[layer]["handoff"]) if per_layer[layer]["handoff"] else None
+            ),
             "n_grounded": len(per_layer[layer]["grounded"]),
             "n_hallucinated": len(per_layer[layer]["halluc"]),
         }
@@ -497,7 +558,7 @@ def main() -> int:
     print("\n== X14 workspace probe: calibrated lens ranks per layer ==")
     print(
         f"{'layer':<7}{'n_gnd':>6}{'n_hal':>6}{'grounded':>10}{'halluc':>10}"
-        f"{'true@hall':>10}{'lastpatch':>10}"
+        f"{'true@hall':>10}{'lastpatch':>10}{'handoff':>10}{'h.best':>10}"
     )
     for layer in layers:
         row = per_layer_out[str(layer)]
@@ -507,6 +568,8 @@ def main() -> int:
             f"{_cell(row['grounded_rank'])}{_cell(row['halluc_rank'])}"
             f"{_cell(row['true_object_rank_at_halluc_positions'])}"
             f"{_cell(row['last_patch_object_rank'])}"
+            f"{_cell(row['handoff_true_object_rank_mean'])}"
+            f"{_cell(row['handoff_true_object_rank_best'])}"
         )
 
     separable = [
@@ -575,6 +638,8 @@ def main() -> int:
         "n_words_grounded": n_grounded_words,
         "n_words_hallucinated": n_hallucinated_words,
         "matcher": MATCHER_NOTE,
+        "handoff_rank": bool(args.handoff_rank),
+        "handoff_rule": HANDOFF_NOTE,
         "category_token_rule": CATEGORY_TOKEN_RULE,
         "rank_rule": RANK_RULE,
         "images": image_summaries,

@@ -1,0 +1,5117 @@
+{
+  "script": "x12_cross_image_patch.py",
+  "created": "2026-10-10T14:19:03+00:00",
+  "backend": "hf-llava",
+  "dtype": "bfloat16",
+  "images_dir": "/data/baodq/coco2014/val2014",
+  "instances_json": "/data/baodq/coco2014/annotations/instances_val2014.json",
+  "n_pairs": 8,
+  "layers": [
+    0,
+    8,
+    12,
+    16,
+    20,
+    24,
+    28,
+    30
+  ],
+  "variants": [
+    "image",
+    "image-last",
+    "text"
+  ],
+  "question": "Describe this image in detail.",
+  "prompt": "USER: <image>\nDescribe this image in detail.\nASSISTANT:",
+  "prompt_template": "USER: <image>\n{question}\nASSISTANT:",
+  "max_new_tokens": 32,
+  "pair_selection": "greedy first-disjoint pairing in sorted file order (deterministic)",
+  "matcher": "lowercase word-boundary regex on COCO category names, no stemming",
+  "pairs": [
+    {
+      "pair_id": 0,
+      "image_a": {
+        "file": "COCO_val2014_000000000042.jpg",
+        "categories": [
+          "dog"
+        ]
+      },
+      "image_b": {
+        "file": "COCO_val2014_000000000073.jpg",
+        "categories": [
+          "motorcycle"
+        ]
+      },
+      "seq_len": 595,
+      "n_image_tokens": 576,
+      "baseline_a": {
+        "text": "The image features a dog lying on a shelf, surrounded by various shoes. The dog is positioned in the middle of the shelf, with its",
+        "token_ids": [
+          450,
+          1967,
+          5680,
+          263,
+          11203,
+          19214,
+          373,
+          263,
+          528,
+          761,
+          29892,
+          22047,
+          491,
+          5164,
+          17394,
+          267,
+          29889,
+          450,
+          11203,
+          338,
+          2602,
+          287,
+          297,
+          278,
+          7256,
+          310,
+          278,
+          528,
+          761,
+          29892,
+          411,
+          967
+        ]
+      },
+      "baseline_b": {
+        "text": "The image features a vintage motorcycle parked on a street. The motorcycle is an old-fashioned model, and it is positioned",
+        "token_ids": [
+          450,
+          1967,
+          5680,
+          263,
+          325,
+          524,
+          482,
+          10992,
+          23090,
+          14089,
+          287,
+          373,
+          263,
+          11952,
+          29889,
+          450,
+          10992,
+          23090,
+          338,
+          385,
+          2030,
+          29899,
+          29888,
+          10904,
+          287,
+          1904,
+          29892,
+          322,
+          372,
+          338,
+          2602,
+          287
+        ]
+      },
+      "baseline_a_mentioned": [
+        "dog"
+      ],
+      "baseline_b_mentioned": [
+        "motorcycle"
+      ]
+    },
+    {
+      "pair_id": 1,
+      "image_a": {
+        "file": "COCO_val2014_000000000074.jpg",
+        "categories": [
+          "bicycle",
+          "dog",
+          "person"
+        ]
+      },
+      "image_b": {
+        "file": "COCO_val2014_000000000133.jpg",
+        "categories": [
+          "bed",
+          "teddy bear"
+        ]
+      },
+      "seq_len": 595,
+      "n_image_tokens": 576,
+      "baseline_a": {
+        "text": "The image features a white dog lying on a sidewalk, possibly sleeping. The dog is positioned near the center of the scene. The sidewalk is",
+        "token_ids": [
+          450,
+          1967,
+          5680,
+          263,
+          4796,
+          11203,
+          19214,
+          373,
+          263,
+          2625,
+          20919,
+          29892,
+          10075,
+          8709,
+          292,
+          29889,
+          450,
+          11203,
+          338,
+          2602,
+          287,
+          2978,
+          278,
+          4818,
+          310,
+          278,
+          9088,
+          29889,
+          450,
+          2625,
+          20919,
+          338
+        ]
+      },
+      "baseline_b": {
+        "text": "The image features a bedroom with a neatly made bed situated in the corner of the room. The bed is positioned between two nightstands, one",
+        "token_ids": [
+          450,
+          1967,
+          5680,
+          263,
+          6592,
+          8345,
+          411,
+          263,
+          28539,
+          368,
+          1754,
+          6592,
+          24046,
+          297,
+          278,
+          11155,
+          310,
+          278,
+          5716,
+          29889,
+          450,
+          6592,
+          338,
+          2602,
+          287,
+          1546,
+          1023,
+          4646,
+          1689,
+          29879,
+          29892,
+          697
+        ]
+      },
+      "baseline_a_mentioned": [
+        "dog"
+      ],
+      "baseline_b_mentioned": [
+        "bed"
+      ]
+    },
+    {
+      "pair_id": 2,
+      "image_a": {
+        "file": "COCO_val2014_000000000136.jpg",
+        "categories": [
+          "giraffe",
+          "person"
+        ]
+      },
+      "image_b": {
+        "file": "COCO_val2014_000000000143.jpg",
+        "categories": [
+          "bird"
+        ]
+      },
+      "seq_len": 595,
+      "n_image_tokens": 576,
+      "baseline_a": {
+        "text": "The image features two giraffes in a zoo enclosure, standing next to each other. One giraffe is positioned towards the left side of",
+        "token_ids": [
+          450,
+          1967,
+          5680,
+          1023,
+          330,
+          3055,
+          600,
+          267,
+          297,
+          263,
+          22424,
+          427,
+          25071,
+          29892,
+          13407,
+          2446,
+          304,
+          1269,
+          916,
+          29889,
+          3118,
+          330,
+          3055,
+          17615,
+          338,
+          2602,
+          287,
+          7113,
+          278,
+          2175,
+          2625,
+          310
+        ]
+      },
+      "baseline_b": {
+        "text": "The image features a group of birds perched on a tree branch. There are nine birds in total, with some sitting closer to the top of the branch and",
+        "token_ids": [
+          450,
+          1967,
+          5680,
+          263,
+          2318,
+          310,
+          17952,
+          639,
+          26902,
+          373,
+          263,
+          5447,
+          5443,
+          29889,
+          1670,
+          526,
+          14183,
+          17952,
+          297,
+          3001,
+          29892,
+          411,
+          777,
+          16246,
+          17649,
+          304,
+          278,
+          2246,
+          310,
+          278,
+          5443,
+          322
+        ]
+      },
+      "baseline_a_mentioned": [
+        "giraffe"
+      ],
+      "baseline_b_mentioned": []
+    },
+    {
+      "pair_id": 3,
+      "image_a": {
+        "file": "COCO_val2014_000000000139.jpg",
+        "categories": [
+          "book",
+          "chair",
+          "clock",
+          "dining table",
+          "microwave",
+          "person",
+          "potted plant",
+          "refrigerator",
+          "tv",
+          "vase"
+        ]
+      },
+      "image_b": {
+        "file": "COCO_val2014_000000000208.jpg",
+        "categories": [
+          "sink",
+          "toothbrush"
+        ]
+      },
+      "seq_len": 595,
+      "n_image_tokens": 576,
+      "baseline_a": {
+        "text": "The image depicts a spacious and well-lit living room with a dining table in the center. The dining table is surrounded by several",
+        "token_ids": [
+          450,
+          1967,
+          1401,
+          919,
+          29879,
+          263,
+          805,
+          29874,
+          8802,
+          322,
+          1532,
+          29899,
+          19411,
+          8471,
+          5716,
+          411,
+          263,
+          270,
+          2827,
+          1591,
+          297,
+          278,
+          4818,
+          29889,
+          450,
+          270,
+          2827,
+          1591,
+          338,
+          22047,
+          491,
+          3196
+        ]
+      },
+      "baseline_b": {
+        "text": "The image features a bathroom sink with a toy alligator figurine sitting on the edge of the sink. The alligator appears to be br",
+        "token_ids": [
+          450,
+          1967,
+          5680,
+          263,
+          27683,
+          8345,
+          28169,
+          411,
+          263,
+          304,
+          29891,
+          599,
+          335,
+          1061,
+          28477,
+          457,
+          16246,
+          373,
+          278,
+          7636,
+          310,
+          278,
+          28169,
+          29889,
+          450,
+          599,
+          335,
+          1061,
+          5692,
+          304,
+          367,
+          1506
+        ]
+      },
+      "baseline_a_mentioned": [
+        "dining table"
+      ],
+      "baseline_b_mentioned": [
+        "sink"
+      ]
+    },
+    {
+      "pair_id": 4,
+      "image_a": {
+        "file": "COCO_val2014_000000000164.jpg",
+        "categories": [
+          "bottle",
+          "bowl",
+          "chair",
+          "cup",
+          "dining table",
+          "microwave",
+          "oven",
+          "refrigerator",
+          "wine glass"
+        ]
+      },
+      "image_b": {
+        "file": "COCO_val2014_000000000192.jpg",
+        "categories": [
+          "baseball bat",
+          "person"
+        ]
+      },
+      "seq_len": 595,
+      "n_image_tokens": 576,
+      "baseline_a": {
+        "text": "The image depicts a cozy kitchen with a dining table and chairs. The table is surrounded by chairs, and there are several cups",
+        "token_ids": [
+          450,
+          1967,
+          1401,
+          919,
+          29879,
+          263,
+          1302,
+          1537,
+          29181,
+          411,
+          263,
+          270,
+          2827,
+          1591,
+          322,
+          521,
+          7121,
+          29889,
+          450,
+          1591,
+          338,
+          22047,
+          491,
+          521,
+          7121,
+          29892,
+          322,
+          727,
+          526,
+          3196,
+          2723,
+          567
+        ]
+      },
+      "baseline_b": {
+        "text": "The image captures a baseball game in progress, with a player in a white uniform standing at home plate, holding a baseball bat and preparing to swing.",
+        "token_ids": [
+          450,
+          1967,
+          4332,
+          1973,
+          263,
+          21573,
+          3748,
+          297,
+          6728,
+          29892,
+          411,
+          263,
+          4847,
+          297,
+          263,
+          4796,
+          9090,
+          13407,
+          472,
+          3271,
+          15284,
+          29892,
+          13587,
+          263,
+          21573,
+          17152,
+          322,
+          10223,
+          292,
+          304,
+          24500,
+          29889
+        ]
+      },
+      "baseline_a_mentioned": [
+        "dining table"
+      ],
+      "baseline_b_mentioned": [
+        "baseball bat"
+      ]
+    },
+    {
+      "pair_id": 5,
+      "image_a": {
+        "file": "COCO_val2014_000000000196.jpg",
+        "categories": [
+          "bowl",
+          "broccoli",
+          "carrot",
+          "dining table",
+          "fork",
+          "spoon"
+        ]
+      },
+      "image_b": {
+        "file": "COCO_val2014_000000000241.jpg",
+        "categories": [
+          "bottle",
+          "couch",
+          "cup",
+          "handbag",
+          "person",
+          "potted plant",
+          "remote"
+        ]
+      },
+      "seq_len": 595,
+      "n_image_tokens": 576,
+      "baseline_a": {
+        "text": "The image features a wooden dining table filled with a variety of foods. There are several bowls containing different dishes, including a bowl of sal",
+        "token_ids": [
+          450,
+          1967,
+          5680,
+          263,
+          27278,
+          270,
+          2827,
+          1591,
+          10423,
+          411,
+          263,
+          12875,
+          310,
+          9687,
+          29879,
+          29889,
+          1670,
+          526,
+          3196,
+          12580,
+          3137,
+          6943,
+          1422,
+          270,
+          17006,
+          29892,
+          3704,
+          263,
+          12580,
+          29880,
+          310,
+          4497
+        ]
+      },
+      "baseline_b": {
+        "text": "The image depicts a group of people gathered in a living room, enjoying a video game session. A man is standing in the center of the room",
+        "token_ids": [
+          450,
+          1967,
+          1401,
+          919,
+          29879,
+          263,
+          2318,
+          310,
+          2305,
+          22229,
+          297,
+          263,
+          8471,
+          5716,
+          29892,
+          11418,
+          5414,
+          263,
+          4863,
+          3748,
+          4867,
+          29889,
+          319,
+          767,
+          338,
+          13407,
+          297,
+          278,
+          4818,
+          310,
+          278,
+          5716
+        ]
+      },
+      "baseline_a_mentioned": [
+        "bowl",
+        "dining table"
+      ],
+      "baseline_b_mentioned": []
+    },
+    {
+      "pair_id": 6,
+      "image_a": {
+        "file": "COCO_val2014_000000000257.jpg",
+        "categories": [
+          "backpack",
+          "handbag",
+          "person",
+          "traffic light",
+          "truck"
+        ]
+      },
+      "image_b": {
+        "file": "COCO_val2014_000000000283.jpg",
+        "categories": [
+          "bottle",
+          "chair",
+          "dining table",
+          "wine glass"
+        ]
+      },
+      "seq_len": 595,
+      "n_image_tokens": 576,
+      "baseline_a": {
+        "text": "The image depicts a bustling city street with a large group of people gathered around a food truck. The food truck is parked in",
+        "token_ids": [
+          450,
+          1967,
+          1401,
+          919,
+          29879,
+          263,
+          289,
+          504,
+          1847,
+          4272,
+          11952,
+          411,
+          263,
+          2919,
+          2318,
+          310,
+          2305,
+          22229,
+          2820,
+          263,
+          9687,
+          534,
+          2707,
+          29889,
+          450,
+          9687,
+          534,
+          2707,
+          338,
+          14089,
+          287,
+          297
+        ]
+      },
+      "baseline_b": {
+        "text": "The image features a dining table with a bottle of wine and a wine glass placed on it. The wine glass is filled with red wine, and the",
+        "token_ids": [
+          450,
+          1967,
+          5680,
+          263,
+          270,
+          2827,
+          1591,
+          411,
+          263,
+          18046,
+          280,
+          310,
+          19006,
+          322,
+          263,
+          19006,
+          12917,
+          7180,
+          373,
+          372,
+          29889,
+          450,
+          19006,
+          12917,
+          338,
+          10423,
+          411,
+          2654,
+          19006,
+          29892,
+          322,
+          278
+        ]
+      },
+      "baseline_a_mentioned": [
+        "truck"
+      ],
+      "baseline_b_mentioned": [
+        "bottle",
+        "dining table",
+        "wine glass"
+      ]
+    },
+    {
+      "pair_id": 7,
+      "image_a": {
+        "file": "COCO_val2014_000000000285.jpg",
+        "categories": [
+          "bear"
+        ]
+      },
+      "image_b": {
+        "file": "COCO_val2014_000000000294.jpg",
+        "categories": [
+          "clock",
+          "fork",
+          "knife",
+          "microwave",
+          "person",
+          "spoon"
+        ]
+      },
+      "seq_len": 595,
+      "n_image_tokens": 576,
+      "baseline_a": {
+        "text": "The image features a large brown bear sitting on a grassy field. The bear appears to be relaxed and enjoying the outdoors. The bear is",
+        "token_ids": [
+          450,
+          1967,
+          5680,
+          263,
+          2919,
+          17354,
+          11460,
+          16246,
+          373,
+          263,
+          17455,
+          29891,
+          1746,
+          29889,
+          450,
+          11460,
+          5692,
+          304,
+          367,
+          26681,
+          287,
+          322,
+          11418,
+          5414,
+          278,
+          714,
+          1867,
+          943,
+          29889,
+          450,
+          11460,
+          338
+        ]
+      },
+      "baseline_b": {
+        "text": "The image features a man standing in a kitchen, holding a frying pan in his hand. He is positioned in front of a wall with various p",
+        "token_ids": [
+          450,
+          1967,
+          5680,
+          263,
+          767,
+          13407,
+          297,
+          263,
+          29181,
+          29892,
+          13587,
+          263,
+          285,
+          719,
+          292,
+          7243,
+          297,
+          670,
+          1361,
+          29889,
+          940,
+          338,
+          2602,
+          287,
+          297,
+          4565,
+          310,
+          263,
+          10090,
+          411,
+          5164,
+          282
+        ]
+      },
+      "baseline_a_mentioned": [
+        "bear"
+      ],
+      "baseline_b_mentioned": []
+    }
+  ],
+  "results": [
+    {
+      "pair_id": 0,
+      "image_a": "COCO_val2014_000000000042.jpg",
+      "image_b": "COCO_val2014_000000000073.jpg",
+      "layer": 0,
+      "variant": "image",
+      "n_patched_positions": 576,
+      "row_rel_delta": 1.453125,
+      "text": "The image features a vintage motorcycle parked on a street. The motorcycle is an old-fashioned model, and it is positioned",
+      "caption_changed": true,
+      "first_diff_token": 4,
+      "a_objects_baseline": [
+        "dog"
+      ],
+      "a_objects_patched": [],
+      "b_objects_patched": [
+        "motorcycle"
+      ],
+      "a_disappearance_rate": 1.0,
+      "b_appearance_rate": 1.0
+    },
+    {
+      "pair_id": 0,
+      "image_a": "COCO_val2014_000000000042.jpg",
+      "image_b": "COCO_val2014_000000000073.jpg",
+      "layer": 0,
+      "variant": "image-last",
+      "n_patched_positions": 1,
+      "row_rel_delta": 1.28125,
+      "text": "The image features a dog lying on a shelf, surrounded by various shoes. The dog is positioned in the middle of the shelf, with its",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "dog"
+      ],
+      "a_objects_patched": [
+        "dog"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 0,
+      "image_a": "COCO_val2014_000000000042.jpg",
+      "image_b": "COCO_val2014_000000000073.jpg",
+      "layer": 0,
+      "variant": "text",
+      "n_patched_positions": 19,
+      "row_rel_delta": 0.11376953125,
+      "text": "The image features a dog lying on a shelf, surrounded by various shoes. The dog is positioned in the center of the scene, with its head",
+      "caption_changed": true,
+      "first_diff_token": 24,
+      "a_objects_baseline": [
+        "dog"
+      ],
+      "a_objects_patched": [
+        "dog"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 0,
+      "image_a": "COCO_val2014_000000000042.jpg",
+      "image_b": "COCO_val2014_000000000073.jpg",
+      "layer": 8,
+      "variant": "image",
+      "n_patched_positions": 576,
+      "row_rel_delta": 1.4453125,
+      "text": "The image features a vintage motorcycle parked on a street. The motorcycle is positioned in the center of the scene, with its front wheel",
+      "caption_changed": true,
+      "first_diff_token": 4,
+      "a_objects_baseline": [
+        "dog"
+      ],
+      "a_objects_patched": [],
+      "b_objects_patched": [
+        "motorcycle"
+      ],
+      "a_disappearance_rate": 1.0,
+      "b_appearance_rate": 1.0
+    },
+    {
+      "pair_id": 0,
+      "image_a": "COCO_val2014_000000000042.jpg",
+      "image_b": "COCO_val2014_000000000073.jpg",
+      "layer": 8,
+      "variant": "image-last",
+      "n_patched_positions": 1,
+      "row_rel_delta": 1.3828125,
+      "text": "The image features a dog lying on a shelf, surrounded by various shoes. The dog is positioned in the center of the scene, with its head",
+      "caption_changed": true,
+      "first_diff_token": 24,
+      "a_objects_baseline": [
+        "dog"
+      ],
+      "a_objects_patched": [
+        "dog"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 0,
+      "image_a": "COCO_val2014_000000000042.jpg",
+      "image_b": "COCO_val2014_000000000073.jpg",
+      "layer": 8,
+      "variant": "text",
+      "n_patched_positions": 19,
+      "row_rel_delta": 0.025634765625,
+      "text": "The image features a dog lying on a shelf, surrounded by various shoes. The dog is positioned in the middle of the shelf, with its",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "dog"
+      ],
+      "a_objects_patched": [
+        "dog"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 0,
+      "image_a": "COCO_val2014_000000000042.jpg",
+      "image_b": "COCO_val2014_000000000073.jpg",
+      "layer": 12,
+      "variant": "image",
+      "n_patched_positions": 576,
+      "row_rel_delta": 1.3515625,
+      "text": "The image features an old-fashioned motorcycle parked on a street. The motorcycle is positioned in the middle of the scene, with a",
+      "caption_changed": true,
+      "first_diff_token": 3,
+      "a_objects_baseline": [
+        "dog"
+      ],
+      "a_objects_patched": [],
+      "b_objects_patched": [
+        "motorcycle"
+      ],
+      "a_disappearance_rate": 1.0,
+      "b_appearance_rate": 1.0
+    },
+    {
+      "pair_id": 0,
+      "image_a": "COCO_val2014_000000000042.jpg",
+      "image_b": "COCO_val2014_000000000073.jpg",
+      "layer": 12,
+      "variant": "image-last",
+      "n_patched_positions": 1,
+      "row_rel_delta": 1.234375,
+      "text": "The image features a dog lying on a shelf, surrounded by various shoes. The dog is positioned in the middle of the shelf, with its",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "dog"
+      ],
+      "a_objects_patched": [
+        "dog"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 0,
+      "image_a": "COCO_val2014_000000000042.jpg",
+      "image_b": "COCO_val2014_000000000073.jpg",
+      "layer": 12,
+      "variant": "text",
+      "n_patched_positions": 19,
+      "row_rel_delta": 0.034423828125,
+      "text": "The image features a dog lying on a shelf, surrounded by various shoes. The dog is positioned in the center of the scene, with its head",
+      "caption_changed": true,
+      "first_diff_token": 24,
+      "a_objects_baseline": [
+        "dog"
+      ],
+      "a_objects_patched": [
+        "dog"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 0,
+      "image_a": "COCO_val2014_000000000042.jpg",
+      "image_b": "COCO_val2014_000000000073.jpg",
+      "layer": 16,
+      "variant": "image",
+      "n_patched_positions": 576,
+      "row_rel_delta": 1.2578125,
+      "text": "The image features a motorcycle parked on a street, with a sidecar attached to it. The motorcycle is positioned on the left side of the",
+      "caption_changed": true,
+      "first_diff_token": 4,
+      "a_objects_baseline": [
+        "dog"
+      ],
+      "a_objects_patched": [],
+      "b_objects_patched": [
+        "motorcycle"
+      ],
+      "a_disappearance_rate": 1.0,
+      "b_appearance_rate": 1.0
+    },
+    {
+      "pair_id": 0,
+      "image_a": "COCO_val2014_000000000042.jpg",
+      "image_b": "COCO_val2014_000000000073.jpg",
+      "layer": 16,
+      "variant": "image-last",
+      "n_patched_positions": 1,
+      "row_rel_delta": 1.078125,
+      "text": "The image features a dog lying on a shelf, surrounded by various shoes. The dog is positioned in the middle of the shelf, with its",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "dog"
+      ],
+      "a_objects_patched": [
+        "dog"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 0,
+      "image_a": "COCO_val2014_000000000042.jpg",
+      "image_b": "COCO_val2014_000000000073.jpg",
+      "layer": 16,
+      "variant": "text",
+      "n_patched_positions": 19,
+      "row_rel_delta": 0.050537109375,
+      "text": "The image features a shelf with a variety of shoes and sandals on it. There are at least six different shoes, with some of them being",
+      "caption_changed": true,
+      "first_diff_token": 4,
+      "a_objects_baseline": [
+        "dog"
+      ],
+      "a_objects_patched": [],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 1.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 0,
+      "image_a": "COCO_val2014_000000000042.jpg",
+      "image_b": "COCO_val2014_000000000073.jpg",
+      "layer": 20,
+      "variant": "image",
+      "n_patched_positions": 576,
+      "row_rel_delta": 1.2265625,
+      "text": "The image features a dog lying on a shelf, surrounded by various shoes. The dog is positioned in the middle of the shelf, with its",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "dog"
+      ],
+      "a_objects_patched": [
+        "dog"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 0,
+      "image_a": "COCO_val2014_000000000042.jpg",
+      "image_b": "COCO_val2014_000000000073.jpg",
+      "layer": 20,
+      "variant": "image-last",
+      "n_patched_positions": 1,
+      "row_rel_delta": 1.2578125,
+      "text": "The image features a dog lying on a shelf, surrounded by various shoes. The dog is positioned in the middle of the shelf, with its",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "dog"
+      ],
+      "a_objects_patched": [
+        "dog"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 0,
+      "image_a": "COCO_val2014_000000000042.jpg",
+      "image_b": "COCO_val2014_000000000073.jpg",
+      "layer": 20,
+      "variant": "text",
+      "n_patched_positions": 19,
+      "row_rel_delta": 0.0751953125,
+      "text": "The image features a shelf with a variety of shoes and sandals on it. There are at least six different pairs of shoes, with some of",
+      "caption_changed": true,
+      "first_diff_token": 4,
+      "a_objects_baseline": [
+        "dog"
+      ],
+      "a_objects_patched": [],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 1.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 0,
+      "image_a": "COCO_val2014_000000000042.jpg",
+      "image_b": "COCO_val2014_000000000073.jpg",
+      "layer": 24,
+      "variant": "image",
+      "n_patched_positions": 576,
+      "row_rel_delta": 1.1875,
+      "text": "The image features a dog lying on a shelf, surrounded by various shoes. The dog is positioned in the middle of the shelf, with its",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "dog"
+      ],
+      "a_objects_patched": [
+        "dog"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 0,
+      "image_a": "COCO_val2014_000000000042.jpg",
+      "image_b": "COCO_val2014_000000000073.jpg",
+      "layer": 24,
+      "variant": "image-last",
+      "n_patched_positions": 1,
+      "row_rel_delta": 1.3828125,
+      "text": "The image features a dog lying on a shelf, surrounded by various shoes. The dog is positioned in the middle of the shelf, with its",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "dog"
+      ],
+      "a_objects_patched": [
+        "dog"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 0,
+      "image_a": "COCO_val2014_000000000042.jpg",
+      "image_b": "COCO_val2014_000000000073.jpg",
+      "layer": 24,
+      "variant": "text",
+      "n_patched_positions": 19,
+      "row_rel_delta": 0.09765625,
+      "text": "The image features a shelf with a variety of shoes and sandals on it. There are at least six different pairs of shoes, with some of",
+      "caption_changed": true,
+      "first_diff_token": 4,
+      "a_objects_baseline": [
+        "dog"
+      ],
+      "a_objects_patched": [],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 1.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 0,
+      "image_a": "COCO_val2014_000000000042.jpg",
+      "image_b": "COCO_val2014_000000000073.jpg",
+      "layer": 28,
+      "variant": "image",
+      "n_patched_positions": 576,
+      "row_rel_delta": 1.1015625,
+      "text": "The image features a dog lying on a shelf, surrounded by various shoes. The dog is positioned in the middle of the shelf, with its",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "dog"
+      ],
+      "a_objects_patched": [
+        "dog"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 0,
+      "image_a": "COCO_val2014_000000000042.jpg",
+      "image_b": "COCO_val2014_000000000073.jpg",
+      "layer": 28,
+      "variant": "image-last",
+      "n_patched_positions": 1,
+      "row_rel_delta": 1.21875,
+      "text": "The image features a dog lying on a shelf, surrounded by various shoes. The dog is positioned in the middle of the shelf, with its",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "dog"
+      ],
+      "a_objects_patched": [
+        "dog"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 0,
+      "image_a": "COCO_val2014_000000000042.jpg",
+      "image_b": "COCO_val2014_000000000073.jpg",
+      "layer": 28,
+      "variant": "text",
+      "n_patched_positions": 19,
+      "row_rel_delta": 0.1220703125,
+      "text": "The image features a dog lying on a shelf, surrounded by various shoes. The dog is positioned in the middle of the shelf, with its",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "dog"
+      ],
+      "a_objects_patched": [
+        "dog"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 0,
+      "image_a": "COCO_val2014_000000000042.jpg",
+      "image_b": "COCO_val2014_000000000073.jpg",
+      "layer": 30,
+      "variant": "image",
+      "n_patched_positions": 576,
+      "row_rel_delta": 1.0703125,
+      "text": "The image features a dog lying on a shelf, surrounded by various shoes. The dog is positioned in the middle of the shelf, with its",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "dog"
+      ],
+      "a_objects_patched": [
+        "dog"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 0,
+      "image_a": "COCO_val2014_000000000042.jpg",
+      "image_b": "COCO_val2014_000000000073.jpg",
+      "layer": 30,
+      "variant": "image-last",
+      "n_patched_positions": 1,
+      "row_rel_delta": 1.1875,
+      "text": "The image features a dog lying on a shelf, surrounded by various shoes. The dog is positioned in the middle of the shelf, with its",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "dog"
+      ],
+      "a_objects_patched": [
+        "dog"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 0,
+      "image_a": "COCO_val2014_000000000042.jpg",
+      "image_b": "COCO_val2014_000000000073.jpg",
+      "layer": 30,
+      "variant": "text",
+      "n_patched_positions": 19,
+      "row_rel_delta": 0.1728515625,
+      "text": "The image features a dog lying on a shelf, surrounded by various shoes. The dog is positioned in the center of the scene, with its head",
+      "caption_changed": true,
+      "first_diff_token": 24,
+      "a_objects_baseline": [
+        "dog"
+      ],
+      "a_objects_patched": [
+        "dog"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 1,
+      "image_a": "COCO_val2014_000000000074.jpg",
+      "image_b": "COCO_val2014_000000000133.jpg",
+      "layer": 0,
+      "variant": "image",
+      "n_patched_positions": 576,
+      "row_rel_delta": 1.265625,
+      "text": "The image features a bedroom with a neatly made bed situated in the corner of the room. The bed is positioned between two nightstands, one",
+      "caption_changed": true,
+      "first_diff_token": 4,
+      "a_objects_baseline": [
+        "dog"
+      ],
+      "a_objects_patched": [],
+      "b_objects_patched": [
+        "bed"
+      ],
+      "a_disappearance_rate": 1.0,
+      "b_appearance_rate": 0.5
+    },
+    {
+      "pair_id": 1,
+      "image_a": "COCO_val2014_000000000074.jpg",
+      "image_b": "COCO_val2014_000000000133.jpg",
+      "layer": 0,
+      "variant": "image-last",
+      "n_patched_positions": 1,
+      "row_rel_delta": 1.0546875,
+      "text": "The image features a white dog lying on a sidewalk, possibly sleeping. The dog is positioned near the center of the scene. The sidewalk is",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "dog"
+      ],
+      "a_objects_patched": [
+        "dog"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 1,
+      "image_a": "COCO_val2014_000000000074.jpg",
+      "image_b": "COCO_val2014_000000000133.jpg",
+      "layer": 0,
+      "variant": "text",
+      "n_patched_positions": 19,
+      "row_rel_delta": 0.064453125,
+      "text": "The image features a white dog lying on a sidewalk, possibly sleeping or resting. The dog is positioned near the center of the scene. The",
+      "caption_changed": true,
+      "first_diff_token": 15,
+      "a_objects_baseline": [
+        "dog"
+      ],
+      "a_objects_patched": [
+        "dog"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 1,
+      "image_a": "COCO_val2014_000000000074.jpg",
+      "image_b": "COCO_val2014_000000000133.jpg",
+      "layer": 8,
+      "variant": "image",
+      "n_patched_positions": 576,
+      "row_rel_delta": 1.3359375,
+      "text": "The image features a cozy bedroom with a neatly made bed. The bed is positioned in the center of the room, and a nightstand is",
+      "caption_changed": true,
+      "first_diff_token": 4,
+      "a_objects_baseline": [
+        "dog"
+      ],
+      "a_objects_patched": [],
+      "b_objects_patched": [
+        "bed"
+      ],
+      "a_disappearance_rate": 1.0,
+      "b_appearance_rate": 0.5
+    },
+    {
+      "pair_id": 1,
+      "image_a": "COCO_val2014_000000000074.jpg",
+      "image_b": "COCO_val2014_000000000133.jpg",
+      "layer": 8,
+      "variant": "image-last",
+      "n_patched_positions": 1,
+      "row_rel_delta": 1.015625,
+      "text": "The image features a white dog lying on a sidewalk, possibly sleeping. The dog is positioned near the center of the scene. The sidewalk is",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "dog"
+      ],
+      "a_objects_patched": [
+        "dog"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 1,
+      "image_a": "COCO_val2014_000000000074.jpg",
+      "image_b": "COCO_val2014_000000000133.jpg",
+      "layer": 8,
+      "variant": "text",
+      "n_patched_positions": 19,
+      "row_rel_delta": 0.0245361328125,
+      "text": "The image features a white dog lying on a sidewalk, possibly sleeping. The dog is positioned near the center of the scene. The sidewalk is",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "dog"
+      ],
+      "a_objects_patched": [
+        "dog"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 1,
+      "image_a": "COCO_val2014_000000000074.jpg",
+      "image_b": "COCO_val2014_000000000133.jpg",
+      "layer": 12,
+      "variant": "image",
+      "n_patched_positions": 576,
+      "row_rel_delta": 1.296875,
+      "text": "The image features a cozy bedroom scene with a bed positioned in the corner of the room. A small child is lying on the bed, enjoying",
+      "caption_changed": true,
+      "first_diff_token": 4,
+      "a_objects_baseline": [
+        "dog"
+      ],
+      "a_objects_patched": [],
+      "b_objects_patched": [
+        "bed"
+      ],
+      "a_disappearance_rate": 1.0,
+      "b_appearance_rate": 0.5
+    },
+    {
+      "pair_id": 1,
+      "image_a": "COCO_val2014_000000000074.jpg",
+      "image_b": "COCO_val2014_000000000133.jpg",
+      "layer": 12,
+      "variant": "image-last",
+      "n_patched_positions": 1,
+      "row_rel_delta": 0.9453125,
+      "text": "The image features a white dog lying on a sidewalk, possibly sleeping. The dog is positioned near the center of the scene. The sidewalk is",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "dog"
+      ],
+      "a_objects_patched": [
+        "dog"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 1,
+      "image_a": "COCO_val2014_000000000074.jpg",
+      "image_b": "COCO_val2014_000000000133.jpg",
+      "layer": 12,
+      "variant": "text",
+      "n_patched_positions": 19,
+      "row_rel_delta": 0.035400390625,
+      "text": "The image features a white dog lying on a sidewalk, possibly sleeping. The dog is positioned near the center of the scene. The sidewalk is",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "dog"
+      ],
+      "a_objects_patched": [
+        "dog"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 1,
+      "image_a": "COCO_val2014_000000000074.jpg",
+      "image_b": "COCO_val2014_000000000133.jpg",
+      "layer": 16,
+      "variant": "image",
+      "n_patched_positions": 576,
+      "row_rel_delta": 1.265625,
+      "text": "The image features a small dog lying on the floor in a room, possibly a bedroom. The dog is positioned near a bed, which is located in",
+      "caption_changed": true,
+      "first_diff_token": 4,
+      "a_objects_baseline": [
+        "dog"
+      ],
+      "a_objects_patched": [
+        "dog"
+      ],
+      "b_objects_patched": [
+        "bed"
+      ],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.5
+    },
+    {
+      "pair_id": 1,
+      "image_a": "COCO_val2014_000000000074.jpg",
+      "image_b": "COCO_val2014_000000000133.jpg",
+      "layer": 16,
+      "variant": "image-last",
+      "n_patched_positions": 1,
+      "row_rel_delta": 0.89453125,
+      "text": "The image features a white dog lying on a sidewalk, possibly sleeping. The dog is positioned near the center of the scene. The sidewalk is",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "dog"
+      ],
+      "a_objects_patched": [
+        "dog"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 1,
+      "image_a": "COCO_val2014_000000000074.jpg",
+      "image_b": "COCO_val2014_000000000133.jpg",
+      "layer": 16,
+      "variant": "text",
+      "n_patched_positions": 19,
+      "row_rel_delta": 0.0537109375,
+      "text": "The image features a white dog lying on a sidewalk, possibly sleeping. The dog is positioned near the center of the scene. The sidewalk is",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "dog"
+      ],
+      "a_objects_patched": [
+        "dog"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 1,
+      "image_a": "COCO_val2014_000000000074.jpg",
+      "image_b": "COCO_val2014_000000000133.jpg",
+      "layer": 20,
+      "variant": "image",
+      "n_patched_positions": 576,
+      "row_rel_delta": 1.2578125,
+      "text": "The image features a white dog lying on the sidewalk, taking a nap. The dog is positioned near the center of the scene, with its head rest",
+      "caption_changed": true,
+      "first_diff_token": 8,
+      "a_objects_baseline": [
+        "dog"
+      ],
+      "a_objects_patched": [
+        "dog"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 1,
+      "image_a": "COCO_val2014_000000000074.jpg",
+      "image_b": "COCO_val2014_000000000133.jpg",
+      "layer": 20,
+      "variant": "image-last",
+      "n_patched_positions": 1,
+      "row_rel_delta": 1.0234375,
+      "text": "The image features a white dog lying on a sidewalk, possibly sleeping. The dog is positioned near the center of the scene. The sidewalk is",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "dog"
+      ],
+      "a_objects_patched": [
+        "dog"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 1,
+      "image_a": "COCO_val2014_000000000074.jpg",
+      "image_b": "COCO_val2014_000000000133.jpg",
+      "layer": 20,
+      "variant": "text",
+      "n_patched_positions": 19,
+      "row_rel_delta": 0.08154296875,
+      "text": "The image features a white dog lying on a sidewalk, possibly sleeping. The dog is positioned near the center of the scene. The sidewalk is",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "dog"
+      ],
+      "a_objects_patched": [
+        "dog"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 1,
+      "image_a": "COCO_val2014_000000000074.jpg",
+      "image_b": "COCO_val2014_000000000133.jpg",
+      "layer": 24,
+      "variant": "image",
+      "n_patched_positions": 576,
+      "row_rel_delta": 1.2109375,
+      "text": "The image features a white dog lying on a sidewalk, possibly sleeping. The dog is positioned near the center of the scene. The sidewalk is",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "dog"
+      ],
+      "a_objects_patched": [
+        "dog"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 1,
+      "image_a": "COCO_val2014_000000000074.jpg",
+      "image_b": "COCO_val2014_000000000133.jpg",
+      "layer": 24,
+      "variant": "image-last",
+      "n_patched_positions": 1,
+      "row_rel_delta": 1.0859375,
+      "text": "The image features a white dog lying on a sidewalk, possibly sleeping. The dog is positioned near the center of the scene. The sidewalk is",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "dog"
+      ],
+      "a_objects_patched": [
+        "dog"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 1,
+      "image_a": "COCO_val2014_000000000074.jpg",
+      "image_b": "COCO_val2014_000000000133.jpg",
+      "layer": 24,
+      "variant": "text",
+      "n_patched_positions": 19,
+      "row_rel_delta": 0.1025390625,
+      "text": "The image features a white dog lying on a sidewalk, possibly sleeping. The dog is positioned near the center of the scene. The sidewalk is",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "dog"
+      ],
+      "a_objects_patched": [
+        "dog"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 1,
+      "image_a": "COCO_val2014_000000000074.jpg",
+      "image_b": "COCO_val2014_000000000133.jpg",
+      "layer": 28,
+      "variant": "image",
+      "n_patched_positions": 576,
+      "row_rel_delta": 1.109375,
+      "text": "The image features a white dog lying on a sidewalk, possibly sleeping. The dog is positioned near the center of the scene. The sidewalk is",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "dog"
+      ],
+      "a_objects_patched": [
+        "dog"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 1,
+      "image_a": "COCO_val2014_000000000074.jpg",
+      "image_b": "COCO_val2014_000000000133.jpg",
+      "layer": 28,
+      "variant": "image-last",
+      "n_patched_positions": 1,
+      "row_rel_delta": 0.98828125,
+      "text": "The image features a white dog lying on a sidewalk, possibly sleeping. The dog is positioned near the center of the scene. The sidewalk is",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "dog"
+      ],
+      "a_objects_patched": [
+        "dog"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 1,
+      "image_a": "COCO_val2014_000000000074.jpg",
+      "image_b": "COCO_val2014_000000000133.jpg",
+      "layer": 28,
+      "variant": "text",
+      "n_patched_positions": 19,
+      "row_rel_delta": 0.12255859375,
+      "text": "The image features a white dog lying on a sidewalk, possibly sleeping. The dog is positioned near the center of the scene. The sidewalk is",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "dog"
+      ],
+      "a_objects_patched": [
+        "dog"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 1,
+      "image_a": "COCO_val2014_000000000074.jpg",
+      "image_b": "COCO_val2014_000000000133.jpg",
+      "layer": 30,
+      "variant": "image",
+      "n_patched_positions": 576,
+      "row_rel_delta": 1.078125,
+      "text": "The image features a white dog lying on a sidewalk, possibly sleeping or resting. The dog is positioned near the center of the scene. The",
+      "caption_changed": true,
+      "first_diff_token": 15,
+      "a_objects_baseline": [
+        "dog"
+      ],
+      "a_objects_patched": [
+        "dog"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 1,
+      "image_a": "COCO_val2014_000000000074.jpg",
+      "image_b": "COCO_val2014_000000000133.jpg",
+      "layer": 30,
+      "variant": "image-last",
+      "n_patched_positions": 1,
+      "row_rel_delta": 0.9453125,
+      "text": "The image features a white dog lying on a sidewalk, possibly sleeping. The dog is positioned near the center of the scene. The sidewalk is",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "dog"
+      ],
+      "a_objects_patched": [
+        "dog"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 1,
+      "image_a": "COCO_val2014_000000000074.jpg",
+      "image_b": "COCO_val2014_000000000133.jpg",
+      "layer": 30,
+      "variant": "text",
+      "n_patched_positions": 19,
+      "row_rel_delta": 0.1708984375,
+      "text": "The image features a white dog lying on a sidewalk, possibly sleeping. The dog is positioned near the center of the scene. The sidewalk is",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "dog"
+      ],
+      "a_objects_patched": [
+        "dog"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 2,
+      "image_a": "COCO_val2014_000000000136.jpg",
+      "image_b": "COCO_val2014_000000000143.jpg",
+      "layer": 0,
+      "variant": "image",
+      "n_patched_positions": 576,
+      "row_rel_delta": 1.3359375,
+      "text": "The image features a group of birds perched on a tree branch. There are nine birds in total, with some sitting closer to the top of the branch and",
+      "caption_changed": true,
+      "first_diff_token": 3,
+      "a_objects_baseline": [
+        "giraffe"
+      ],
+      "a_objects_patched": [],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 1.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 2,
+      "image_a": "COCO_val2014_000000000136.jpg",
+      "image_b": "COCO_val2014_000000000143.jpg",
+      "layer": 0,
+      "variant": "image-last",
+      "n_patched_positions": 1,
+      "row_rel_delta": 0.859375,
+      "text": "The image features two giraffes in a zoo enclosure, standing next to each other. One giraffe is positioned towards the left side of",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "giraffe"
+      ],
+      "a_objects_patched": [
+        "giraffe"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 2,
+      "image_a": "COCO_val2014_000000000136.jpg",
+      "image_b": "COCO_val2014_000000000143.jpg",
+      "layer": 0,
+      "variant": "text",
+      "n_patched_positions": 19,
+      "row_rel_delta": 0.07958984375,
+      "text": "The image features two giraffes in a zoo enclosure, standing next to each other. One giraffe is positioned towards the left side of",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "giraffe"
+      ],
+      "a_objects_patched": [
+        "giraffe"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 2,
+      "image_a": "COCO_val2014_000000000136.jpg",
+      "image_b": "COCO_val2014_000000000143.jpg",
+      "layer": 8,
+      "variant": "image",
+      "n_patched_positions": 576,
+      "row_rel_delta": 1.3671875,
+      "text": "The image features a group of birds perched on a tree branch. There are nine birds in total, with some sitting closer to the top of the branch and",
+      "caption_changed": true,
+      "first_diff_token": 3,
+      "a_objects_baseline": [
+        "giraffe"
+      ],
+      "a_objects_patched": [],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 1.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 2,
+      "image_a": "COCO_val2014_000000000136.jpg",
+      "image_b": "COCO_val2014_000000000143.jpg",
+      "layer": 8,
+      "variant": "image-last",
+      "n_patched_positions": 1,
+      "row_rel_delta": 0.89453125,
+      "text": "The image features two giraffes in a zoo enclosure, standing next to each other. One giraffe is positioned towards the left side of",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "giraffe"
+      ],
+      "a_objects_patched": [
+        "giraffe"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 2,
+      "image_a": "COCO_val2014_000000000136.jpg",
+      "image_b": "COCO_val2014_000000000143.jpg",
+      "layer": 8,
+      "variant": "text",
+      "n_patched_positions": 19,
+      "row_rel_delta": 0.0242919921875,
+      "text": "The image features two giraffes in a zoo enclosure, standing next to each other. One giraffe is positioned towards the left side of",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "giraffe"
+      ],
+      "a_objects_patched": [
+        "giraffe"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 2,
+      "image_a": "COCO_val2014_000000000136.jpg",
+      "image_b": "COCO_val2014_000000000143.jpg",
+      "layer": 12,
+      "variant": "image",
+      "n_patched_positions": 576,
+      "row_rel_delta": 1.2734375,
+      "text": "The image features a group of birds perched on a tree branch. There are at least nine birds visible in the scene, with some of them sitting closer to",
+      "caption_changed": true,
+      "first_diff_token": 3,
+      "a_objects_baseline": [
+        "giraffe"
+      ],
+      "a_objects_patched": [],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 1.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 2,
+      "image_a": "COCO_val2014_000000000136.jpg",
+      "image_b": "COCO_val2014_000000000143.jpg",
+      "layer": 12,
+      "variant": "image-last",
+      "n_patched_positions": 1,
+      "row_rel_delta": 0.94921875,
+      "text": "The image features two giraffes in a zoo enclosure, standing next to each other. One giraffe is positioned towards the left side of",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "giraffe"
+      ],
+      "a_objects_patched": [
+        "giraffe"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 2,
+      "image_a": "COCO_val2014_000000000136.jpg",
+      "image_b": "COCO_val2014_000000000143.jpg",
+      "layer": 12,
+      "variant": "text",
+      "n_patched_positions": 19,
+      "row_rel_delta": 0.03076171875,
+      "text": "The image features two giraffes in a zoo enclosure, standing next to each other. One giraffe is positioned towards the left side of",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "giraffe"
+      ],
+      "a_objects_patched": [
+        "giraffe"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 2,
+      "image_a": "COCO_val2014_000000000136.jpg",
+      "image_b": "COCO_val2014_000000000143.jpg",
+      "layer": 16,
+      "variant": "image",
+      "n_patched_positions": 576,
+      "row_rel_delta": 1.2265625,
+      "text": "The image features a group of birds perched on a tree branch. There are at least five birds visible in the scene, with some of them sitting closer to",
+      "caption_changed": true,
+      "first_diff_token": 3,
+      "a_objects_baseline": [
+        "giraffe"
+      ],
+      "a_objects_patched": [],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 1.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 2,
+      "image_a": "COCO_val2014_000000000136.jpg",
+      "image_b": "COCO_val2014_000000000143.jpg",
+      "layer": 16,
+      "variant": "image-last",
+      "n_patched_positions": 1,
+      "row_rel_delta": 0.96484375,
+      "text": "The image features two giraffes in a zoo enclosure, standing next to each other. One giraffe is positioned towards the left side of",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "giraffe"
+      ],
+      "a_objects_patched": [
+        "giraffe"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 2,
+      "image_a": "COCO_val2014_000000000136.jpg",
+      "image_b": "COCO_val2014_000000000143.jpg",
+      "layer": 16,
+      "variant": "text",
+      "n_patched_positions": 19,
+      "row_rel_delta": 0.046875,
+      "text": "The image features two giraffes in a zoo enclosure, standing next to each other. One giraffe is positioned towards the left side of",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "giraffe"
+      ],
+      "a_objects_patched": [
+        "giraffe"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 2,
+      "image_a": "COCO_val2014_000000000136.jpg",
+      "image_b": "COCO_val2014_000000000143.jpg",
+      "layer": 20,
+      "variant": "image",
+      "n_patched_positions": 576,
+      "row_rel_delta": 1.1953125,
+      "text": "The image features two large grey and white birds standing in a room. One bird is positioned towards the left side of the room, while the other bird is",
+      "caption_changed": true,
+      "first_diff_token": 4,
+      "a_objects_baseline": [
+        "giraffe"
+      ],
+      "a_objects_patched": [],
+      "b_objects_patched": [
+        "bird"
+      ],
+      "a_disappearance_rate": 1.0,
+      "b_appearance_rate": 1.0
+    },
+    {
+      "pair_id": 2,
+      "image_a": "COCO_val2014_000000000136.jpg",
+      "image_b": "COCO_val2014_000000000143.jpg",
+      "layer": 20,
+      "variant": "image-last",
+      "n_patched_positions": 1,
+      "row_rel_delta": 0.9140625,
+      "text": "The image features two giraffes in a zoo enclosure, standing next to each other. One giraffe is positioned towards the left side of",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "giraffe"
+      ],
+      "a_objects_patched": [
+        "giraffe"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 2,
+      "image_a": "COCO_val2014_000000000136.jpg",
+      "image_b": "COCO_val2014_000000000143.jpg",
+      "layer": 20,
+      "variant": "text",
+      "n_patched_positions": 19,
+      "row_rel_delta": 0.0712890625,
+      "text": "The image features two giraffes in a zoo enclosure, standing next to each other. One giraffe is positioned towards the left side of",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "giraffe"
+      ],
+      "a_objects_patched": [
+        "giraffe"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 2,
+      "image_a": "COCO_val2014_000000000136.jpg",
+      "image_b": "COCO_val2014_000000000143.jpg",
+      "layer": 24,
+      "variant": "image",
+      "n_patched_positions": 576,
+      "row_rel_delta": 1.140625,
+      "text": "The image features two giraffes in a zoo enclosure, standing next to each other. One giraffe is positioned towards the left side of",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "giraffe"
+      ],
+      "a_objects_patched": [
+        "giraffe"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 2,
+      "image_a": "COCO_val2014_000000000136.jpg",
+      "image_b": "COCO_val2014_000000000143.jpg",
+      "layer": 24,
+      "variant": "image-last",
+      "n_patched_positions": 1,
+      "row_rel_delta": 0.8984375,
+      "text": "The image features two giraffes in a zoo enclosure, standing next to each other. One giraffe is positioned towards the left side of",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "giraffe"
+      ],
+      "a_objects_patched": [
+        "giraffe"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 2,
+      "image_a": "COCO_val2014_000000000136.jpg",
+      "image_b": "COCO_val2014_000000000143.jpg",
+      "layer": 24,
+      "variant": "text",
+      "n_patched_positions": 19,
+      "row_rel_delta": 0.09033203125,
+      "text": "The image features two giraffes in a zoo enclosure, standing next to each other. One giraffe is positioned towards the left side of",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "giraffe"
+      ],
+      "a_objects_patched": [
+        "giraffe"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 2,
+      "image_a": "COCO_val2014_000000000136.jpg",
+      "image_b": "COCO_val2014_000000000143.jpg",
+      "layer": 28,
+      "variant": "image",
+      "n_patched_positions": 576,
+      "row_rel_delta": 1.046875,
+      "text": "The image features two giraffes in a zoo enclosure, standing next to each other. One giraffe is positioned towards the left side of",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "giraffe"
+      ],
+      "a_objects_patched": [
+        "giraffe"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 2,
+      "image_a": "COCO_val2014_000000000136.jpg",
+      "image_b": "COCO_val2014_000000000143.jpg",
+      "layer": 28,
+      "variant": "image-last",
+      "n_patched_positions": 1,
+      "row_rel_delta": 0.8359375,
+      "text": "The image features two giraffes in a zoo enclosure, standing next to each other. One giraffe is positioned towards the left side of",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "giraffe"
+      ],
+      "a_objects_patched": [
+        "giraffe"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 2,
+      "image_a": "COCO_val2014_000000000136.jpg",
+      "image_b": "COCO_val2014_000000000143.jpg",
+      "layer": 28,
+      "variant": "text",
+      "n_patched_positions": 19,
+      "row_rel_delta": 0.1103515625,
+      "text": "The image features two giraffes in a zoo enclosure, standing next to each other. One giraffe is positioned towards the left side of",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "giraffe"
+      ],
+      "a_objects_patched": [
+        "giraffe"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 2,
+      "image_a": "COCO_val2014_000000000136.jpg",
+      "image_b": "COCO_val2014_000000000143.jpg",
+      "layer": 30,
+      "variant": "image",
+      "n_patched_positions": 576,
+      "row_rel_delta": 1.03125,
+      "text": "The image features two giraffes in a zoo enclosure, standing next to each other. One giraffe is positioned towards the left side of",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "giraffe"
+      ],
+      "a_objects_patched": [
+        "giraffe"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 2,
+      "image_a": "COCO_val2014_000000000136.jpg",
+      "image_b": "COCO_val2014_000000000143.jpg",
+      "layer": 30,
+      "variant": "image-last",
+      "n_patched_positions": 1,
+      "row_rel_delta": 0.80859375,
+      "text": "The image features two giraffes in a zoo enclosure, standing next to each other. One giraffe is positioned towards the left side of",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "giraffe"
+      ],
+      "a_objects_patched": [
+        "giraffe"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 2,
+      "image_a": "COCO_val2014_000000000136.jpg",
+      "image_b": "COCO_val2014_000000000143.jpg",
+      "layer": 30,
+      "variant": "text",
+      "n_patched_positions": 19,
+      "row_rel_delta": 0.1533203125,
+      "text": "The image features two giraffes in a zoo enclosure, standing next to each other. One giraffe is positioned towards the left side of",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "giraffe"
+      ],
+      "a_objects_patched": [
+        "giraffe"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 3,
+      "image_a": "COCO_val2014_000000000139.jpg",
+      "image_b": "COCO_val2014_000000000208.jpg",
+      "layer": 0,
+      "variant": "image",
+      "n_patched_positions": 576,
+      "row_rel_delta": 1.375,
+      "text": "The image features a bathroom sink with a toy alligator figurine sitting on the edge of the sink. The alligator appears to be br",
+      "caption_changed": true,
+      "first_diff_token": 2,
+      "a_objects_baseline": [
+        "dining table"
+      ],
+      "a_objects_patched": [],
+      "b_objects_patched": [
+        "sink"
+      ],
+      "a_disappearance_rate": 1.0,
+      "b_appearance_rate": 0.5
+    },
+    {
+      "pair_id": 3,
+      "image_a": "COCO_val2014_000000000139.jpg",
+      "image_b": "COCO_val2014_000000000208.jpg",
+      "layer": 0,
+      "variant": "image-last",
+      "n_patched_positions": 1,
+      "row_rel_delta": 0.8984375,
+      "text": "The image depicts a spacious and well-lit living room with a dining table in the center. The dining table is surrounded by several",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "dining table"
+      ],
+      "a_objects_patched": [
+        "dining table"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 3,
+      "image_a": "COCO_val2014_000000000139.jpg",
+      "image_b": "COCO_val2014_000000000208.jpg",
+      "layer": 0,
+      "variant": "text",
+      "n_patched_positions": 19,
+      "row_rel_delta": 0.048583984375,
+      "text": "The image depicts a spacious and well-lit living room with a dining table in the center. The dining table is surrounded by several",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "dining table"
+      ],
+      "a_objects_patched": [
+        "dining table"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 3,
+      "image_a": "COCO_val2014_000000000139.jpg",
+      "image_b": "COCO_val2014_000000000208.jpg",
+      "layer": 8,
+      "variant": "image",
+      "n_patched_positions": 576,
+      "row_rel_delta": 1.40625,
+      "text": "The image features a bathroom sink with a toothbrush in it. A toy alligator is placed on the sink, adding a playful",
+      "caption_changed": true,
+      "first_diff_token": 2,
+      "a_objects_baseline": [
+        "dining table"
+      ],
+      "a_objects_patched": [],
+      "b_objects_patched": [
+        "sink",
+        "toothbrush"
+      ],
+      "a_disappearance_rate": 1.0,
+      "b_appearance_rate": 1.0
+    },
+    {
+      "pair_id": 3,
+      "image_a": "COCO_val2014_000000000139.jpg",
+      "image_b": "COCO_val2014_000000000208.jpg",
+      "layer": 8,
+      "variant": "image-last",
+      "n_patched_positions": 1,
+      "row_rel_delta": 0.953125,
+      "text": "The image depicts a spacious and well-lit living room with a dining table in the center. The dining table is surrounded by several",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "dining table"
+      ],
+      "a_objects_patched": [
+        "dining table"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 3,
+      "image_a": "COCO_val2014_000000000139.jpg",
+      "image_b": "COCO_val2014_000000000208.jpg",
+      "layer": 8,
+      "variant": "text",
+      "n_patched_positions": 19,
+      "row_rel_delta": 0.02001953125,
+      "text": "The image depicts a spacious and well-lit living room with a dining table in the center. The dining table is surrounded by several",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "dining table"
+      ],
+      "a_objects_patched": [
+        "dining table"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 3,
+      "image_a": "COCO_val2014_000000000139.jpg",
+      "image_b": "COCO_val2014_000000000208.jpg",
+      "layer": 12,
+      "variant": "image",
+      "n_patched_positions": 576,
+      "row_rel_delta": 1.328125,
+      "text": "The image features a bathroom sink with a toothbrush placed on it. Above the sink, there is a mirror, and a toothbr",
+      "caption_changed": true,
+      "first_diff_token": 2,
+      "a_objects_baseline": [
+        "dining table"
+      ],
+      "a_objects_patched": [],
+      "b_objects_patched": [
+        "sink",
+        "toothbrush"
+      ],
+      "a_disappearance_rate": 1.0,
+      "b_appearance_rate": 1.0
+    },
+    {
+      "pair_id": 3,
+      "image_a": "COCO_val2014_000000000139.jpg",
+      "image_b": "COCO_val2014_000000000208.jpg",
+      "layer": 12,
+      "variant": "image-last",
+      "n_patched_positions": 1,
+      "row_rel_delta": 0.921875,
+      "text": "The image depicts a spacious and well-lit living room with a dining table in the center. The dining table is surrounded by several",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "dining table"
+      ],
+      "a_objects_patched": [
+        "dining table"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 3,
+      "image_a": "COCO_val2014_000000000139.jpg",
+      "image_b": "COCO_val2014_000000000208.jpg",
+      "layer": 12,
+      "variant": "text",
+      "n_patched_positions": 19,
+      "row_rel_delta": 0.0311279296875,
+      "text": "The image depicts a cozy living room with a dining table in the center. The table is surrounded by several chairs, with some placed closer",
+      "caption_changed": true,
+      "first_diff_token": 6,
+      "a_objects_baseline": [
+        "dining table"
+      ],
+      "a_objects_patched": [
+        "dining table"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 3,
+      "image_a": "COCO_val2014_000000000139.jpg",
+      "image_b": "COCO_val2014_000000000208.jpg",
+      "layer": 16,
+      "variant": "image",
+      "n_patched_positions": 576,
+      "row_rel_delta": 1.265625,
+      "text": "The image depicts a bathroom scene with a sink and a toilet. A person is standing near the sink, possibly brushing their teeth or",
+      "caption_changed": true,
+      "first_diff_token": 6,
+      "a_objects_baseline": [
+        "dining table"
+      ],
+      "a_objects_patched": [
+        "person"
+      ],
+      "b_objects_patched": [
+        "sink"
+      ],
+      "a_disappearance_rate": 1.0,
+      "b_appearance_rate": 0.5
+    },
+    {
+      "pair_id": 3,
+      "image_a": "COCO_val2014_000000000139.jpg",
+      "image_b": "COCO_val2014_000000000208.jpg",
+      "layer": 16,
+      "variant": "image-last",
+      "n_patched_positions": 1,
+      "row_rel_delta": 0.97265625,
+      "text": "The image depicts a spacious and well-lit living room with a dining table in the center. The dining table is surrounded by several",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "dining table"
+      ],
+      "a_objects_patched": [
+        "dining table"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 3,
+      "image_a": "COCO_val2014_000000000139.jpg",
+      "image_b": "COCO_val2014_000000000208.jpg",
+      "layer": 16,
+      "variant": "text",
+      "n_patched_positions": 19,
+      "row_rel_delta": 0.0498046875,
+      "text": "The image depicts a cozy living room with a dining table in the center. Around the table, there are four chairs, with two",
+      "caption_changed": true,
+      "first_diff_token": 6,
+      "a_objects_baseline": [
+        "dining table"
+      ],
+      "a_objects_patched": [
+        "dining table"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 3,
+      "image_a": "COCO_val2014_000000000139.jpg",
+      "image_b": "COCO_val2014_000000000208.jpg",
+      "layer": 20,
+      "variant": "image",
+      "n_patched_positions": 576,
+      "row_rel_delta": 1.2421875,
+      "text": "The image depicts a spacious and well-lit living room with a large window. A woman is standing in the room, possibly looking out the",
+      "caption_changed": true,
+      "first_diff_token": 17,
+      "a_objects_baseline": [
+        "dining table"
+      ],
+      "a_objects_patched": [],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 1.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 3,
+      "image_a": "COCO_val2014_000000000139.jpg",
+      "image_b": "COCO_val2014_000000000208.jpg",
+      "layer": 20,
+      "variant": "image-last",
+      "n_patched_positions": 1,
+      "row_rel_delta": 1.109375,
+      "text": "The image depicts a spacious and well-lit living room with a dining table in the center. The dining table is surrounded by several",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "dining table"
+      ],
+      "a_objects_patched": [
+        "dining table"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 3,
+      "image_a": "COCO_val2014_000000000139.jpg",
+      "image_b": "COCO_val2014_000000000208.jpg",
+      "layer": 20,
+      "variant": "text",
+      "n_patched_positions": 19,
+      "row_rel_delta": 0.0771484375,
+      "text": "The image depicts a spacious and well-lit living room with a dining table in the center. The dining table is surrounded by several",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "dining table"
+      ],
+      "a_objects_patched": [
+        "dining table"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 3,
+      "image_a": "COCO_val2014_000000000139.jpg",
+      "image_b": "COCO_val2014_000000000208.jpg",
+      "layer": 24,
+      "variant": "image",
+      "n_patched_positions": 576,
+      "row_rel_delta": 1.234375,
+      "text": "The image depicts a spacious and well-lit living room with a dining table in the center. The dining table is surrounded by several",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "dining table"
+      ],
+      "a_objects_patched": [
+        "dining table"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 3,
+      "image_a": "COCO_val2014_000000000139.jpg",
+      "image_b": "COCO_val2014_000000000208.jpg",
+      "layer": 24,
+      "variant": "image-last",
+      "n_patched_positions": 1,
+      "row_rel_delta": 1.125,
+      "text": "The image depicts a spacious and well-lit living room with a dining table in the center. The dining table is surrounded by several",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "dining table"
+      ],
+      "a_objects_patched": [
+        "dining table"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 3,
+      "image_a": "COCO_val2014_000000000139.jpg",
+      "image_b": "COCO_val2014_000000000208.jpg",
+      "layer": 24,
+      "variant": "text",
+      "n_patched_positions": 19,
+      "row_rel_delta": 0.1025390625,
+      "text": "The image depicts a spacious and well-lit living room with a dining table in the center. The dining table is surrounded by several",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "dining table"
+      ],
+      "a_objects_patched": [
+        "dining table"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 3,
+      "image_a": "COCO_val2014_000000000139.jpg",
+      "image_b": "COCO_val2014_000000000208.jpg",
+      "layer": 28,
+      "variant": "image",
+      "n_patched_positions": 576,
+      "row_rel_delta": 1.1640625,
+      "text": "The image depicts a spacious and well-lit living room with a large window. A woman is standing in the room, possibly preparing to",
+      "caption_changed": true,
+      "first_diff_token": 17,
+      "a_objects_baseline": [
+        "dining table"
+      ],
+      "a_objects_patched": [],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 1.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 3,
+      "image_a": "COCO_val2014_000000000139.jpg",
+      "image_b": "COCO_val2014_000000000208.jpg",
+      "layer": 28,
+      "variant": "image-last",
+      "n_patched_positions": 1,
+      "row_rel_delta": 1.0625,
+      "text": "The image depicts a spacious and well-lit living room with a dining table in the center. The dining table is surrounded by several",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "dining table"
+      ],
+      "a_objects_patched": [
+        "dining table"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 3,
+      "image_a": "COCO_val2014_000000000139.jpg",
+      "image_b": "COCO_val2014_000000000208.jpg",
+      "layer": 28,
+      "variant": "text",
+      "n_patched_positions": 19,
+      "row_rel_delta": 0.1240234375,
+      "text": "The image depicts a spacious and well-lit living room with a dining table in the center. The dining table is surrounded by several",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "dining table"
+      ],
+      "a_objects_patched": [
+        "dining table"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 3,
+      "image_a": "COCO_val2014_000000000139.jpg",
+      "image_b": "COCO_val2014_000000000208.jpg",
+      "layer": 30,
+      "variant": "image",
+      "n_patched_positions": 576,
+      "row_rel_delta": 1.140625,
+      "text": "The image depicts a spacious and well-lit living room with a dining table in the center. The dining table is surrounded by several",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "dining table"
+      ],
+      "a_objects_patched": [
+        "dining table"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 3,
+      "image_a": "COCO_val2014_000000000139.jpg",
+      "image_b": "COCO_val2014_000000000208.jpg",
+      "layer": 30,
+      "variant": "image-last",
+      "n_patched_positions": 1,
+      "row_rel_delta": 1.0078125,
+      "text": "The image depicts a spacious and well-lit living room with a dining table in the center. The dining table is surrounded by several",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "dining table"
+      ],
+      "a_objects_patched": [
+        "dining table"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 3,
+      "image_a": "COCO_val2014_000000000139.jpg",
+      "image_b": "COCO_val2014_000000000208.jpg",
+      "layer": 30,
+      "variant": "text",
+      "n_patched_positions": 19,
+      "row_rel_delta": 0.169921875,
+      "text": "The image depicts a spacious and well-lit living room with a dining table in the center. The dining table is surrounded by several",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "dining table"
+      ],
+      "a_objects_patched": [
+        "dining table"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 4,
+      "image_a": "COCO_val2014_000000000164.jpg",
+      "image_b": "COCO_val2014_000000000192.jpg",
+      "layer": 0,
+      "variant": "image",
+      "n_patched_positions": 576,
+      "row_rel_delta": 1.359375,
+      "text": "The image captures a baseball game in progress, with a player in a white uniform standing at home plate, holding a baseball bat and preparing to swing.",
+      "caption_changed": true,
+      "first_diff_token": 2,
+      "a_objects_baseline": [
+        "dining table"
+      ],
+      "a_objects_patched": [],
+      "b_objects_patched": [
+        "baseball bat"
+      ],
+      "a_disappearance_rate": 1.0,
+      "b_appearance_rate": 0.5
+    },
+    {
+      "pair_id": 4,
+      "image_a": "COCO_val2014_000000000164.jpg",
+      "image_b": "COCO_val2014_000000000192.jpg",
+      "layer": 0,
+      "variant": "image-last",
+      "n_patched_positions": 1,
+      "row_rel_delta": 0.8046875,
+      "text": "The image depicts a cozy kitchen with a dining table and chairs. The table is surrounded by chairs, and there are several cups",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "dining table"
+      ],
+      "a_objects_patched": [
+        "dining table"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 4,
+      "image_a": "COCO_val2014_000000000164.jpg",
+      "image_b": "COCO_val2014_000000000192.jpg",
+      "layer": 0,
+      "variant": "text",
+      "n_patched_positions": 19,
+      "row_rel_delta": 0.09033203125,
+      "text": "The image depicts a cozy kitchen with a dining table and chairs. The table is surrounded by chairs, and there are several cups",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "dining table"
+      ],
+      "a_objects_patched": [
+        "dining table"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 4,
+      "image_a": "COCO_val2014_000000000164.jpg",
+      "image_b": "COCO_val2014_000000000192.jpg",
+      "layer": 8,
+      "variant": "image",
+      "n_patched_positions": 576,
+      "row_rel_delta": 1.3828125,
+      "text": "The image captures a baseball game in progress, with a baseball player standing at home plate, holding a bat and preparing to swing. The catcher is",
+      "caption_changed": true,
+      "first_diff_token": 2,
+      "a_objects_baseline": [
+        "dining table"
+      ],
+      "a_objects_patched": [],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 1.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 4,
+      "image_a": "COCO_val2014_000000000164.jpg",
+      "image_b": "COCO_val2014_000000000192.jpg",
+      "layer": 8,
+      "variant": "image-last",
+      "n_patched_positions": 1,
+      "row_rel_delta": 0.84375,
+      "text": "The image depicts a cozy kitchen with a dining table and chairs. The table is surrounded by chairs, and there are several cups",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "dining table"
+      ],
+      "a_objects_patched": [
+        "dining table"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 4,
+      "image_a": "COCO_val2014_000000000164.jpg",
+      "image_b": "COCO_val2014_000000000192.jpg",
+      "layer": 8,
+      "variant": "text",
+      "n_patched_positions": 19,
+      "row_rel_delta": 0.02587890625,
+      "text": "The image depicts a cozy kitchen with a dining table and chairs. The table is surrounded by chairs, and there are several cups",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "dining table"
+      ],
+      "a_objects_patched": [
+        "dining table"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 4,
+      "image_a": "COCO_val2014_000000000164.jpg",
+      "image_b": "COCO_val2014_000000000192.jpg",
+      "layer": 12,
+      "variant": "image",
+      "n_patched_positions": 576,
+      "row_rel_delta": 1.3125,
+      "text": "The image captures a baseball game in progress, with a player in the middle of the action. The player is holding a baseball bat and appears to be swing",
+      "caption_changed": true,
+      "first_diff_token": 2,
+      "a_objects_baseline": [
+        "dining table"
+      ],
+      "a_objects_patched": [],
+      "b_objects_patched": [
+        "baseball bat"
+      ],
+      "a_disappearance_rate": 1.0,
+      "b_appearance_rate": 0.5
+    },
+    {
+      "pair_id": 4,
+      "image_a": "COCO_val2014_000000000164.jpg",
+      "image_b": "COCO_val2014_000000000192.jpg",
+      "layer": 12,
+      "variant": "image-last",
+      "n_patched_positions": 1,
+      "row_rel_delta": 0.8125,
+      "text": "The image depicts a small, cluttered kitchen with a dining table in the foreground. The kitchen is equipped with a refriger",
+      "caption_changed": true,
+      "first_diff_token": 6,
+      "a_objects_baseline": [
+        "dining table"
+      ],
+      "a_objects_patched": [
+        "dining table"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 4,
+      "image_a": "COCO_val2014_000000000164.jpg",
+      "image_b": "COCO_val2014_000000000192.jpg",
+      "layer": 12,
+      "variant": "text",
+      "n_patched_positions": 19,
+      "row_rel_delta": 0.035400390625,
+      "text": "The image depicts a cozy kitchen with a dining table and chairs. The table is surrounded by chairs, and there are several cups",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "dining table"
+      ],
+      "a_objects_patched": [
+        "dining table"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 4,
+      "image_a": "COCO_val2014_000000000164.jpg",
+      "image_b": "COCO_val2014_000000000192.jpg",
+      "layer": 16,
+      "variant": "image",
+      "n_patched_positions": 576,
+      "row_rel_delta": 1.234375,
+      "text": "The image depicts a baseball-themed baseball field with a baseball player in the center of the field. The player is holding a baseball bat, ready",
+      "caption_changed": true,
+      "first_diff_token": 6,
+      "a_objects_baseline": [
+        "dining table"
+      ],
+      "a_objects_patched": [],
+      "b_objects_patched": [
+        "baseball bat"
+      ],
+      "a_disappearance_rate": 1.0,
+      "b_appearance_rate": 0.5
+    },
+    {
+      "pair_id": 4,
+      "image_a": "COCO_val2014_000000000164.jpg",
+      "image_b": "COCO_val2014_000000000192.jpg",
+      "layer": 16,
+      "variant": "image-last",
+      "n_patched_positions": 1,
+      "row_rel_delta": 0.7890625,
+      "text": "The image depicts a cozy kitchen with a dining table and chairs. The table is surrounded by chairs, and there are several cups",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "dining table"
+      ],
+      "a_objects_patched": [
+        "dining table"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 4,
+      "image_a": "COCO_val2014_000000000164.jpg",
+      "image_b": "COCO_val2014_000000000192.jpg",
+      "layer": 16,
+      "variant": "text",
+      "n_patched_positions": 19,
+      "row_rel_delta": 0.0556640625,
+      "text": "The image depicts a cozy kitchen with a dining table and chairs. The table is surrounded by chairs, and there are several cups",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "dining table"
+      ],
+      "a_objects_patched": [
+        "dining table"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 4,
+      "image_a": "COCO_val2014_000000000164.jpg",
+      "image_b": "COCO_val2014_000000000192.jpg",
+      "layer": 20,
+      "variant": "image",
+      "n_patched_positions": 576,
+      "row_rel_delta": 1.2109375,
+      "text": "The image depicts a cozy kitchen with a dining table and chairs. The table is surrounded by chairs, and there are multiple cups",
+      "caption_changed": true,
+      "first_diff_token": 29,
+      "a_objects_baseline": [
+        "dining table"
+      ],
+      "a_objects_patched": [
+        "dining table"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 4,
+      "image_a": "COCO_val2014_000000000164.jpg",
+      "image_b": "COCO_val2014_000000000192.jpg",
+      "layer": 20,
+      "variant": "image-last",
+      "n_patched_positions": 1,
+      "row_rel_delta": 0.8359375,
+      "text": "The image depicts a cozy kitchen with a dining table and chairs. The table is surrounded by chairs, and there are several cups",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "dining table"
+      ],
+      "a_objects_patched": [
+        "dining table"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 4,
+      "image_a": "COCO_val2014_000000000164.jpg",
+      "image_b": "COCO_val2014_000000000192.jpg",
+      "layer": 20,
+      "variant": "text",
+      "n_patched_positions": 19,
+      "row_rel_delta": 0.0849609375,
+      "text": "The image depicts a cozy kitchen with a dining table and chairs. The table is surrounded by chairs, and there are several cups",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "dining table"
+      ],
+      "a_objects_patched": [
+        "dining table"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 4,
+      "image_a": "COCO_val2014_000000000164.jpg",
+      "image_b": "COCO_val2014_000000000192.jpg",
+      "layer": 24,
+      "variant": "image",
+      "n_patched_positions": 576,
+      "row_rel_delta": 1.1953125,
+      "text": "The image depicts a cozy kitchen with a dining table and chairs. The table is surrounded by chairs, and there are multiple cups",
+      "caption_changed": true,
+      "first_diff_token": 29,
+      "a_objects_baseline": [
+        "dining table"
+      ],
+      "a_objects_patched": [
+        "dining table"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 4,
+      "image_a": "COCO_val2014_000000000164.jpg",
+      "image_b": "COCO_val2014_000000000192.jpg",
+      "layer": 24,
+      "variant": "image-last",
+      "n_patched_positions": 1,
+      "row_rel_delta": 0.91796875,
+      "text": "The image depicts a small, cluttered kitchen with a dining table in the center. The kitchen is equipped with a refrigerator",
+      "caption_changed": true,
+      "first_diff_token": 6,
+      "a_objects_baseline": [
+        "dining table"
+      ],
+      "a_objects_patched": [
+        "dining table",
+        "refrigerator"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 4,
+      "image_a": "COCO_val2014_000000000164.jpg",
+      "image_b": "COCO_val2014_000000000192.jpg",
+      "layer": 24,
+      "variant": "text",
+      "n_patched_positions": 19,
+      "row_rel_delta": 0.11279296875,
+      "text": "The image depicts a cozy kitchen with a dining table and chairs. The table is surrounded by chairs, and there are several cups",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "dining table"
+      ],
+      "a_objects_patched": [
+        "dining table"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 4,
+      "image_a": "COCO_val2014_000000000164.jpg",
+      "image_b": "COCO_val2014_000000000192.jpg",
+      "layer": 28,
+      "variant": "image",
+      "n_patched_positions": 576,
+      "row_rel_delta": 1.125,
+      "text": "The image depicts a cozy kitchen with a dining table and chairs. The table is surrounded by chairs, and there are multiple cups",
+      "caption_changed": true,
+      "first_diff_token": 29,
+      "a_objects_baseline": [
+        "dining table"
+      ],
+      "a_objects_patched": [
+        "dining table"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 4,
+      "image_a": "COCO_val2014_000000000164.jpg",
+      "image_b": "COCO_val2014_000000000192.jpg",
+      "layer": 28,
+      "variant": "image-last",
+      "n_patched_positions": 1,
+      "row_rel_delta": 0.87890625,
+      "text": "The image depicts a small, cluttered kitchen with a dining table in the foreground. The kitchen is equipped with a refriger",
+      "caption_changed": true,
+      "first_diff_token": 6,
+      "a_objects_baseline": [
+        "dining table"
+      ],
+      "a_objects_patched": [
+        "dining table"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 4,
+      "image_a": "COCO_val2014_000000000164.jpg",
+      "image_b": "COCO_val2014_000000000192.jpg",
+      "layer": 28,
+      "variant": "text",
+      "n_patched_positions": 19,
+      "row_rel_delta": 0.1376953125,
+      "text": "The image depicts a cozy kitchen with a dining table and chairs. The table is surrounded by chairs, and there are several cups",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "dining table"
+      ],
+      "a_objects_patched": [
+        "dining table"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 4,
+      "image_a": "COCO_val2014_000000000164.jpg",
+      "image_b": "COCO_val2014_000000000192.jpg",
+      "layer": 30,
+      "variant": "image",
+      "n_patched_positions": 576,
+      "row_rel_delta": 1.09375,
+      "text": "The image depicts a small, cluttered kitchen with a dining table in the foreground. The kitchen is equipped with a refriger",
+      "caption_changed": true,
+      "first_diff_token": 6,
+      "a_objects_baseline": [
+        "dining table"
+      ],
+      "a_objects_patched": [
+        "dining table"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 4,
+      "image_a": "COCO_val2014_000000000164.jpg",
+      "image_b": "COCO_val2014_000000000192.jpg",
+      "layer": 30,
+      "variant": "image-last",
+      "n_patched_positions": 1,
+      "row_rel_delta": 0.875,
+      "text": "The image depicts a small, cluttered kitchen with a dining table in the foreground. The kitchen is equipped with a refriger",
+      "caption_changed": true,
+      "first_diff_token": 6,
+      "a_objects_baseline": [
+        "dining table"
+      ],
+      "a_objects_patched": [
+        "dining table"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 4,
+      "image_a": "COCO_val2014_000000000164.jpg",
+      "image_b": "COCO_val2014_000000000192.jpg",
+      "layer": 30,
+      "variant": "text",
+      "n_patched_positions": 19,
+      "row_rel_delta": 0.1875,
+      "text": "The image depicts a small, cluttered kitchen with a dining table in the foreground. The kitchen is equipped with a refriger",
+      "caption_changed": true,
+      "first_diff_token": 6,
+      "a_objects_baseline": [
+        "dining table"
+      ],
+      "a_objects_patched": [
+        "dining table"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 5,
+      "image_a": "COCO_val2014_000000000196.jpg",
+      "image_b": "COCO_val2014_000000000241.jpg",
+      "layer": 0,
+      "variant": "image",
+      "n_patched_positions": 576,
+      "row_rel_delta": 1.3046875,
+      "text": "The image depicts a group of people gathered in a living room, enjoying a video game session on a Nintendo Wii console. A man is",
+      "caption_changed": true,
+      "first_diff_token": 2,
+      "a_objects_baseline": [
+        "bowl",
+        "dining table"
+      ],
+      "a_objects_patched": [],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 1.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 5,
+      "image_a": "COCO_val2014_000000000196.jpg",
+      "image_b": "COCO_val2014_000000000241.jpg",
+      "layer": 0,
+      "variant": "image-last",
+      "n_patched_positions": 1,
+      "row_rel_delta": 1.0078125,
+      "text": "The image features a wooden dining table filled with a variety of foods. There are several bowls containing different dishes, including a bowl of sal",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "bowl",
+        "dining table"
+      ],
+      "a_objects_patched": [
+        "bowl",
+        "dining table"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 5,
+      "image_a": "COCO_val2014_000000000196.jpg",
+      "image_b": "COCO_val2014_000000000241.jpg",
+      "layer": 0,
+      "variant": "text",
+      "n_patched_positions": 19,
+      "row_rel_delta": 0.06689453125,
+      "text": "The image features a wooden dining table filled with a variety of foods. There are several bowls and plates containing different dishes, including a mix",
+      "caption_changed": true,
+      "first_diff_token": 21,
+      "a_objects_baseline": [
+        "bowl",
+        "dining table"
+      ],
+      "a_objects_patched": [
+        "dining table"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.5,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 5,
+      "image_a": "COCO_val2014_000000000196.jpg",
+      "image_b": "COCO_val2014_000000000241.jpg",
+      "layer": 8,
+      "variant": "image",
+      "n_patched_positions": 576,
+      "row_rel_delta": 1.34375,
+      "text": "The image depicts a group of people gathered in a living room, enjoying a fun gaming session on a Nintendo Wii console. There are",
+      "caption_changed": true,
+      "first_diff_token": 2,
+      "a_objects_baseline": [
+        "bowl",
+        "dining table"
+      ],
+      "a_objects_patched": [],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 1.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 5,
+      "image_a": "COCO_val2014_000000000196.jpg",
+      "image_b": "COCO_val2014_000000000241.jpg",
+      "layer": 8,
+      "variant": "image-last",
+      "n_patched_positions": 1,
+      "row_rel_delta": 1.0625,
+      "text": "The image features a wooden dining table filled with a variety of foods. There are several bowls containing different dishes, including a bowl of sal",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "bowl",
+        "dining table"
+      ],
+      "a_objects_patched": [
+        "bowl",
+        "dining table"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 5,
+      "image_a": "COCO_val2014_000000000196.jpg",
+      "image_b": "COCO_val2014_000000000241.jpg",
+      "layer": 8,
+      "variant": "text",
+      "n_patched_positions": 19,
+      "row_rel_delta": 0.02880859375,
+      "text": "The image features a wooden dining table filled with a variety of foods. There are several bowls and plates containing different dishes, including a mix",
+      "caption_changed": true,
+      "first_diff_token": 21,
+      "a_objects_baseline": [
+        "bowl",
+        "dining table"
+      ],
+      "a_objects_patched": [
+        "dining table"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.5,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 5,
+      "image_a": "COCO_val2014_000000000196.jpg",
+      "image_b": "COCO_val2014_000000000241.jpg",
+      "layer": 12,
+      "variant": "image",
+      "n_patched_positions": 576,
+      "row_rel_delta": 1.2890625,
+      "text": "The image depicts a group of people gathered in a living room, playing a video game on a Nintendo Wii console. There are at least four",
+      "caption_changed": true,
+      "first_diff_token": 2,
+      "a_objects_baseline": [
+        "bowl",
+        "dining table"
+      ],
+      "a_objects_patched": [],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 1.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 5,
+      "image_a": "COCO_val2014_000000000196.jpg",
+      "image_b": "COCO_val2014_000000000241.jpg",
+      "layer": 12,
+      "variant": "image-last",
+      "n_patched_positions": 1,
+      "row_rel_delta": 1.2421875,
+      "text": "The image features a wooden dining table filled with a variety of foods. There are several bowls containing different dishes, including a bowl of sal",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "bowl",
+        "dining table"
+      ],
+      "a_objects_patched": [
+        "bowl",
+        "dining table"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 5,
+      "image_a": "COCO_val2014_000000000196.jpg",
+      "image_b": "COCO_val2014_000000000241.jpg",
+      "layer": 12,
+      "variant": "text",
+      "n_patched_positions": 19,
+      "row_rel_delta": 0.039794921875,
+      "text": "The image features a wooden dining table filled with a variety of foods. There are several bowls containing different dishes, including a bowl of sal",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "bowl",
+        "dining table"
+      ],
+      "a_objects_patched": [
+        "bowl",
+        "dining table"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 5,
+      "image_a": "COCO_val2014_000000000196.jpg",
+      "image_b": "COCO_val2014_000000000241.jpg",
+      "layer": 16,
+      "variant": "image",
+      "n_patched_positions": 576,
+      "row_rel_delta": 1.2421875,
+      "text": "The image features a large dining table filled with a variety of food items. There are several couches and chairs placed around the table, making it",
+      "caption_changed": true,
+      "first_diff_token": 4,
+      "a_objects_baseline": [
+        "bowl",
+        "dining table"
+      ],
+      "a_objects_patched": [
+        "dining table"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.5,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 5,
+      "image_a": "COCO_val2014_000000000196.jpg",
+      "image_b": "COCO_val2014_000000000241.jpg",
+      "layer": 16,
+      "variant": "image-last",
+      "n_patched_positions": 1,
+      "row_rel_delta": 1.2109375,
+      "text": "The image features a wooden dining table filled with a variety of foods. There are several bowls containing different dishes, including a bowl of sal",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "bowl",
+        "dining table"
+      ],
+      "a_objects_patched": [
+        "bowl",
+        "dining table"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 5,
+      "image_a": "COCO_val2014_000000000196.jpg",
+      "image_b": "COCO_val2014_000000000241.jpg",
+      "layer": 16,
+      "variant": "text",
+      "n_patched_positions": 19,
+      "row_rel_delta": 0.059326171875,
+      "text": "The image features a wooden dining table filled with a variety of foods. There are several bowls containing different dishes, including a bowl of sal",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "bowl",
+        "dining table"
+      ],
+      "a_objects_patched": [
+        "bowl",
+        "dining table"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 5,
+      "image_a": "COCO_val2014_000000000196.jpg",
+      "image_b": "COCO_val2014_000000000241.jpg",
+      "layer": 20,
+      "variant": "image",
+      "n_patched_positions": 576,
+      "row_rel_delta": 1.2265625,
+      "text": "The image features a dining table filled with a variety of foods, including several cakes, pies, and bowls of different dishes. There",
+      "caption_changed": true,
+      "first_diff_token": 4,
+      "a_objects_baseline": [
+        "bowl",
+        "dining table"
+      ],
+      "a_objects_patched": [
+        "dining table"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.5,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 5,
+      "image_a": "COCO_val2014_000000000196.jpg",
+      "image_b": "COCO_val2014_000000000241.jpg",
+      "layer": 20,
+      "variant": "image-last",
+      "n_patched_positions": 1,
+      "row_rel_delta": 1.1484375,
+      "text": "The image features a wooden dining table filled with a variety of foods. There are several bowls containing different dishes, including a bowl of sal",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "bowl",
+        "dining table"
+      ],
+      "a_objects_patched": [
+        "bowl",
+        "dining table"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 5,
+      "image_a": "COCO_val2014_000000000196.jpg",
+      "image_b": "COCO_val2014_000000000241.jpg",
+      "layer": 20,
+      "variant": "text",
+      "n_patched_positions": 19,
+      "row_rel_delta": 0.087890625,
+      "text": "The image features a wooden dining table filled with a variety of foods. There are several bowls and plates containing different dishes, including a mix",
+      "caption_changed": true,
+      "first_diff_token": 21,
+      "a_objects_baseline": [
+        "bowl",
+        "dining table"
+      ],
+      "a_objects_patched": [
+        "dining table"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.5,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 5,
+      "image_a": "COCO_val2014_000000000196.jpg",
+      "image_b": "COCO_val2014_000000000241.jpg",
+      "layer": 24,
+      "variant": "image",
+      "n_patched_positions": 576,
+      "row_rel_delta": 1.1953125,
+      "text": "The image features a wooden dining table filled with a variety of foods. There are several bowls containing different dishes, including a bowl of sal",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "bowl",
+        "dining table"
+      ],
+      "a_objects_patched": [
+        "bowl",
+        "dining table"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 5,
+      "image_a": "COCO_val2014_000000000196.jpg",
+      "image_b": "COCO_val2014_000000000241.jpg",
+      "layer": 24,
+      "variant": "image-last",
+      "n_patched_positions": 1,
+      "row_rel_delta": 1.046875,
+      "text": "The image features a wooden dining table filled with a variety of foods. There are several bowls containing different dishes, including a bowl of sal",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "bowl",
+        "dining table"
+      ],
+      "a_objects_patched": [
+        "bowl",
+        "dining table"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 5,
+      "image_a": "COCO_val2014_000000000196.jpg",
+      "image_b": "COCO_val2014_000000000241.jpg",
+      "layer": 24,
+      "variant": "text",
+      "n_patched_positions": 19,
+      "row_rel_delta": 0.10888671875,
+      "text": "The image features a wooden dining table filled with a variety of foods. There are several bowls containing different dishes, including a bowl of sal",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "bowl",
+        "dining table"
+      ],
+      "a_objects_patched": [
+        "bowl",
+        "dining table"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 5,
+      "image_a": "COCO_val2014_000000000196.jpg",
+      "image_b": "COCO_val2014_000000000241.jpg",
+      "layer": 28,
+      "variant": "image",
+      "n_patched_positions": 576,
+      "row_rel_delta": 1.140625,
+      "text": "The image features a wooden dining table filled with a variety of foods. There are several bowls containing different dishes, including a bowl of sal",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "bowl",
+        "dining table"
+      ],
+      "a_objects_patched": [
+        "bowl",
+        "dining table"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 5,
+      "image_a": "COCO_val2014_000000000196.jpg",
+      "image_b": "COCO_val2014_000000000241.jpg",
+      "layer": 28,
+      "variant": "image-last",
+      "n_patched_positions": 1,
+      "row_rel_delta": 0.96484375,
+      "text": "The image features a wooden dining table filled with a variety of foods. There are several bowls containing different dishes, including a bowl of sal",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "bowl",
+        "dining table"
+      ],
+      "a_objects_patched": [
+        "bowl",
+        "dining table"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 5,
+      "image_a": "COCO_val2014_000000000196.jpg",
+      "image_b": "COCO_val2014_000000000241.jpg",
+      "layer": 28,
+      "variant": "text",
+      "n_patched_positions": 19,
+      "row_rel_delta": 0.130859375,
+      "text": "The image features a wooden dining table filled with a variety of foods. There are several bowls containing different dishes, including a bowl of sal",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "bowl",
+        "dining table"
+      ],
+      "a_objects_patched": [
+        "bowl",
+        "dining table"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 5,
+      "image_a": "COCO_val2014_000000000196.jpg",
+      "image_b": "COCO_val2014_000000000241.jpg",
+      "layer": 30,
+      "variant": "image",
+      "n_patched_positions": 576,
+      "row_rel_delta": 1.109375,
+      "text": "The image features a wooden dining table filled with a variety of foods. There are several bowls containing different dishes, including a bowl of sal",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "bowl",
+        "dining table"
+      ],
+      "a_objects_patched": [
+        "bowl",
+        "dining table"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 5,
+      "image_a": "COCO_val2014_000000000196.jpg",
+      "image_b": "COCO_val2014_000000000241.jpg",
+      "layer": 30,
+      "variant": "image-last",
+      "n_patched_positions": 1,
+      "row_rel_delta": 0.91796875,
+      "text": "The image features a wooden dining table filled with a variety of foods. There are several bowls containing different dishes, including a bowl of sal",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "bowl",
+        "dining table"
+      ],
+      "a_objects_patched": [
+        "bowl",
+        "dining table"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 5,
+      "image_a": "COCO_val2014_000000000196.jpg",
+      "image_b": "COCO_val2014_000000000241.jpg",
+      "layer": 30,
+      "variant": "text",
+      "n_patched_positions": 19,
+      "row_rel_delta": 0.1767578125,
+      "text": "The image features a wooden dining table filled with a variety of foods. There are several bowls containing different dishes, including a bowl of sal",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "bowl",
+        "dining table"
+      ],
+      "a_objects_patched": [
+        "bowl",
+        "dining table"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 6,
+      "image_a": "COCO_val2014_000000000257.jpg",
+      "image_b": "COCO_val2014_000000000283.jpg",
+      "layer": 0,
+      "variant": "image",
+      "n_patched_positions": 576,
+      "row_rel_delta": 1.25,
+      "text": "The image features a dining table with a bottle of wine and a wine glass placed on it. The wine glass is filled with red wine, and the",
+      "caption_changed": true,
+      "first_diff_token": 2,
+      "a_objects_baseline": [
+        "truck"
+      ],
+      "a_objects_patched": [],
+      "b_objects_patched": [
+        "bottle",
+        "dining table",
+        "wine glass"
+      ],
+      "a_disappearance_rate": 1.0,
+      "b_appearance_rate": 0.75
+    },
+    {
+      "pair_id": 6,
+      "image_a": "COCO_val2014_000000000257.jpg",
+      "image_b": "COCO_val2014_000000000283.jpg",
+      "layer": 0,
+      "variant": "image-last",
+      "n_patched_positions": 1,
+      "row_rel_delta": 1.171875,
+      "text": "The image depicts a bustling city street with a large group of people gathered around a food truck. The food truck is parked in",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "truck"
+      ],
+      "a_objects_patched": [
+        "truck"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 6,
+      "image_a": "COCO_val2014_000000000257.jpg",
+      "image_b": "COCO_val2014_000000000283.jpg",
+      "layer": 0,
+      "variant": "text",
+      "n_patched_positions": 19,
+      "row_rel_delta": 0.11474609375,
+      "text": "The image depicts a bustling city street with a large group of people gathered around a food truck. The food truck is parked in",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "truck"
+      ],
+      "a_objects_patched": [
+        "truck"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 6,
+      "image_a": "COCO_val2014_000000000257.jpg",
+      "image_b": "COCO_val2014_000000000283.jpg",
+      "layer": 8,
+      "variant": "image",
+      "n_patched_positions": 576,
+      "row_rel_delta": 1.296875,
+      "text": "The image features a dining table with a bottle of wine and a wine glass placed on it. A chair is positioned near the table, and a",
+      "caption_changed": true,
+      "first_diff_token": 2,
+      "a_objects_baseline": [
+        "truck"
+      ],
+      "a_objects_patched": [],
+      "b_objects_patched": [
+        "bottle",
+        "chair",
+        "dining table",
+        "wine glass"
+      ],
+      "a_disappearance_rate": 1.0,
+      "b_appearance_rate": 1.0
+    },
+    {
+      "pair_id": 6,
+      "image_a": "COCO_val2014_000000000257.jpg",
+      "image_b": "COCO_val2014_000000000283.jpg",
+      "layer": 8,
+      "variant": "image-last",
+      "n_patched_positions": 1,
+      "row_rel_delta": 1.2265625,
+      "text": "The image depicts a bustling city street with a large group of people gathered around a food truck. The food truck is parked in",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "truck"
+      ],
+      "a_objects_patched": [
+        "truck"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 6,
+      "image_a": "COCO_val2014_000000000257.jpg",
+      "image_b": "COCO_val2014_000000000283.jpg",
+      "layer": 8,
+      "variant": "text",
+      "n_patched_positions": 19,
+      "row_rel_delta": 0.025634765625,
+      "text": "The image depicts a bustling city street with a large group of people gathered around a food truck. The food truck is parked in",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "truck"
+      ],
+      "a_objects_patched": [
+        "truck"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 6,
+      "image_a": "COCO_val2014_000000000257.jpg",
+      "image_b": "COCO_val2014_000000000283.jpg",
+      "layer": 12,
+      "variant": "image",
+      "n_patched_positions": 576,
+      "row_rel_delta": 1.265625,
+      "text": "The image features a dining table with a bottle of wine on it, placed in the center of the scene. A wine glass is also present on the",
+      "caption_changed": true,
+      "first_diff_token": 2,
+      "a_objects_baseline": [
+        "truck"
+      ],
+      "a_objects_patched": [],
+      "b_objects_patched": [
+        "bottle",
+        "dining table",
+        "wine glass"
+      ],
+      "a_disappearance_rate": 1.0,
+      "b_appearance_rate": 0.75
+    },
+    {
+      "pair_id": 6,
+      "image_a": "COCO_val2014_000000000257.jpg",
+      "image_b": "COCO_val2014_000000000283.jpg",
+      "layer": 12,
+      "variant": "image-last",
+      "n_patched_positions": 1,
+      "row_rel_delta": 1.0625,
+      "text": "The image depicts a bustling city street with a large group of people gathered around a food truck. The food truck is parked in",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "truck"
+      ],
+      "a_objects_patched": [
+        "truck"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 6,
+      "image_a": "COCO_val2014_000000000257.jpg",
+      "image_b": "COCO_val2014_000000000283.jpg",
+      "layer": 12,
+      "variant": "text",
+      "n_patched_positions": 19,
+      "row_rel_delta": 0.03662109375,
+      "text": "The image depicts a lively scene in a city square, with a large group of people gathered around a food truck. The food truck is",
+      "caption_changed": true,
+      "first_diff_token": 6,
+      "a_objects_baseline": [
+        "truck"
+      ],
+      "a_objects_patched": [
+        "truck"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 6,
+      "image_a": "COCO_val2014_000000000257.jpg",
+      "image_b": "COCO_val2014_000000000283.jpg",
+      "layer": 16,
+      "variant": "image",
+      "n_patched_positions": 576,
+      "row_rel_delta": 1.234375,
+      "text": "The image depicts a lively outdoor scene with a large crowd of people gathered around a glass table. The table is placed in the center of the",
+      "caption_changed": true,
+      "first_diff_token": 6,
+      "a_objects_baseline": [
+        "truck"
+      ],
+      "a_objects_patched": [],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 1.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 6,
+      "image_a": "COCO_val2014_000000000257.jpg",
+      "image_b": "COCO_val2014_000000000283.jpg",
+      "layer": 16,
+      "variant": "image-last",
+      "n_patched_positions": 1,
+      "row_rel_delta": 1.0859375,
+      "text": "The image depicts a bustling city street with a large group of people gathered around a food truck. The food truck is parked in",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "truck"
+      ],
+      "a_objects_patched": [
+        "truck"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 6,
+      "image_a": "COCO_val2014_000000000257.jpg",
+      "image_b": "COCO_val2014_000000000283.jpg",
+      "layer": 16,
+      "variant": "text",
+      "n_patched_positions": 19,
+      "row_rel_delta": 0.055908203125,
+      "text": "The image depicts a lively scene in a city square, where a group of people is gathered around a food truck. The food truck is",
+      "caption_changed": true,
+      "first_diff_token": 6,
+      "a_objects_baseline": [
+        "truck"
+      ],
+      "a_objects_patched": [
+        "truck"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 6,
+      "image_a": "COCO_val2014_000000000257.jpg",
+      "image_b": "COCO_val2014_000000000283.jpg",
+      "layer": 20,
+      "variant": "image",
+      "n_patched_positions": 576,
+      "row_rel_delta": 1.21875,
+      "text": "The image depicts a bustling city scene with a large group of people gathered around a red and white food truck. The truck is park",
+      "caption_changed": true,
+      "first_diff_token": 10,
+      "a_objects_baseline": [
+        "truck"
+      ],
+      "a_objects_patched": [
+        "truck"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 6,
+      "image_a": "COCO_val2014_000000000257.jpg",
+      "image_b": "COCO_val2014_000000000283.jpg",
+      "layer": 20,
+      "variant": "image-last",
+      "n_patched_positions": 1,
+      "row_rel_delta": 1.265625,
+      "text": "The image depicts a bustling city street with a large group of people gathered around a food truck. The food truck is parked in",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "truck"
+      ],
+      "a_objects_patched": [
+        "truck"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 6,
+      "image_a": "COCO_val2014_000000000257.jpg",
+      "image_b": "COCO_val2014_000000000283.jpg",
+      "layer": 20,
+      "variant": "text",
+      "n_patched_positions": 19,
+      "row_rel_delta": 0.0810546875,
+      "text": "The image depicts a bustling city street with a large group of people gathered around a food truck. The food truck is parked in",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "truck"
+      ],
+      "a_objects_patched": [
+        "truck"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 6,
+      "image_a": "COCO_val2014_000000000257.jpg",
+      "image_b": "COCO_val2014_000000000283.jpg",
+      "layer": 24,
+      "variant": "image",
+      "n_patched_positions": 576,
+      "row_rel_delta": 1.1796875,
+      "text": "The image depicts a bustling city street with a large group of people gathered around a food truck. The food truck is parked in",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "truck"
+      ],
+      "a_objects_patched": [
+        "truck"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 6,
+      "image_a": "COCO_val2014_000000000257.jpg",
+      "image_b": "COCO_val2014_000000000283.jpg",
+      "layer": 24,
+      "variant": "image-last",
+      "n_patched_positions": 1,
+      "row_rel_delta": 1.3125,
+      "text": "The image depicts a bustling city street with a large group of people gathered around a food truck. The food truck is parked in",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "truck"
+      ],
+      "a_objects_patched": [
+        "truck"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 6,
+      "image_a": "COCO_val2014_000000000257.jpg",
+      "image_b": "COCO_val2014_000000000283.jpg",
+      "layer": 24,
+      "variant": "text",
+      "n_patched_positions": 19,
+      "row_rel_delta": 0.10400390625,
+      "text": "The image depicts a bustling city street with a large group of people gathered around a food truck. The food truck is parked in",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "truck"
+      ],
+      "a_objects_patched": [
+        "truck"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 6,
+      "image_a": "COCO_val2014_000000000257.jpg",
+      "image_b": "COCO_val2014_000000000283.jpg",
+      "layer": 28,
+      "variant": "image",
+      "n_patched_positions": 576,
+      "row_rel_delta": 1.09375,
+      "text": "The image depicts a bustling city street with a large group of people gathered around a food truck. The food truck is prominently",
+      "caption_changed": true,
+      "first_diff_token": 29,
+      "a_objects_baseline": [
+        "truck"
+      ],
+      "a_objects_patched": [
+        "truck"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 6,
+      "image_a": "COCO_val2014_000000000257.jpg",
+      "image_b": "COCO_val2014_000000000283.jpg",
+      "layer": 28,
+      "variant": "image-last",
+      "n_patched_positions": 1,
+      "row_rel_delta": 1.203125,
+      "text": "The image depicts a bustling city street with a large group of people gathered around a food truck. The food truck is parked in",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "truck"
+      ],
+      "a_objects_patched": [
+        "truck"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 6,
+      "image_a": "COCO_val2014_000000000257.jpg",
+      "image_b": "COCO_val2014_000000000283.jpg",
+      "layer": 28,
+      "variant": "text",
+      "n_patched_positions": 19,
+      "row_rel_delta": 0.125,
+      "text": "The image depicts a bustling city street with a large group of people gathered around a food truck. The food truck is parked in",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "truck"
+      ],
+      "a_objects_patched": [
+        "truck"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 6,
+      "image_a": "COCO_val2014_000000000257.jpg",
+      "image_b": "COCO_val2014_000000000283.jpg",
+      "layer": 30,
+      "variant": "image",
+      "n_patched_positions": 576,
+      "row_rel_delta": 1.046875,
+      "text": "The image depicts a bustling city street with a large group of people gathered around a food truck. The food truck is parked in",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "truck"
+      ],
+      "a_objects_patched": [
+        "truck"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 6,
+      "image_a": "COCO_val2014_000000000257.jpg",
+      "image_b": "COCO_val2014_000000000283.jpg",
+      "layer": 30,
+      "variant": "image-last",
+      "n_patched_positions": 1,
+      "row_rel_delta": 1.1640625,
+      "text": "The image depicts a bustling city street with a large group of people gathered around a food truck. The food truck is parked in",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "truck"
+      ],
+      "a_objects_patched": [
+        "truck"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 6,
+      "image_a": "COCO_val2014_000000000257.jpg",
+      "image_b": "COCO_val2014_000000000283.jpg",
+      "layer": 30,
+      "variant": "text",
+      "n_patched_positions": 19,
+      "row_rel_delta": 0.171875,
+      "text": "The image depicts a bustling city street with a large group of people gathered around a food truck. The food truck is parked in",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "truck"
+      ],
+      "a_objects_patched": [
+        "truck"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 7,
+      "image_a": "COCO_val2014_000000000285.jpg",
+      "image_b": "COCO_val2014_000000000294.jpg",
+      "layer": 0,
+      "variant": "image",
+      "n_patched_positions": 576,
+      "row_rel_delta": 1.234375,
+      "text": "The image features a man standing in a kitchen, holding a frying pan in his hand. He is positioned in front of a wall with various p",
+      "caption_changed": true,
+      "first_diff_token": 4,
+      "a_objects_baseline": [
+        "bear"
+      ],
+      "a_objects_patched": [],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 1.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 7,
+      "image_a": "COCO_val2014_000000000285.jpg",
+      "image_b": "COCO_val2014_000000000294.jpg",
+      "layer": 0,
+      "variant": "image-last",
+      "n_patched_positions": 1,
+      "row_rel_delta": 0.9765625,
+      "text": "The image features a large brown bear sitting on a grassy field. The bear appears to be relaxed and enjoying the outdoors. The bear is",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "bear"
+      ],
+      "a_objects_patched": [
+        "bear"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 7,
+      "image_a": "COCO_val2014_000000000285.jpg",
+      "image_b": "COCO_val2014_000000000294.jpg",
+      "layer": 0,
+      "variant": "text",
+      "n_patched_positions": 19,
+      "row_rel_delta": 0.107421875,
+      "text": "The image features a large brown bear sitting on a grassy field. The bear appears to be relaxed and enjoying the outdoors. The bear is",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "bear"
+      ],
+      "a_objects_patched": [
+        "bear"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 7,
+      "image_a": "COCO_val2014_000000000285.jpg",
+      "image_b": "COCO_val2014_000000000294.jpg",
+      "layer": 8,
+      "variant": "image",
+      "n_patched_positions": 576,
+      "row_rel_delta": 1.3046875,
+      "text": "The image features a man standing in a kitchen, holding a frying pan in his hand. He is positioned in front of a wall with various p",
+      "caption_changed": true,
+      "first_diff_token": 4,
+      "a_objects_baseline": [
+        "bear"
+      ],
+      "a_objects_patched": [],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 1.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 7,
+      "image_a": "COCO_val2014_000000000285.jpg",
+      "image_b": "COCO_val2014_000000000294.jpg",
+      "layer": 8,
+      "variant": "image-last",
+      "n_patched_positions": 1,
+      "row_rel_delta": 0.92578125,
+      "text": "The image features a large brown bear sitting on a grassy field. The bear appears to be relaxed and enjoying the outdoors. The bear is",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "bear"
+      ],
+      "a_objects_patched": [
+        "bear"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 7,
+      "image_a": "COCO_val2014_000000000285.jpg",
+      "image_b": "COCO_val2014_000000000294.jpg",
+      "layer": 8,
+      "variant": "text",
+      "n_patched_positions": 19,
+      "row_rel_delta": 0.0242919921875,
+      "text": "The image features a large brown bear sitting on a grassy field. The bear appears to be relaxed and enjoying the outdoors. The grassy",
+      "caption_changed": true,
+      "first_diff_token": 30,
+      "a_objects_baseline": [
+        "bear"
+      ],
+      "a_objects_patched": [
+        "bear"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 7,
+      "image_a": "COCO_val2014_000000000285.jpg",
+      "image_b": "COCO_val2014_000000000294.jpg",
+      "layer": 12,
+      "variant": "image",
+      "n_patched_positions": 576,
+      "row_rel_delta": 1.2578125,
+      "text": "The image features a man standing in a kitchen, holding a spoon in his hand. He appears to be in the process of preparing a meal.",
+      "caption_changed": true,
+      "first_diff_token": 4,
+      "a_objects_baseline": [
+        "bear"
+      ],
+      "a_objects_patched": [],
+      "b_objects_patched": [
+        "spoon"
+      ],
+      "a_disappearance_rate": 1.0,
+      "b_appearance_rate": 0.16666666666666666
+    },
+    {
+      "pair_id": 7,
+      "image_a": "COCO_val2014_000000000285.jpg",
+      "image_b": "COCO_val2014_000000000294.jpg",
+      "layer": 12,
+      "variant": "image-last",
+      "n_patched_positions": 1,
+      "row_rel_delta": 0.8984375,
+      "text": "The image features a large brown bear sitting on a grassy field. The bear appears to be relaxed and enjoying the outdoors. The grassy",
+      "caption_changed": true,
+      "first_diff_token": 30,
+      "a_objects_baseline": [
+        "bear"
+      ],
+      "a_objects_patched": [
+        "bear"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 7,
+      "image_a": "COCO_val2014_000000000285.jpg",
+      "image_b": "COCO_val2014_000000000294.jpg",
+      "layer": 12,
+      "variant": "text",
+      "n_patched_positions": 19,
+      "row_rel_delta": 0.033935546875,
+      "text": "The image features a large brown bear sitting on a grassy field. The bear appears to be relaxed and enjoying the outdoors. The bear is",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "bear"
+      ],
+      "a_objects_patched": [
+        "bear"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 7,
+      "image_a": "COCO_val2014_000000000285.jpg",
+      "image_b": "COCO_val2014_000000000294.jpg",
+      "layer": 16,
+      "variant": "image",
+      "n_patched_positions": 576,
+      "row_rel_delta": 1.2421875,
+      "text": "The image features a man standing in a kitchen, holding a spoon in his hand. The man is wearing a gray shirt and appears to be focused",
+      "caption_changed": true,
+      "first_diff_token": 4,
+      "a_objects_baseline": [
+        "bear"
+      ],
+      "a_objects_patched": [],
+      "b_objects_patched": [
+        "spoon"
+      ],
+      "a_disappearance_rate": 1.0,
+      "b_appearance_rate": 0.16666666666666666
+    },
+    {
+      "pair_id": 7,
+      "image_a": "COCO_val2014_000000000285.jpg",
+      "image_b": "COCO_val2014_000000000294.jpg",
+      "layer": 16,
+      "variant": "image-last",
+      "n_patched_positions": 1,
+      "row_rel_delta": 0.921875,
+      "text": "The image features a large brown bear sitting on a grassy field. The bear appears to be relaxed and enjoying the outdoors. The bear is",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "bear"
+      ],
+      "a_objects_patched": [
+        "bear"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 7,
+      "image_a": "COCO_val2014_000000000285.jpg",
+      "image_b": "COCO_val2014_000000000294.jpg",
+      "layer": 16,
+      "variant": "text",
+      "n_patched_positions": 19,
+      "row_rel_delta": 0.052001953125,
+      "text": "The image features a large brown bear sitting on a grassy field. The bear appears to be relaxed and enjoying the outdoors. The bear is",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "bear"
+      ],
+      "a_objects_patched": [
+        "bear"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 7,
+      "image_a": "COCO_val2014_000000000285.jpg",
+      "image_b": "COCO_val2014_000000000294.jpg",
+      "layer": 20,
+      "variant": "image",
+      "n_patched_positions": 576,
+      "row_rel_delta": 1.2265625,
+      "text": "The image features a large brown bear sitting on a grassy field. The bear appears to be looking at the camera, capturing the viewer's attention",
+      "caption_changed": true,
+      "first_diff_token": 19,
+      "a_objects_baseline": [
+        "bear"
+      ],
+      "a_objects_patched": [
+        "bear"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 7,
+      "image_a": "COCO_val2014_000000000285.jpg",
+      "image_b": "COCO_val2014_000000000294.jpg",
+      "layer": 20,
+      "variant": "image-last",
+      "n_patched_positions": 1,
+      "row_rel_delta": 0.92578125,
+      "text": "The image features a large brown bear sitting on a grassy field. The bear appears to be relaxed and enjoying the outdoors. The bear is",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "bear"
+      ],
+      "a_objects_patched": [
+        "bear"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 7,
+      "image_a": "COCO_val2014_000000000285.jpg",
+      "image_b": "COCO_val2014_000000000294.jpg",
+      "layer": 20,
+      "variant": "text",
+      "n_patched_positions": 19,
+      "row_rel_delta": 0.07568359375,
+      "text": "The image features a large brown bear sitting on a grassy field. The bear appears to be relaxed and enjoying the outdoors. The bear is",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "bear"
+      ],
+      "a_objects_patched": [
+        "bear"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 7,
+      "image_a": "COCO_val2014_000000000285.jpg",
+      "image_b": "COCO_val2014_000000000294.jpg",
+      "layer": 24,
+      "variant": "image",
+      "n_patched_positions": 576,
+      "row_rel_delta": 1.1875,
+      "text": "The image features a large brown bear sitting on a grassy field. The bear appears to be relaxed and enjoying the outdoors. The bear is",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "bear"
+      ],
+      "a_objects_patched": [
+        "bear"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 7,
+      "image_a": "COCO_val2014_000000000285.jpg",
+      "image_b": "COCO_val2014_000000000294.jpg",
+      "layer": 24,
+      "variant": "image-last",
+      "n_patched_positions": 1,
+      "row_rel_delta": 0.90234375,
+      "text": "The image features a large brown bear sitting on a grassy field. The bear appears to be relaxed and enjoying the outdoors. The bear is",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "bear"
+      ],
+      "a_objects_patched": [
+        "bear"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 7,
+      "image_a": "COCO_val2014_000000000285.jpg",
+      "image_b": "COCO_val2014_000000000294.jpg",
+      "layer": 24,
+      "variant": "text",
+      "n_patched_positions": 19,
+      "row_rel_delta": 0.09619140625,
+      "text": "The image features a large brown bear sitting on a grassy field. The bear appears to be relaxed and enjoying the outdoors. The bear is",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "bear"
+      ],
+      "a_objects_patched": [
+        "bear"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 7,
+      "image_a": "COCO_val2014_000000000285.jpg",
+      "image_b": "COCO_val2014_000000000294.jpg",
+      "layer": 28,
+      "variant": "image",
+      "n_patched_positions": 576,
+      "row_rel_delta": 1.09375,
+      "text": "The image features a large brown bear sitting on a grassy field. The bear appears to be relaxed and enjoying the outdoors. The grassy",
+      "caption_changed": true,
+      "first_diff_token": 30,
+      "a_objects_baseline": [
+        "bear"
+      ],
+      "a_objects_patched": [
+        "bear"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 7,
+      "image_a": "COCO_val2014_000000000285.jpg",
+      "image_b": "COCO_val2014_000000000294.jpg",
+      "layer": 28,
+      "variant": "image-last",
+      "n_patched_positions": 1,
+      "row_rel_delta": 0.859375,
+      "text": "The image features a large brown bear sitting on a grassy field. The bear appears to be relaxed and enjoying the outdoors. The bear'",
+      "caption_changed": true,
+      "first_diff_token": 31,
+      "a_objects_baseline": [
+        "bear"
+      ],
+      "a_objects_patched": [
+        "bear"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 7,
+      "image_a": "COCO_val2014_000000000285.jpg",
+      "image_b": "COCO_val2014_000000000294.jpg",
+      "layer": 28,
+      "variant": "text",
+      "n_patched_positions": 19,
+      "row_rel_delta": 0.1220703125,
+      "text": "The image features a large brown bear sitting on a grassy field. The bear appears to be relaxed and enjoying the outdoors. The grassy",
+      "caption_changed": true,
+      "first_diff_token": 30,
+      "a_objects_baseline": [
+        "bear"
+      ],
+      "a_objects_patched": [
+        "bear"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 7,
+      "image_a": "COCO_val2014_000000000285.jpg",
+      "image_b": "COCO_val2014_000000000294.jpg",
+      "layer": 30,
+      "variant": "image",
+      "n_patched_positions": 576,
+      "row_rel_delta": 1.0546875,
+      "text": "The image features a large brown bear sitting on a grassy field. The bear appears to be relaxed and enjoying the outdoors. The bear is",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "bear"
+      ],
+      "a_objects_patched": [
+        "bear"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 7,
+      "image_a": "COCO_val2014_000000000285.jpg",
+      "image_b": "COCO_val2014_000000000294.jpg",
+      "layer": 30,
+      "variant": "image-last",
+      "n_patched_positions": 1,
+      "row_rel_delta": 0.859375,
+      "text": "The image features a large brown bear sitting on a grassy field. The bear appears to be relaxed and enjoying the outdoors. The bear is",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "bear"
+      ],
+      "a_objects_patched": [
+        "bear"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    },
+    {
+      "pair_id": 7,
+      "image_a": "COCO_val2014_000000000285.jpg",
+      "image_b": "COCO_val2014_000000000294.jpg",
+      "layer": 30,
+      "variant": "text",
+      "n_patched_positions": 19,
+      "row_rel_delta": 0.169921875,
+      "text": "The image features a large brown bear sitting on a grassy field. The bear appears to be relaxed and enjoying the outdoors. The bear is",
+      "caption_changed": false,
+      "first_diff_token": null,
+      "a_objects_baseline": [
+        "bear"
+      ],
+      "a_objects_patched": [
+        "bear"
+      ],
+      "b_objects_patched": [],
+      "a_disappearance_rate": 0.0,
+      "b_appearance_rate": 0.0
+    }
+  ],
+  "digest": {
+    "0": {
+      "image": {
+        "n": 8,
+        "changed_rate": 1.0,
+        "mean_first_diff_token": 2.875,
+        "a_disappearance_rate": 1.0,
+        "b_appearance_rate": 0.40625,
+        "row_rel_delta": 1.322265625
+      },
+      "image-last": {
+        "n": 8,
+        "changed_rate": 0.0,
+        "mean_first_diff_token": null,
+        "a_disappearance_rate": 0.0,
+        "b_appearance_rate": 0.0,
+        "row_rel_delta": 1.0068359375
+      },
+      "text": {
+        "n": 8,
+        "changed_rate": 0.375,
+        "mean_first_diff_token": 20.0,
+        "a_disappearance_rate": 0.0625,
+        "b_appearance_rate": 0.0,
+        "row_rel_delta": 0.085723876953125
+      }
+    },
+    "8": {
+      "image": {
+        "n": 8,
+        "changed_rate": 1.0,
+        "mean_first_diff_token": 2.875,
+        "a_disappearance_rate": 1.0,
+        "b_appearance_rate": 0.4375,
+        "row_rel_delta": 1.3603515625
+      },
+      "image-last": {
+        "n": 8,
+        "changed_rate": 0.125,
+        "mean_first_diff_token": 24.0,
+        "a_disappearance_rate": 0.0,
+        "b_appearance_rate": 0.0,
+        "row_rel_delta": 1.0380859375
+      },
+      "text": {
+        "n": 8,
+        "changed_rate": 0.25,
+        "mean_first_diff_token": 25.5,
+        "a_disappearance_rate": 0.0625,
+        "b_appearance_rate": 0.0,
+        "row_rel_delta": 0.0248870849609375
+      }
+    },
+    "12": {
+      "image": {
+        "n": 8,
+        "changed_rate": 1.0,
+        "mean_first_diff_token": 2.75,
+        "a_disappearance_rate": 1.0,
+        "b_appearance_rate": 0.4895833333333333,
+        "row_rel_delta": 1.296875
+      },
+      "image-last": {
+        "n": 8,
+        "changed_rate": 0.25,
+        "mean_first_diff_token": 18.0,
+        "a_disappearance_rate": 0.0,
+        "b_appearance_rate": 0.0,
+        "row_rel_delta": 1.00830078125
+      },
+      "text": {
+        "n": 8,
+        "changed_rate": 0.375,
+        "mean_first_diff_token": 12.0,
+        "a_disappearance_rate": 0.0,
+        "b_appearance_rate": 0.0,
+        "row_rel_delta": 0.0346832275390625
+      }
+    },
+    "16": {
+      "image": {
+        "n": 8,
+        "changed_rate": 1.0,
+        "mean_first_diff_token": 4.625,
+        "a_disappearance_rate": 0.8125,
+        "b_appearance_rate": 0.3333333333333333,
+        "row_rel_delta": 1.24609375
+      },
+      "image-last": {
+        "n": 8,
+        "changed_rate": 0.0,
+        "mean_first_diff_token": null,
+        "a_disappearance_rate": 0.0,
+        "b_appearance_rate": 0.0,
+        "row_rel_delta": 0.98974609375
+      },
+      "text": {
+        "n": 8,
+        "changed_rate": 0.375,
+        "mean_first_diff_token": 5.333333333333333,
+        "a_disappearance_rate": 0.125,
+        "b_appearance_rate": 0.0,
+        "row_rel_delta": 0.052978515625
+      }
+    },
+    "20": {
+      "image": {
+        "n": 8,
+        "changed_rate": 0.875,
+        "mean_first_diff_token": 13.0,
+        "a_disappearance_rate": 0.3125,
+        "b_appearance_rate": 0.125,
+        "row_rel_delta": 1.2255859375
+      },
+      "image-last": {
+        "n": 8,
+        "changed_rate": 0.0,
+        "mean_first_diff_token": null,
+        "a_disappearance_rate": 0.0,
+        "b_appearance_rate": 0.0,
+        "row_rel_delta": 1.06005859375
+      },
+      "text": {
+        "n": 8,
+        "changed_rate": 0.25,
+        "mean_first_diff_token": 12.5,
+        "a_disappearance_rate": 0.1875,
+        "b_appearance_rate": 0.0,
+        "row_rel_delta": 0.079345703125
+      }
+    },
+    "24": {
+      "image": {
+        "n": 8,
+        "changed_rate": 0.125,
+        "mean_first_diff_token": 29.0,
+        "a_disappearance_rate": 0.0,
+        "b_appearance_rate": 0.0,
+        "row_rel_delta": 1.19140625
+      },
+      "image-last": {
+        "n": 8,
+        "changed_rate": 0.125,
+        "mean_first_diff_token": 6.0,
+        "a_disappearance_rate": 0.0,
+        "b_appearance_rate": 0.0,
+        "row_rel_delta": 1.083984375
+      },
+      "text": {
+        "n": 8,
+        "changed_rate": 0.125,
+        "mean_first_diff_token": 4.0,
+        "a_disappearance_rate": 0.125,
+        "b_appearance_rate": 0.0,
+        "row_rel_delta": 0.10186767578125
+      }
+    },
+    "28": {
+      "image": {
+        "n": 8,
+        "changed_rate": 0.5,
+        "mean_first_diff_token": 26.25,
+        "a_disappearance_rate": 0.125,
+        "b_appearance_rate": 0.0,
+        "row_rel_delta": 1.109375
+      },
+      "image-last": {
+        "n": 8,
+        "changed_rate": 0.25,
+        "mean_first_diff_token": 18.5,
+        "a_disappearance_rate": 0.0,
+        "b_appearance_rate": 0.0,
+        "row_rel_delta": 1.00146484375
+      },
+      "text": {
+        "n": 8,
+        "changed_rate": 0.125,
+        "mean_first_diff_token": 30.0,
+        "a_disappearance_rate": 0.0,
+        "b_appearance_rate": 0.0,
+        "row_rel_delta": 0.12432861328125
+      }
+    },
+    "30": {
+      "image": {
+        "n": 8,
+        "changed_rate": 0.25,
+        "mean_first_diff_token": 10.5,
+        "a_disappearance_rate": 0.0,
+        "b_appearance_rate": 0.0,
+        "row_rel_delta": 1.078125
+      },
+      "image-last": {
+        "n": 8,
+        "changed_rate": 0.125,
+        "mean_first_diff_token": 6.0,
+        "a_disappearance_rate": 0.0,
+        "b_appearance_rate": 0.0,
+        "row_rel_delta": 0.970703125
+      },
+      "text": {
+        "n": 8,
+        "changed_rate": 0.25,
+        "mean_first_diff_token": 15.0,
+        "a_disappearance_rate": 0.0,
+        "b_appearance_rate": 0.0,
+        "row_rel_delta": 0.171630859375
+      }
+    }
+  }
+}

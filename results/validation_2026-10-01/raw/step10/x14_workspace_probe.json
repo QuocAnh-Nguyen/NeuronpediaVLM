@@ -1,0 +1,747 @@
+{
+  "per_layer": {
+    "0": {
+      "grounded_rank": 5358.333,
+      "halluc_rank": 787.0,
+      "true_object_rank_at_halluc_positions": 147.5,
+      "last_patch_object_rank": 1919.042,
+      "handoff_true_object_rank_mean": 1572.75,
+      "handoff_true_object_rank_best": 144,
+      "n_grounded": 51,
+      "n_hallucinated": 2
+    },
+    "1": {
+      "grounded_rank": 5174.0,
+      "halluc_rank": 750.5,
+      "true_object_rank_at_halluc_positions": 129.5,
+      "last_patch_object_rank": 1859.083,
+      "handoff_true_object_rank_mean": 1555.167,
+      "handoff_true_object_rank_best": 128,
+      "n_grounded": 51,
+      "n_hallucinated": 2
+    },
+    "2": {
+      "grounded_rank": 5054.059,
+      "halluc_rank": 624.0,
+      "true_object_rank_at_halluc_positions": 156.0,
+      "last_patch_object_rank": 1841.0,
+      "handoff_true_object_rank_mean": 1581.667,
+      "handoff_true_object_rank_best": 160,
+      "n_grounded": 51,
+      "n_hallucinated": 2
+    },
+    "3": {
+      "grounded_rank": 4967.059,
+      "halluc_rank": 776.0,
+      "true_object_rank_at_halluc_positions": 168.5,
+      "last_patch_object_rank": 1986.208,
+      "handoff_true_object_rank_mean": 1674.292,
+      "handoff_true_object_rank_best": 183,
+      "n_grounded": 51,
+      "n_hallucinated": 2
+    },
+    "4": {
+      "grounded_rank": 4809.412,
+      "halluc_rank": 687.5,
+      "true_object_rank_at_halluc_positions": 202.5,
+      "last_patch_object_rank": 2009.458,
+      "handoff_true_object_rank_mean": 1778.833,
+      "handoff_true_object_rank_best": 213,
+      "n_grounded": 51,
+      "n_hallucinated": 2
+    },
+    "5": {
+      "grounded_rank": 5412.627,
+      "halluc_rank": 412.0,
+      "true_object_rank_at_halluc_positions": 303.5,
+      "last_patch_object_rank": 2686.25,
+      "handoff_true_object_rank_mean": 2275.042,
+      "handoff_true_object_rank_best": 359,
+      "n_grounded": 51,
+      "n_hallucinated": 2
+    },
+    "6": {
+      "grounded_rank": 4072.569,
+      "halluc_rank": 639.5,
+      "true_object_rank_at_halluc_positions": 185.5,
+      "last_patch_object_rank": 2019.625,
+      "handoff_true_object_rank_mean": 1773.375,
+      "handoff_true_object_rank_best": 190,
+      "n_grounded": 51,
+      "n_hallucinated": 2
+    },
+    "7": {
+      "grounded_rank": 4316.098,
+      "halluc_rank": 535.5,
+      "true_object_rank_at_halluc_positions": 153.5,
+      "last_patch_object_rank": 1977.75,
+      "handoff_true_object_rank_mean": 1873.917,
+      "handoff_true_object_rank_best": 177,
+      "n_grounded": 51,
+      "n_hallucinated": 2
+    },
+    "8": {
+      "grounded_rank": 4710.843,
+      "halluc_rank": 757.0,
+      "true_object_rank_at_halluc_positions": 102.0,
+      "last_patch_object_rank": 1899.292,
+      "handoff_true_object_rank_mean": 1917.75,
+      "handoff_true_object_rank_best": 120,
+      "n_grounded": 51,
+      "n_hallucinated": 2
+    },
+    "9": {
+      "grounded_rank": 4809.549,
+      "halluc_rank": 794.0,
+      "true_object_rank_at_halluc_positions": 112.0,
+      "last_patch_object_rank": 2086.75,
+      "handoff_true_object_rank_mean": 2083.75,
+      "handoff_true_object_rank_best": 141,
+      "n_grounded": 51,
+      "n_hallucinated": 2
+    },
+    "10": {
+      "grounded_rank": 4773.843,
+      "halluc_rank": 819.0,
+      "true_object_rank_at_halluc_positions": 153.0,
+      "last_patch_object_rank": 1941.333,
+      "handoff_true_object_rank_mean": 2051.625,
+      "handoff_true_object_rank_best": 133,
+      "n_grounded": 51,
+      "n_hallucinated": 2
+    },
+    "11": {
+      "grounded_rank": 4552.922,
+      "halluc_rank": 710.5,
+      "true_object_rank_at_halluc_positions": 124.0,
+      "last_patch_object_rank": 1900.292,
+      "handoff_true_object_rank_mean": 1819.0,
+      "handoff_true_object_rank_best": 137,
+      "n_grounded": 51,
+      "n_hallucinated": 2
+    },
+    "12": {
+      "grounded_rank": 4207.686,
+      "halluc_rank": 723.5,
+      "true_object_rank_at_halluc_positions": 136.5,
+      "last_patch_object_rank": 1787.458,
+      "handoff_true_object_rank_mean": 1913.0,
+      "handoff_true_object_rank_best": 129,
+      "n_grounded": 51,
+      "n_hallucinated": 2
+    },
+    "13": {
+      "grounded_rank": 3289.059,
+      "halluc_rank": 655.5,
+      "true_object_rank_at_halluc_positions": 115.0,
+      "last_patch_object_rank": 1652.417,
+      "handoff_true_object_rank_mean": 1805.375,
+      "handoff_true_object_rank_best": 124,
+      "n_grounded": 51,
+      "n_hallucinated": 2
+    },
+    "14": {
+      "grounded_rank": 3135.588,
+      "halluc_rank": 489.5,
+      "true_object_rank_at_halluc_positions": 141.5,
+      "last_patch_object_rank": 1672.458,
+      "handoff_true_object_rank_mean": 1646.958,
+      "handoff_true_object_rank_best": 75,
+      "n_grounded": 51,
+      "n_hallucinated": 2
+    },
+    "15": {
+      "grounded_rank": 2794.608,
+      "halluc_rank": 478.0,
+      "true_object_rank_at_halluc_positions": 107.0,
+      "last_patch_object_rank": 1952.542,
+      "handoff_true_object_rank_mean": 1741.375,
+      "handoff_true_object_rank_best": 66,
+      "n_grounded": 51,
+      "n_hallucinated": 2
+    },
+    "16": {
+      "grounded_rank": 1987.608,
+      "halluc_rank": 149.0,
+      "true_object_rank_at_halluc_positions": 95.5,
+      "last_patch_object_rank": 1565.417,
+      "handoff_true_object_rank_mean": 1422.917,
+      "handoff_true_object_rank_best": 58,
+      "n_grounded": 51,
+      "n_hallucinated": 2
+    },
+    "17": {
+      "grounded_rank": 1266.588,
+      "halluc_rank": 153.0,
+      "true_object_rank_at_halluc_positions": 101.5,
+      "last_patch_object_rank": 1614.667,
+      "handoff_true_object_rank_mean": 1354.708,
+      "handoff_true_object_rank_best": 53,
+      "n_grounded": 51,
+      "n_hallucinated": 2
+    },
+    "18": {
+      "grounded_rank": 966.902,
+      "halluc_rank": 107.5,
+      "true_object_rank_at_halluc_positions": 85.0,
+      "last_patch_object_rank": 1472.625,
+      "handoff_true_object_rank_mean": 1244.042,
+      "handoff_true_object_rank_best": 44,
+      "n_grounded": 51,
+      "n_hallucinated": 2
+    },
+    "19": {
+      "grounded_rank": 785.059,
+      "halluc_rank": 78.5,
+      "true_object_rank_at_halluc_positions": 88.5,
+      "last_patch_object_rank": 1684.292,
+      "handoff_true_object_rank_mean": 1382.75,
+      "handoff_true_object_rank_best": 36,
+      "n_grounded": 51,
+      "n_hallucinated": 2
+    },
+    "20": {
+      "grounded_rank": 374.157,
+      "halluc_rank": 27.0,
+      "true_object_rank_at_halluc_positions": 15.5,
+      "last_patch_object_rank": 1407.667,
+      "handoff_true_object_rank_mean": 952.5,
+      "handoff_true_object_rank_best": 34,
+      "n_grounded": 51,
+      "n_hallucinated": 2
+    },
+    "21": {
+      "grounded_rank": 166.745,
+      "halluc_rank": 35.5,
+      "true_object_rank_at_halluc_positions": 18.0,
+      "last_patch_object_rank": 1327.208,
+      "handoff_true_object_rank_mean": 783.417,
+      "handoff_true_object_rank_best": 25,
+      "n_grounded": 51,
+      "n_hallucinated": 2
+    },
+    "22": {
+      "grounded_rank": 21.922,
+      "halluc_rank": 9.5,
+      "true_object_rank_at_halluc_positions": 35.0,
+      "last_patch_object_rank": 1495.667,
+      "handoff_true_object_rank_mean": 825.417,
+      "handoff_true_object_rank_best": 14,
+      "n_grounded": 51,
+      "n_hallucinated": 2
+    },
+    "23": {
+      "grounded_rank": 14.667,
+      "halluc_rank": 8.0,
+      "true_object_rank_at_halluc_positions": 24.0,
+      "last_patch_object_rank": 1436.708,
+      "handoff_true_object_rank_mean": 836.833,
+      "handoff_true_object_rank_best": 14,
+      "n_grounded": 51,
+      "n_hallucinated": 2
+    },
+    "24": {
+      "grounded_rank": 4.863,
+      "halluc_rank": 6.5,
+      "true_object_rank_at_halluc_positions": 25.0,
+      "last_patch_object_rank": 1403.333,
+      "handoff_true_object_rank_mean": 704.458,
+      "handoff_true_object_rank_best": 15,
+      "n_grounded": 51,
+      "n_hallucinated": 2
+    },
+    "25": {
+      "grounded_rank": 2.412,
+      "halluc_rank": 5.0,
+      "true_object_rank_at_halluc_positions": 26.5,
+      "last_patch_object_rank": 1737.125,
+      "handoff_true_object_rank_mean": 779.333,
+      "handoff_true_object_rank_best": 6,
+      "n_grounded": 51,
+      "n_hallucinated": 2
+    },
+    "26": {
+      "grounded_rank": 1.176,
+      "halluc_rank": 4.5,
+      "true_object_rank_at_halluc_positions": 22.0,
+      "last_patch_object_rank": 1523.292,
+      "handoff_true_object_rank_mean": 695.25,
+      "handoff_true_object_rank_best": 7,
+      "n_grounded": 51,
+      "n_hallucinated": 2
+    },
+    "27": {
+      "grounded_rank": 1.098,
+      "halluc_rank": 2.0,
+      "true_object_rank_at_halluc_positions": 20.0,
+      "last_patch_object_rank": 1279.125,
+      "handoff_true_object_rank_mean": 548.458,
+      "handoff_true_object_rank_best": 7,
+      "n_grounded": 51,
+      "n_hallucinated": 2
+    },
+    "28": {
+      "grounded_rank": 1.098,
+      "halluc_rank": 3.5,
+      "true_object_rank_at_halluc_positions": 22.5,
+      "last_patch_object_rank": 1303.833,
+      "handoff_true_object_rank_mean": 777.542,
+      "handoff_true_object_rank_best": 10,
+      "n_grounded": 51,
+      "n_hallucinated": 2
+    },
+    "29": {
+      "grounded_rank": 1.098,
+      "halluc_rank": 5.0,
+      "true_object_rank_at_halluc_positions": 16.5,
+      "last_patch_object_rank": 1547.208,
+      "handoff_true_object_rank_mean": 895.292,
+      "handoff_true_object_rank_best": 18,
+      "n_grounded": 51,
+      "n_hallucinated": 2
+    },
+    "30": {
+      "grounded_rank": 1.176,
+      "halluc_rank": 6.0,
+      "true_object_rank_at_halluc_positions": 20.0,
+      "last_patch_object_rank": 1414.75,
+      "handoff_true_object_rank_mean": 1173.042,
+      "handoff_true_object_rank_best": 59,
+      "n_grounded": 51,
+      "n_hallucinated": 2
+    },
+    "31": {
+      "grounded_rank": 1.0,
+      "halluc_rank": 1.0,
+      "true_object_rank_at_halluc_positions": 16.0,
+      "last_patch_object_rank": 1195.708,
+      "handoff_true_object_rank_mean": 3463.625,
+      "handoff_true_object_rank_best": 566,
+      "n_grounded": 51,
+      "n_hallucinated": 2
+    }
+  },
+  "meta": {
+    "created_utc": "2026-10-10T15:19:54.079428+00:00",
+    "backend": "hf-llava",
+    "lens_dir": "/data/anhnq/vlm-lens-out/validation/s2-merged/artifacts",
+    "mask": "text",
+    "bias_dir": "/data/anhnq/vlm-lens-out/validation/step5e",
+    "identity_lens": {
+      "note": "torch.eye per fitted layer; readout = unembed(s_l*(h_l+b_l)) + logit_bias_l",
+      "d_model": 4096,
+      "layers": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30
+      ],
+      "n_prompts": 100
+    },
+    "calibrated": {
+      "bias_layers": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30
+      ],
+      "scale_layers": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30
+      ],
+      "temp_layers": [],
+      "logit_bias_layers": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30
+      ]
+    },
+    "bias_meta": {
+      "lens_dir": "/data/anhnq/vlm-lens-out/validation/s2-merged/artifacts",
+      "mask": "text",
+      "n_samples_used": 100,
+      "skip_first": 1,
+      "created_utc": "2026-10-08T20:47:35.744666+00:00",
+      "estimator": "b_l = mean(h_final) - J_l @ mean(h_l); s_l = mean(<J_l @ h_l, h_final>) / mean(||J_l @ h_l||^2), s_l = 1.0 when mean(||J_l @ h_l||^2) < 1e-12",
+      "scale_clamp": [
+        0.5,
+        2.0
+      ],
+      "logit_bias_source": "calib_logitgap (mean z_lens - z_model, base config)"
+    },
+    "question": "Describe this image in detail.",
+    "prompt": "USER: <image>\nDescribe this image in detail.\nASSISTANT:",
+    "images_dir": "/data/baodq/coco2014/val2014",
+    "annotations": "/data/baodq/coco2014/annotations/instances_val2014.json",
+    "n_images": 24,
+    "n_images_skipped_no_annotations": 0,
+    "max_new_tokens": 40,
+    "max_seq_len": 1536,
+    "n_tokens_generated": 960,
+    "n_words_grounded": 51,
+    "n_words_hallucinated": 2,
+    "matcher": "x13 detect_mentions-style matcher: the whole generated sequence is decoded ONCE with special tokens dropped (decoding per token and joining would strip every sentencepiece '\u2581' lead space and glue the words together, killing every word-boundary match), the text is lowercased, and the 80 COCO category names are matched longest-first with word boundaries, an optional (s|es) plural suffix tolerated, and span masking (each match is blanked with same-length spaces so offsets stay valid and 'hot dog' does not also match 'dog'); each occurrence is attributed to the DECODING STEP whose generated token emits the word's final character (prefix-decode offsets give each token's character span in the caption); irregular plurals (person/people, mouse/mice) are a documented gap",
+    "handoff_rank": true,
+    "handoff_rule": "at the LAST PROMPT position \u2014 the prefill forward's decoding position, whose distribution predicts generated token 0 (the final 'ASSISTANT:' prompt token, right before the first generated token) \u2014 the calibrated lens distribution is probed with the image's true category token ids (the last subword of ' ' + name); per image the best (lowest) rank among the image's categories is kept, then per layer the mean over images is handoff_true_object_rank_mean and the best over images is handoff_true_object_rank_best; step_records[0] IS this position's cached residual, so the measurement reuses the generation pass",
+    "category_token_rule": "an image category is probed through the LAST subword id of ' ' + name (the leading-space emission form, mirroring interventions._token_id)",
+    "rank_rule": "1-based rank, ties count as better ranks (s2_eval._rank_of_row semantics)",
+    "images": [
+      {
+        "image": "COCO_val2014_000000036773.jpg",
+        "text": "The image captures a tennis match in progress, with a man in a white shirt and white shorts playing tennis on a court. He is in the middle of a swing, holding a tennis",
+        "n_generated": 40,
+        "n_words_matched": 0,
+        "grounded": [],
+        "hallucinated": []
+      },
+      {
+        "image": "COCO_val2014_000000068409.jpg",
+        "text": "The image is a black and white photograph of a group of young boys wearing suits and ties. They are sitting together, with some of them posing for a picture. The boys are",
+        "n_generated": 40,
+        "n_words_matched": 1,
+        "grounded": [
+          "tie"
+        ],
+        "hallucinated": []
+      },
+      {
+        "image": "COCO_val2014_000000089405.jpg",
+        "text": "The image features a vase filled with white roses, placed on a table. The vase is positioned in the center of the scene, and the roses are spread throughout the vase",
+        "n_generated": 40,
+        "n_words_matched": 3,
+        "grounded": [
+          "vase"
+        ],
+        "hallucinated": []
+      },
+      {
+        "image": "COCO_val2014_000000092801.jpg",
+        "text": "The image features a brown and white cat lying down in an open suitcase. The cat appears to be relaxed and comfortable in the suitcase. The suitcase is filled with various items, including",
+        "n_generated": 40,
+        "n_words_matched": 5,
+        "grounded": [
+          "cat",
+          "suitcase"
+        ],
+        "hallucinated": []
+      },
+      {
+        "image": "COCO_val2014_000000131969.jpg",
+        "text": "The image features a yellow fire hydrant situated on a sidewalk near a busy street. The fire hydrant is located close to a bus stop, with a bus visible in the background. There are",
+        "n_generated": 40,
+        "n_words_matched": 4,
+        "grounded": [
+          "fire hydrant"
+        ],
+        "hallucinated": [
+          "bus"
+        ]
+      },
+      {
+        "image": "COCO_val2014_000000132389.jpg",
+        "text": "The image features a white and brown dog standing on a brick sidewalk. The dog is wearing a black collar and appears to be on a leash. The dog is positioned in the",
+        "n_generated": 40,
+        "n_words_matched": 3,
+        "grounded": [
+          "dog"
+        ],
+        "hallucinated": []
+      },
+      {
+        "image": "COCO_val2014_000000138644.jpg",
+        "text": "The image features a woman with short hair, wearing a black shirt, and holding a banana in her mouth. She appears to be playfully posing for the camera. The woman is",
+        "n_generated": 40,
+        "n_words_matched": 1,
+        "grounded": [
+          "banana"
+        ],
+        "hallucinated": []
+      },
+      {
+        "image": "COCO_val2014_000000205332.jpg",
+        "text": "The image features a man standing in a grassy field, holding a green frisbee in his hand. He appears to be preparing to throw the frisbee, possibly engaging",
+        "n_generated": 40,
+        "n_words_matched": 2,
+        "grounded": [
+          "frisbee"
+        ],
+        "hallucinated": []
+      },
+      {
+        "image": "COCO_val2014_000000235017.jpg",
+        "text": "The image features a woman standing on a sidewalk, holding a red and black umbrella above her head. She is wearing a yellow skirt and appears to be enjoying her time out",
+        "n_generated": 40,
+        "n_words_matched": 1,
+        "grounded": [
+          "umbrella"
+        ],
+        "hallucinated": []
+      },
+      {
+        "image": "COCO_val2014_000000243218.jpg",
+        "text": "The image features a black cat lying on a bed, stretching out and enjoying its time. The cat is positioned in the center of the bed, with its body occupying a significant portion",
+        "n_generated": 40,
+        "n_words_matched": 4,
+        "grounded": [
+          "bed",
+          "cat"
+        ],
+        "hallucinated": []
+      },
+      {
+        "image": "COCO_val2014_000000264853.jpg",
+        "text": "The image features a man wearing a black jacket and a white cap, standing on a tennis court and holding a tennis racket. He appears to be in a defensive stance, ready",
+        "n_generated": 40,
+        "n_words_matched": 1,
+        "grounded": [
+          "tennis racket"
+        ],
+        "hallucinated": []
+      },
+      {
+        "image": "COCO_val2014_000000285451.jpg",
+        "text": "The image features a man wearing glasses and a blue sweater, sitting at a desk and talking on his cell phone. He appears to be smiling while engaged in the conversation. The",
+        "n_generated": 40,
+        "n_words_matched": 1,
+        "grounded": [
+          "cell phone"
+        ],
+        "hallucinated": []
+      },
+      {
+        "image": "COCO_val2014_000000292060.jpg",
+        "text": "The image depicts a clean and well-organized kitchen with white cabinets and a white stove. The kitchen features a sink, an oven, and a refrigerator.",
+        "n_generated": 40,
+        "n_words_matched": 3,
+        "grounded": [
+          "oven",
+          "refrigerator",
+          "sink"
+        ],
+        "hallucinated": []
+      },
+      {
+        "image": "COCO_val2014_000000336340.jpg",
+        "text": "The image features a wooden bench situated near a body of water, possibly a river or a lake. A duck is swimming in the water close to the bench, adding a sense of",
+        "n_generated": 40,
+        "n_words_matched": 2,
+        "grounded": [
+          "bench"
+        ],
+        "hallucinated": []
+      },
+      {
+        "image": "COCO_val2014_000000361860.jpg",
+        "text": "The image captures a snowboarder in mid-air, performing a jump on a snow-covered slope. The snowboarder is wearing a striped jacket and is the main",
+        "n_generated": 40,
+        "n_words_matched": 0,
+        "grounded": [],
+        "hallucinated": []
+      },
+      {
+        "image": "COCO_val2014_000000380828.jpg",
+        "text": "The image depicts a group of people sitting on a bench outside a bookstore. There are at least five people in the scene, with some sitting on the bench and others standing nearby",
+        "n_generated": 40,
+        "n_words_matched": 2,
+        "grounded": [
+          "bench"
+        ],
+        "hallucinated": []
+      },
+      {
+        "image": "COCO_val2014_000000395714.jpg",
+        "text": "The image features a BBQ grill with a total of nine hot dogs cooking on it. The hot dogs are placed in various positions on the grill, with some closer to the front and",
+        "n_generated": 40,
+        "n_words_matched": 2,
+        "grounded": [
+          "hot dog"
+        ],
+        "hallucinated": []
+      },
+      {
+        "image": "COCO_val2014_000000448974.jpg",
+        "text": "The image features a person holding a cell phone in their hand. The cell phone is positioned in the center of the scene, with the person's hand surrounding it. The person is also holding",
+        "n_generated": 40,
+        "n_words_matched": 5,
+        "grounded": [
+          "cell phone",
+          "person"
+        ],
+        "hallucinated": []
+      },
+      {
+        "image": "COCO_val2014_000000457566.jpg",
+        "text": "The image features a dining table with a plate of food placed on it. The plate contains a sandwich, which appears to be a club sandwich, and a side of salad. There",
+        "n_generated": 40,
+        "n_words_matched": 3,
+        "grounded": [
+          "dining table",
+          "sandwich"
+        ],
+        "hallucinated": []
+      },
+      {
+        "image": "COCO_val2014_000000475229.jpg",
+        "text": "The image features a man wearing a blue jacket and goggles, standing on a snow-covered slope with a snowboard attached to his feet. He is smiling and appears",
+        "n_generated": 40,
+        "n_words_matched": 1,
+        "grounded": [
+          "snowboard"
+        ],
+        "hallucinated": []
+      },
+      {
+        "image": "COCO_val2014_000000481518.jpg",
+        "text": "The image features a man and a woman standing in a room, both holding Wii remotes and playing a video game together. They are the main focus of the scene, with the man on the",
+        "n_generated": 40,
+        "n_words_matched": 1,
+        "grounded": [
+          "remote"
+        ],
+        "hallucinated": []
+      },
+      {
+        "image": "COCO_val2014_000000501502.jpg",
+        "text": "The image features a large Delta Airlines airplane parked on a runway at an airport. The airplane is positioned in the middle of the scene, with its nose pointing towards the",
+        "n_generated": 40,
+        "n_words_matched": 2,
+        "grounded": [
+          "airplane"
+        ],
+        "hallucinated": []
+      },
+      {
+        "image": "COCO_val2014_000000549780.jpg",
+        "text": "The image features a person holding a hot dog with chili on it. The hot dog is placed in the center of the scene, and the person is holding it with their right hand. The ch",
+        "n_generated": 40,
+        "n_words_matched": 4,
+        "grounded": [
+          "hot dog",
+          "person"
+        ],
+        "hallucinated": []
+      },
+      {
+        "image": "COCO_val2014_000000567053.jpg",
+        "text": "The image features a small white and blue airplane parked on a runway. The airplane is positioned in the middle of the scene, with its wings visible. The runway appears to",
+        "n_generated": 40,
+        "n_words_matched": 2,
+        "grounded": [
+          "airplane"
+        ],
+        "hallucinated": []
+      }
+    ]
+  }
+}
