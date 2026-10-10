@@ -920,3 +920,28 @@ Status: phase3c's 23.7-h target_mask=text refit COMPLETED 20:44 (its zoo was kil
 an unrelated SIGTERM; re-launched as phase7: the tmtext50 lens bare + with the best payload).
 Artifacts: step5/{jacobian_structure,synth/,ident/,calib/,span_overlap,W_U.pt,lens_zoo_*},
 step6-lowrank, step6-raw, step5e/bias-text.pt; commits 29fa836, 893f8d2.
+
+## D42 - 2026-10-10 ~00:20Z: target_mask=text confirmed at n=50 and COMPOSES with the calibration payload - the final deployment recipe
+
+The phase3c 23.7-h refit (target_mask=text, 50 samples, all layers, fp32+TF32) completed 20:44;
+its zoo was killed 8 s in by an unrelated SIGTERM and re-run as phase7 (bare + with the best
+payload). Verdicts, 300-sample held-out (tag=text):
+
+* BARE: LQS +0.337, L30 ratio 2.667 - the D40 x1_text finding (LQS +0.116, L30 2.61 at n=20)
+  CONFIRMS at n=50 and the lever is stable across sample counts (+0.44 LQS over the all-target
+  merged at bare). Mid-layer trades off as noted (L16 41.2 vs the merged's 30.7).
+* COMPOSED (step5e payload: census bias+scale + logit_bias): **LQS +0.947, L30 ratio 1.30** -
+  better than the merged+payload (+0.922 / 1.79) and THE BEST LATE-LAYER READOUT MEASURED, J or
+  tuned-lens (the rank-32 translators' L30: 5.62-5.82). Mid-layer stays behind (L16 37.7, L20
+  30.8 vs the merged+payload's 21.4/15.3) - the image-target exclusion sharpens exactly the
+  late (image->text handoff) layers.
+
+FINAL RECOMMENDATION (the complete ladder, 300-sample held-out):
+* LATE-LAYER / captioning-disposition readouts (the hallucination-commitment region):
+  **tmtext50 + census bias+scale + logit_bias = LQS +0.947, L30 ratio 1.30** (artifacts
+  tmtext-half-a + step5e).
+* MID-LAYER readouts: rank-32 KL-distilled translators (LQS 1.72, step6-lowrank/step6-raw) or
+  the merged lens + the same payload (+0.922).
+* The J-lens's unique value over the tuned lens remains the L30 transport (1.30 vs 5.6-5.8);
+  for mid-layer fidelity prefer distilled translators.
+Artifacts: step4/lens_zoo_tmtext{,_cal}.json; phase7 launcher; commit follows.
