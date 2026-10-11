@@ -50,7 +50,7 @@
     "split": "train",
     "version": 1
   },
-  "created_utc": "2026-10-02T06:02:49+00:00",
+  "created_utc": "2026-10-03T13:52:54+00:00",
   "environment": {
     "jlens_vendored_commit": "581d398613e5602a5af361e1c34d3a92ea82ba8e",
     "jlens_vendored_dir": "/home/nvidia-lab/ai4life/phuongnh/vlm-lens/third_party/jacobian-lens",
@@ -70,7 +70,7 @@
     "n_skipped": 0,
     "prompt_template_sha256": null,
     "skipped_examples": [],
-    "wall_seconds": 51.3
+    "wall_seconds": 52.8
   },
   "fit_config": {
     "dim_batch": 8,

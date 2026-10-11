@@ -25,7 +25,10 @@ Gurnee et al. 2026 replicates on this VLM, with a novel persistent non-verbal se
   (campaign-local; the repository register's D-table is unrelated). Experiment codes X*/S*/P* follow the
   campaign registers; V1 etc. are the repo register's hypothesis identifiers.
 * Every figure is regenerable via `results/validation_2026-10-01/code/figures_instrument.py` (figA*),
-  `figures_hallucination.py` (figB*), `figures_workspace.py` (figC*), and is embedded exactly once below.
+  `figures_hallucination.py` (figB*), `figures_workspace.py` (figC*), `figures_d_improve.py` /
+  `figures_d_detect.py` / `figures_d_campaign.py` (figD*, the second visualization round covering X1/X7,
+  the improvement mechanics, detection details, S2 design, and the operations timeline), and each is
+  embedded exactly once below.
 
 ---
 
@@ -139,6 +142,12 @@ layer except the L17–24 bump (2228.8 vs 2119.3), exact at L31 (rank 27.31 = mo
   fitted lenses bump — A2's single-linear-map approximation degrades mid-band, Stage 2's target. Transfer keeps
   the rank-vs-KL tension honest: S1 wins L30 rank on captions (109.49 vs 215.21), S2 wins agree/KL (0.729/0.428
   vs 0.706/0.474).
+![figD9](figures/figD9_s2_halves_transfer.png)
+*figD9 — S2 caption lens (`step3/s2_eval.json`): merged 100-sample lens text-tag rank 26120.6 → 1307.6 (L16) →
+215.2 (L30) → 42.62 at L31 (identity exact); instruction halves symmetric (lens_a own 233.00 vs cross 231.83;
+lens_b 197.81 vs 203.15 — merge ≡ single fit, D7/D35); cross-corpus transfer: the caption lens reads WikiText
+at 2.49× ceiling (L30 67.9 vs 27.28), the text lens reads captions at 109.49 rank — and the L20 bump appears in
+both transfers, the fitted-map signature X11 pinned on the map, not the model (D37).*
 
 ### X1 target-mask separation (V1)
 
@@ -160,6 +169,11 @@ layer except the L17–24 bump (2228.8 vs 2119.3), exact at L31 (rank 27.31 = mo
 * **INTERPRETATION.** **V1 confirmed**: image rows are not next-text predictors; a readout at an image position
   is a first-order disposition to verbalize, not a prediction — binding Stages 3–4.
 
+![figD1](figures/figD1_targetmask_conditioning.png)
+*figD1 — target-mask separation and swap-basis conditioning (`step4/x1_targetmask.json`, `x7_x9.json`): image
+rows move rel_fro 24.5 → 255 (L0 → L30) while cosine collapses 0.39 → 0.09; text rows differ only at the TF32
+noise floor (1.37e-2 → 1.75e-6; the `torch.equal` criterion failed by construction, D36) — V1 confirmed. Right:
+all 10 COCO pair bases are well-conditioned (cond 1.30–2.89 at L8/16/24, ~345× below the 1e3 exclusion line).*
 ### X7 conditioning and X9 edit sweep (figB1)
 
 * **WHY.** Are the lens's directions (rows of `W_U J_l`) a live causal handle: well-conditioned swap bases, and
@@ -215,6 +229,12 @@ in alpha (ablate 7/16/24/34%, swap 7/12/24/39% at α = 0.5/1/2/4), but concept-d
   becomes the lens's *best* zone (KL 2.6–4.0 vs unbiased 5.0–6.6; L20 rank ratio 19.0 vs 64.6), superseding
   D39(c). What survives is A2's true variance limit — the translator class's job.
 
+![figD2](figures/figD2_affine_transport.png)
+*figD2 — the affine correction and the transport decomposition (`step4/lens_zoo{,_biased,_biased_clamped}.json`,
+`step5/lens_zoo_{ident,cal}.json`): bias+scale collapses the mid-band bump (L20 rank 2753.0 → 811.3; ratio
+2.11 → 0.68) and the clamp fixes the L0–4 blowup (KL 21.9 → 7.0; LQS −0.102 → +0.335 → +0.766); transport is
+worthless at L0–7, peaks across L17–28, and delivers −0.508 at L30 (rank 127.7 → 76.9) — affine does the early
+work, transport the late work (D40/D41).*
 ### P5 model-class ladder (figA4)
 
 * **WHY.** Where does the J's value live — transport (`J_l` vs identity), affine correction, or calibration? Can
@@ -246,6 +266,19 @@ in alpha (ablate 7/16/24/34%, swap 7/12/24/39% at α = 0.5/1/2/4), but concept-d
 *figA4 — the model-class ladder (LQS on 300 held-out captions): diag(J) +0.374, shiftP4 +0.524, ident+bias
 +0.647, J+bias+scale +0.766, +logit_bias +0.922, tmtext50+payload +0.947; rank-32 translators lead overall
 (1.714/1.718) but lose 3× at L30 (5.62–5.82 vs 1.30–1.79) (DECISIONS.md D41/D42).*
+
+![figD3](figures/figD3_jacobian_structure.png)
+*figD3 — the average-Jacobian becomes identity-like (`step5/jacobian_structure.json`): α_ls = trace(J)/d crosses
+1 across L20–23 (0.046 → 1.043); the early J is a few dominant off-diagonal directions (top-64 energy 87.5% at
+L0 → 9.9% at L30; symmetry 1.41 → 0.51; diag mass 0.04 → 5.3%) — which is why rank compression loses: truncation
+strips exactly the near-identity mass that carries the late-layer value (D41).*
+
+![figD4](figures/figD4_span_overlap.png)
+*figD4 — span overlap explains the edit thresholds (`step5/span_overlap.json`): the J's top-64 right-singular
+directions carry only 3.5–10.6% energy in `W_U`'s readout span (chance 3.125%), so a residual-level edit needs
+~10–30× magnitude to move logits (D39's α 5–14×; x9b's α ≈ 27 → 82% change); cross-layer overlap vs the final
+layer stays near chance (2.4e-4) until L16, then 0.018–0.050 across L20–26 — 75–200× chance, the tuned lens's
+covariance drift quantified (D41).*
 
 ### P3 alpha sweep (figB1, above)
 
@@ -405,6 +438,26 @@ a GROUNDED category's direction destroys retention 0.97 → 0.35 — a training-
   attention is exonerated; per-word uncertainty is real but weak; the components of image-level risk are
   complementary (H8).
 
+![figD5](figures/figD5_pope_handoff.png)
+*figD5 — the pre-generation POPE handoff (`step11/x18_pope_handoff.json`): the calibrated lens's z[yes]−z[no]
+gap at the last prompt position separates present (mean +5.28, n=87) from absent (−4.97, n=98) questions at
+AUROC 0.985 (L28), and the model's 8 hallucinated yes-answers sit low-gap (halluc-positive AUROC 0.106 → 0.894
+as a low-gap detector) — a training-free, single-forward truth readout (D45/D46).*
+
+![figD6](figures/figD6_uncertainty_signals.png)
+*figD6 — decoding-time uncertainty (`step11/x15_hesitation_n200.json`): hallucinated word-completion steps are
+measurably more hesitant (entropy 0.963 vs 0.620, margin 4.53 vs 5.55, logprob −0.384 vs −0.230; n = 39/385),
+and the calibrated lens's entropy is the better signal — AUROC 0.730 at L7 vs the model's own 0.593 — with
+signal concentrated at L4–7 (D46).*
+
+![figD7](figures/figD7_mirror_and_sink.png)
+*figD7 — attention mirrors, sinks anchor (`step11/x17_attention_mirror_n200.json`, `x16_sink_clamp.json`): the
+CLS→patch ↔ text→image Spearman mirror replicates at 10× n (0.105 → 0.645 at L20 → 0.199 at L30: vision tower
+early, verbal workspace late) but does not predict hallucination (join AUROC 0.501 — clean null). The BOS
+massive-activation sink is load-bearing (clamping collapses grounded retention to 0.278 at L16 and explodes the
+handoff rank +1433) while image-token massive dims are inert (0.94–1.00); the BOS clamp set is stable across
+L16–30 (14/16 dims shared, recomputed from the JSON; D46 records the set).*
+
 ### The detector ledger (figB5)
 
 * **WHY.** One comparable table for every training-free hallucination signal measured in Stages 3–4. All signals
@@ -540,6 +593,13 @@ across L12→L31) while objects appear there only in the motor regime (object-in
 positions stay token-local (z 0.2–2.0) and hold the object workspace; image-sourced swaps flip reports 0.0% vs
 text 1.7% / all 2.1% (`raw/step12/x23_vlm_workspace_band.json`, `x23_vlm_workspace_report.json`).*
 
+![figD8](figures/figD8_workspace_dynamics.png)
+*figD8 — workspace reasoning dynamics (`step12/x22_reasoning_structure_multihop.json`,
+`x22_reasoning_structure_flexgen.json`, `x23_vlm_workspace_modulation.json`): two-hop intermediates surface in
+the lens and are causally used before answers (effective-onset gap −0.176 vs the paper's ≈−0.17; probe pass@1
+0.269); broadcast-style flexible generalization stays weak (5% at both α vs the paper's 40/53%; loading
+Pearson +0.256); modulation-during-captioning: concept mention 0.37 of 590 instructed runs, concept-vs-visual
+co-occupancy elevated in-band (z 1.3–1.7) without the paper's clear task exclusion (D47).*
 ### Interpretation
 
 * **STRUCTURE YES, LEVERAGE WEAK.** LLaVA-1.5-7B possesses the J-space's structural workspace properties (band,
@@ -562,6 +622,12 @@ text 1.7% / all 2.1% (`raw/step12/x23_vlm_workspace_band.json`, `x23_vlm_workspa
 | ENOSPC (D24/D46) | `/data` at 100%: `torch.save` died in its zip trailer; even ~3 KB saves failed; second full-disk hit in round 3 | Path-aware `DISK_NEED` disk gates + output relocation to a writable mount (D25/D30, `/home/nvidia` in round 3) |
 | Fingerprint rigidity (D13) | Checkpoint settings fingerprints include `dim_batch`, so resuming at a different value hard-fails even though it is mathematically inert | Keep `dim_batch` fixed per run; docs note resume requires the same value |
 | Estimator memory shape (F10/D21) | One forward on a `dim_batch`-fold expanded batch; the graph is retained from `min(source_layers)` across all `ceil(d_model/dim_batch)` backwards — at `dim_batch=8` the expanded graph (~30 GB at the 13B geometry) survives all 640 backwards | `dim_batch` is the dominant OOM lever (a memory knob, not compute); `dim_batch=1` fits under 36 GiB guards |
+
+![figD10](figures/figD10_campaign_timeline.png)
+*figD10 — the campaign timeline (2026-10-01 → 10-11, parsed from DECISIONS.md D-headers): phase lanes and the
+14 operational incidents that shaped the tooling (OOM storms, external SIGKILLs, the TFLOPS derate, two ENOSPC
+events, two box relocations); inset: reported GPU-hours by phase from REPORT.md §9 (measured vs derived
+marked). Schematic spans are disclosed in the figure footnote.*
 
 Supervisor lineage: memory guards → `gpu_guard.sh` (occupancy + speed probe + hang trip) → `fit_supervisor.sh`
 for the multi-arch shards (wait-for-slot polling; early-OOM load-window trial — a candidate GPU is accepted only

@@ -1,0 +1,307 @@
+{
+  "mask": "text",
+  "source_layers": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30
+  ],
+  "d_model": 4096,
+  "layers": {
+    "0": {
+      "readout_energy": 0.035444,
+      "cross_layer_overlap": 0.000201,
+      "sv_s1": 106.756271,
+      "sv_s8": 25.244284,
+      "sv_sk": 6.871042,
+      "participation_ratio": 29.969968
+    },
+    "1": {
+      "readout_energy": 0.036684,
+      "cross_layer_overlap": 0.000293,
+      "sv_s1": 75.670967,
+      "sv_s8": 20.422106,
+      "sv_sk": 5.89619,
+      "participation_ratio": 33.076737
+    },
+    "2": {
+      "readout_energy": 0.036127,
+      "cross_layer_overlap": 0.000361,
+      "sv_s1": 70.381996,
+      "sv_s8": 18.650749,
+      "sv_sk": 5.124427,
+      "participation_ratio": 33.026749
+    },
+    "3": {
+      "readout_energy": 0.037167,
+      "cross_layer_overlap": 0.00025,
+      "sv_s1": 65.363701,
+      "sv_s8": 16.750837,
+      "sv_sk": 4.832083,
+      "participation_ratio": 33.667668
+    },
+    "4": {
+      "readout_energy": 0.036672,
+      "cross_layer_overlap": 0.000282,
+      "sv_s1": 59.998135,
+      "sv_s8": 14.454721,
+      "sv_sk": 4.297011,
+      "participation_ratio": 33.262024
+    },
+    "5": {
+      "readout_energy": 0.035023,
+      "cross_layer_overlap": 0.000365,
+      "sv_s1": 60.934757,
+      "sv_s8": 13.648808,
+      "sv_sk": 4.204403,
+      "participation_ratio": 32.79285
+    },
+    "6": {
+      "readout_energy": 0.051693,
+      "cross_layer_overlap": 0.00033,
+      "sv_s1": 17.617868,
+      "sv_s8": 5.998854,
+      "sv_sk": 2.273011,
+      "participation_ratio": 42.954132
+    },
+    "7": {
+      "readout_energy": 0.051831,
+      "cross_layer_overlap": 0.000427,
+      "sv_s1": 16.409004,
+      "sv_s8": 5.755465,
+      "sv_sk": 2.180617,
+      "participation_ratio": 43.050029
+    },
+    "8": {
+      "readout_energy": 0.052815,
+      "cross_layer_overlap": 0.000499,
+      "sv_s1": 14.724601,
+      "sv_s8": 5.12664,
+      "sv_sk": 2.116963,
+      "participation_ratio": 45.827423
+    },
+    "9": {
+      "readout_energy": 0.054211,
+      "cross_layer_overlap": 0.000991,
+      "sv_s1": 13.877103,
+      "sv_s8": 5.05675,
+      "sv_sk": 2.125043,
+      "participation_ratio": 46.342624
+    },
+    "10": {
+      "readout_energy": 0.053716,
+      "cross_layer_overlap": 0.001223,
+      "sv_s1": 12.546035,
+      "sv_s8": 4.830118,
+      "sv_sk": 2.102909,
+      "participation_ratio": 47.212822
+    },
+    "11": {
+      "readout_energy": 0.054058,
+      "cross_layer_overlap": 0.002445,
+      "sv_s1": 11.937794,
+      "sv_s8": 4.693752,
+      "sv_sk": 2.167905,
+      "participation_ratio": 48.672545
+    },
+    "12": {
+      "readout_energy": 0.054531,
+      "cross_layer_overlap": 0.003547,
+      "sv_s1": 12.284664,
+      "sv_s8": 5.084311,
+      "sv_sk": 2.30353,
+      "participation_ratio": 49.928607
+    },
+    "13": {
+      "readout_energy": 0.05723,
+      "cross_layer_overlap": 0.004571,
+      "sv_s1": 12.077473,
+      "sv_s8": 5.090168,
+      "sv_sk": 2.385135,
+      "participation_ratio": 51.313094
+    },
+    "14": {
+      "readout_energy": 0.063534,
+      "cross_layer_overlap": 0.005175,
+      "sv_s1": 11.877625,
+      "sv_s8": 5.110147,
+      "sv_sk": 2.523973,
+      "participation_ratio": 52.765099
+    },
+    "15": {
+      "readout_energy": 0.058625,
+      "cross_layer_overlap": 0.006315,
+      "sv_s1": 10.894057,
+      "sv_s8": 4.881433,
+      "sv_sk": 2.510678,
+      "participation_ratio": 54.564798
+    },
+    "16": {
+      "readout_energy": 0.067937,
+      "cross_layer_overlap": 0.010943,
+      "sv_s1": 9.789595,
+      "sv_s8": 4.229782,
+      "sv_sk": 2.453146,
+      "participation_ratio": 55.09209
+    },
+    "17": {
+      "readout_energy": 0.073563,
+      "cross_layer_overlap": 0.01226,
+      "sv_s1": 9.431753,
+      "sv_s8": 4.273538,
+      "sv_sk": 2.545243,
+      "participation_ratio": 56.083222
+    },
+    "18": {
+      "readout_energy": 0.069197,
+      "cross_layer_overlap": 0.012162,
+      "sv_s1": 8.974459,
+      "sv_s8": 4.049696,
+      "sv_sk": 2.443789,
+      "participation_ratio": 56.42462
+    },
+    "19": {
+      "readout_energy": 0.07185,
+      "cross_layer_overlap": 0.010074,
+      "sv_s1": 8.672516,
+      "sv_s8": 3.844961,
+      "sv_sk": 2.427277,
+      "participation_ratio": 56.959719
+    },
+    "20": {
+      "readout_energy": 0.073074,
+      "cross_layer_overlap": 0.018136,
+      "sv_s1": 8.540746,
+      "sv_s8": 3.648936,
+      "sv_sk": 2.366995,
+      "participation_ratio": 56.580761
+    },
+    "21": {
+      "readout_energy": 0.076661,
+      "cross_layer_overlap": 0.022884,
+      "sv_s1": 8.572009,
+      "sv_s8": 3.622793,
+      "sv_sk": 2.341904,
+      "participation_ratio": 56.757616
+    },
+    "22": {
+      "readout_energy": 0.082005,
+      "cross_layer_overlap": 0.031108,
+      "sv_s1": 8.164657,
+      "sv_s8": 3.508214,
+      "sv_sk": 2.272171,
+      "participation_ratio": 56.948296
+    },
+    "23": {
+      "readout_energy": 0.082774,
+      "cross_layer_overlap": 0.02831,
+      "sv_s1": 8.128553,
+      "sv_s8": 3.491789,
+      "sv_sk": 2.252168,
+      "participation_ratio": 57.039941
+    },
+    "24": {
+      "readout_energy": 0.081027,
+      "cross_layer_overlap": 0.02941,
+      "sv_s1": 7.939076,
+      "sv_s8": 3.311785,
+      "sv_sk": 2.173979,
+      "participation_ratio": 57.080062
+    },
+    "25": {
+      "readout_energy": 0.084029,
+      "cross_layer_overlap": 0.046664,
+      "sv_s1": 7.897831,
+      "sv_s8": 3.2779,
+      "sv_sk": 2.132087,
+      "participation_ratio": 56.98165
+    },
+    "26": {
+      "readout_energy": 0.083211,
+      "cross_layer_overlap": 0.049617,
+      "sv_s1": 7.822877,
+      "sv_s8": 3.169526,
+      "sv_sk": 2.068907,
+      "participation_ratio": 56.681682
+    },
+    "27": {
+      "readout_energy": 0.086993,
+      "cross_layer_overlap": 0.053706,
+      "sv_s1": 7.836068,
+      "sv_s8": 3.116096,
+      "sv_sk": 1.99763,
+      "participation_ratio": 56.301369
+    },
+    "28": {
+      "readout_energy": 0.087027,
+      "cross_layer_overlap": 0.062222,
+      "sv_s1": 8.117413,
+      "sv_s8": 3.084926,
+      "sv_sk": 1.907043,
+      "participation_ratio": 55.307142
+    },
+    "29": {
+      "readout_energy": 0.094087,
+      "cross_layer_overlap": 0.076503,
+      "sv_s1": 8.486666,
+      "sv_s8": 2.782715,
+      "sv_sk": 1.806403,
+      "participation_ratio": 53.900506
+    },
+    "30": {
+      "readout_energy": 0.106419,
+      "cross_layer_overlap": 1.0,
+      "sv_s1": 9.737346,
+      "sv_s8": 2.596315,
+      "sv_sk": 1.673171,
+      "participation_ratio": 49.258195
+    }
+  },
+  "meta": {
+    "lens_dir": "/data/anhnq/vlm-lens-out/validation/s2-merged/artifacts",
+    "unembed": "/data/anhnq/vlm-lens-out/validation/step5/W_U.pt",
+    "w_u_shape": [
+      32064,
+      4096
+    ],
+    "n_prompts": 100,
+    "r_span": 128,
+    "r_span_effective": 128,
+    "svd_k": 64,
+    "svd_k_effective": 64,
+    "svd_niter": 16,
+    "svd_seed": 0,
+    "device": "cpu",
+    "final_fitted_layer": 30,
+    "readout_energy_baseline": 0.03125,
+    "created_utc": "2026-10-09T21:26:15.134978+00:00",
+    "estimator": "svd = torch.svd_lowrank(M, q=guarded, niter=16) fixed seed (torch has no torch.svds); W_U oriented to [vocab, d] by shape (d = lens d_model); readout directions = rows of Vh[:r], P_span = V_r^T V_r applied as ||V_r v_i||^2 (never materialised); readout_energy = mean_i (v_i^T P_span v_i) over J_l's top svd-k right vectors; cross_layer_overlap = mean_i cos^2(v_i^(l), v_i^(final fitted)), rank-matched pairs (exactly 1.0 for the final fitted layer); random baseline = trace(P_span)/d; participation_ratio = (sum s, top-k)^2 / sum(s^2, top-k) (k-truncated estimate)"
+  }
+}

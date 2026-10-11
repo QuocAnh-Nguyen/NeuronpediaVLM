@@ -1,0 +1,214 @@
+{
+  "round": "validation_2026-10-01",
+  "family": "improvement-campaign mechanics (target-mask + conditioning, affine correction, transport decomposition, J-structure, span overlap)",
+  "script": "results/validation_2026-10-01/code/figures_d_improve.py",
+  "figures": [
+    {
+      "file": "figD1_targetmask_conditioning.png",
+      "sources": [
+        "results/validation_2026-10-01/raw/step4/x1_targetmask.json",
+        "results/validation_2026-10-01/raw/step4/x7_x9.json",
+        "results/validation_2026-10-01/DECISIONS.md D36/D39 (X1 adjudication, 1e3 exclusion never fires)"
+      ],
+      "key_numbers": {
+        "x1_layers": [
+          0,
+          8,
+          16,
+          24,
+          30
+        ],
+        "x1_image_rel_fro": {
+          "0": 24.451,
+          "8": 27.351,
+          "16": 38.131,
+          "24": 103.048,
+          "30": 254.902
+        },
+        "x1_image_rel_fro_L30": 254.9,
+        "x1_image_cosine": {
+          "0": 0.3866,
+          "8": 0.367,
+          "16": 0.3818,
+          "24": 0.4376,
+          "30": 0.0904
+        },
+        "x1_image_cosine_L0_to_L30": [
+          0.387,
+          0.09
+        ],
+        "x1_text_rel_fro": {
+          "0": 0.01367020234465599,
+          "8": 0.008604285307228565,
+          "16": 0.0038587795570492744,
+          "24": 0.0009511694661341608,
+          "30": 1.7527070212963736e-06
+        },
+        "x1_text_rows_bit_identical": false,
+        "x1_text_rel_fro_L30_noise_floor": 1.7527070212963736e-06,
+        "x1_image_over_text_rel_fro_ratio_L0_L30": [
+          1788.6,
+          145433541.6
+        ],
+        "x7_pairs": 10,
+        "x7_layers": [
+          8,
+          16,
+          24
+        ],
+        "x7_cond_min": 1.121,
+        "x7_cond_max": 2.895,
+        "x7_cond_max_cell": "man->woman@L8",
+        "x7_exclusion_threshold": 1000.0,
+        "x7_exclusion_margin_x": 345.5,
+        "x7_degenerate_count": 0,
+        "x7_cosine_range": [
+          0.097,
+          0.78
+        ]
+      },
+      "finding": "Swapping the Jacobian's target mask moves ONLY the image rows: relative Frobenius 24.5 -> 255 (L0 -> L30) with cosine collapsing 0.39 -> 0.09, while text rows sit at the TF32 run-to-run noise floor (1.4e-2 -> 1.8e-6; the torch.equal hard criterion failed by construction, D36). X7: all 30 two-column swap bases are well-conditioned (cond 1.12-2.89, degenerate=false everywhere), 346x below the 1e3 exclusion threshold."
+    },
+    {
+      "file": "figD2_affine_transport.png",
+      "sources": [
+        "results/validation_2026-10-01/raw/step4/lens_zoo.json",
+        "results/validation_2026-10-01/raw/step4/lens_zoo_biased.json",
+        "results/validation_2026-10-01/raw/step4/lens_zoo_biased_clamped.json",
+        "results/validation_2026-10-01/raw/step5/lens_zoo_ident.json",
+        "results/validation_2026-10-01/DECISIONS.md D40/D41 (affine correction, transport decomposition)"
+      ],
+      "key_numbers": {
+        "mean_rank_uncorrected_L0_L20_L30": [
+          26120.6,
+          2753.0,
+          215.2
+        ],
+        "mean_rank_bias_L0_L20_L30": [
+          30075.6,
+          811.3,
+          76.9
+        ],
+        "mean_rank_clamp_L0_L20_L30": [
+          1979.5,
+          811.3,
+          76.9
+        ],
+        "L20_collapse": [
+          2753.0,
+          811.3
+        ],
+        "L0_bias_hurts_then_clamp_fixes": [
+          26120.6,
+          30075.6,
+          1979.5
+        ],
+        "lqs_uncorrected_bias_clamp": [
+          -0.102,
+          0.335,
+          0.766
+        ],
+        "transport_L30": -0.508,
+        "transport_L30_rank_pair": [
+          127.7,
+          76.9
+        ],
+        "transport_L8_16_range": [
+          -0.128,
+          -0.05
+        ],
+        "transport_L17_28_range": [
+          -0.248,
+          -0.101
+        ],
+        "transport_L0_7_max_abs": 0.088
+      },
+      "finding": "Affine correction does the early work, transport does the late work: bias+scale+clamp collapses the L20 bump (mean rank 2753 -> 811) and fixes the L0 bias blow-up (30.1k -> 1.98k), lifting LQS -0.102 -> +0.766; under the SAME payload the J transport is score-equal to identity at L0-7 (|ln ratio| <= 0.09), worth -0.05..-0.13 at L8-16, peaks -0.10..-0.25 at L17-28, and -0.508 at L30 (rank 127.7 -> 76.9)."
+    },
+    {
+      "file": "figD3_jacobian_structure.png",
+      "sources": [
+        "results/validation_2026-10-01/raw/step5/jacobian_structure.json"
+      ],
+      "key_numbers": {
+        "alpha_ls_L0": 0.045648,
+        "alpha_ls_peak": 1.043,
+        "alpha_ls_peak_layer": 25,
+        "alpha_ls_L20_L23": [
+          0.996,
+          1.019,
+          1.028,
+          1.039
+        ],
+        "layers_above_1": [
+          21,
+          22,
+          23,
+          24,
+          25,
+          26,
+          27,
+          28
+        ],
+        "energy_top64_L0_L30_pct": [
+          87.5,
+          9.9
+        ],
+        "symmetry_ratio_L0_L30": [
+          1.41,
+          0.51
+        ],
+        "diag_mass_range_pct": [
+          0.04,
+          5.3
+        ],
+        "d_model": 4096
+      },
+      "finding": "The average Jacobian changes character with depth: alpha_ls = trace(J)/d rises from 0.046 at L0 and crosses 1 in the L20-23 band (peak 1.043 at L25) - the late map is identity-like - while the early J concentrates 87.5% of its energy in the top-64 (mostly off-diagonal) singular directions with a 1.41 symmetry ratio; by L30 the top-64 energy is 9.9%, symmetry 0.51 and the diagonal carries 0.04-5.3% of the Frobenius mass across depth."
+    },
+    {
+      "file": "figD4_span_overlap.png",
+      "sources": [
+        "results/validation_2026-10-01/raw/step5/span_overlap.json",
+        "results/validation_2026-10-01/raw/step4/x9b_alpha_sweep.json (add@L16 k=1 change rate)",
+        "results/validation_2026-10-01/DECISIONS.md D39/D40/D41 (alpha thresholds, k=1 = alpha~27 reading)"
+      ],
+      "key_numbers": {
+        "readout_energy_L0_L30_pct": [
+          3.54,
+          10.64
+        ],
+        "readout_energy_range_pct": [
+          3.5,
+          10.64
+        ],
+        "chance_baseline_pct": 3.125,
+        "L30_energy_x_chance": 3.41,
+        "cross_layer_overlap_L20_26": [
+          0.0181,
+          0.0229,
+          0.0311,
+          0.0283,
+          0.0294,
+          0.0467,
+          0.0496
+        ],
+        "cross_layer_overlap_chance": 0.00024414,
+        "cross_layer_overlap_L20_26_x_chance": [
+          74.0,
+          203.0
+        ],
+        "overlap_L0_16_max": 0.01094,
+        "final_layer_self_overlap": 1.0,
+        "x9b_add_L16_k1_change_rate": 0.82
+      },
+      "finding": "Why J-lens edits need big alphas: the J's top-64 right-singular directions carry only 3.5-10.6% energy in W_U's readout span (chance 3.1%), so ~10-30x the residual-level magnitude is needed to move logits (D39's alpha 5-14x; x9b add@L16 alpha~27 changes 82% of generations). Their cross-layer overlap with the final layer is at chance (<=0.012) until L16, then 0.018-0.050 at L20-26 = 75-200x chance (1/4096) - the covariance drift the tuned lens exploits."
+    }
+  ],
+  "notes": [
+    "All plotted numbers are read from the raw JSONs at run time; the 1e3 exclusion threshold lives in code/x7_x9_interventions.py (--cond-max) and the alpha~=27 (x9b k=1) reading exists only in DECISIONS.md D40, cited on the figures.",
+    "X1 'text rows bit-identical' wording: the JSON records text_rows_bit_identical=false; D36 adjudicates the residual (relFro 1.4e-2 -> 1.8e-6) as the X6-era TF32/atomics run-to-run noise floor, and the pre-registered torch.equal criterion as mis-calibrated (two separate fit invocations).",
+    "figD2 transport value = ln rank(J+bias) - ln rank(ident+bias) from lens_zoo_ident.json (ident vs merged, same step4d bias+scale payload); D41's narrative values (-0.05..-0.13 L8-16, -0.10..-0.25 L17-28, -0.508 L30) reproduce exactly.",
+    "figD4 overlap chance line = 1/d_model = 1/4096 (computed from span_overlap.json d_model); the span-energy chance line is meta.readout_energy_baseline = 3.125%."
+  ]
+}

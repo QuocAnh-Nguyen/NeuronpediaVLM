@@ -1,0 +1,124 @@
+{
+  "round": "validation_2026-10-01",
+  "family": "S2 caption-lens design/eval + campaign operations timeline (figD9, figD10)",
+  "script": "results/validation_2026-10-01/code/figures_d_campaign.py",
+  "figures": [
+    {
+      "file": "figD9_s2_halves_transfer.png",
+      "sources": [
+        "results/validation_2026-10-01/raw/step3/s2_eval.json",
+        "results/validation_2026-10-01/DECISIONS.md D34/D35/D37 (cross-check + L20 attribution)"
+      ],
+      "key_numbers": {
+        "n_fit_prompts_merged": 100,
+        "n_heldout_captions": 300,
+        "text_mean_rank_by_layer": {
+          "L0": 26120.6,
+          "L16": 1307.6,
+          "L20": 2753.0,
+          "L30": 215.2,
+          "L31": 42.62
+        },
+        "model_ceiling_rank_text": 42.62,
+        "L16_ratio_to_ceiling": 30.68,
+        "L30_ratio_to_ceiling": 5.05,
+        "L20_bump": {
+          "rank_L16_to_L20": [
+            1307.6,
+            2753.0
+          ],
+          "pct_over_L16": 110.5,
+          "KL_L16_to_L20": [
+            4.46,
+            6.6
+          ],
+          "attribution": "fitted-map-specific (X11 logit lens is monotone there), DECISIONS.md D37"
+        },
+        "L31_identity": {
+          "rank": 42.62,
+          "KL": 0.0,
+          "top1_agreement": 1.0
+        },
+        "mask_composition_mean_positions": {
+          "text": 82.0,
+          "image": 576.0,
+          "all": 658.0,
+          "image-q0": 144.0
+        },
+        "halves_L30_text_rank": {
+          "lens_a_own_half_a": 233.0,
+          "lens_a_cross_half_b": 231.83,
+          "lens_b_cross_half_a": 203.15,
+          "lens_b_own_half_b": 197.81,
+          "own_vs_cross_delta": {
+            "a": 1.17,
+            "b": 5.34
+          },
+          "L31_identity_all_four_cells_top1": 1.0
+        },
+        "transfer_L30_text": {
+          "caption_lens_on_wikitext": {
+            "rank": 67.89,
+            "model_ceiling": 27.28,
+            "ratio_to_ceiling": 2.488,
+            "agree": 0.7426,
+            "KL": 0.47
+          },
+          "text_lens_on_captions": {
+            "rank": 109.49,
+            "agree": 0.706,
+            "KL": 0.474,
+            "vs_S2_merged_on_captions_rank": 215.21
+          },
+          "L17_24_bump_pct_over_L16": {
+            "s1_text_lens_on_captions": 48.1,
+            "s2_caption_lens_on_wikitext": 137.9
+          }
+        },
+        "citation": "all plotted numbers read from raw/step3/s2_eval.json at run time; cross-checked against DECISIONS.md D34/D35 (exact match) and D37 (L20 attribution)"
+      },
+      "finding": "S2 verdict: the merged 100-sample caption lens is exact at L31 (rank 42.62 = model, KL 0, top-1 1.000) with expected structure; the A4/X8 halves are symmetric (own-vs-cross deltas 0.5%/2.6%, merge == single fit, no leakage); the caption lens transfers to held-out WikiText at 2.49x the model ceiling while the S1 text lens transfers to captions (S1 wins rank 109.5 vs 215.2, S2 wins agree/KL); the L20 bump (+110% rank) is fitted-map-specific (X11), not a model property."
+    },
+    {
+      "file": "figD10_campaign_timeline.png",
+      "sources": [
+        "results/validation_2026-10-01/DECISIONS.md D10-D47 headers (ops timeline: OOMs D11/D12/D27/D38, external SIGKILLs D14/D15, TFLOPS derate D22/D23, ENOSPC D24/D29/D46, box relocation D32, cadence 5->2 D27, scorer swap D34, the 13b/qwen multi-arch round 2026-10-11)",
+        "results/validation_2026-10-01/REPORT.md §9 (GPU-hours) + §11 (incidents)"
+      ],
+      "key_numbers": {
+        "timeline_span": "2026-10-01T00:00Z -> 2026-10-11T24:00Z (11 days)",
+        "phase_lanes": 10,
+        "incident_markers": 14,
+        "incident_markers_by_type": {
+          "oom": 3,
+          "kill": 3,
+          "derate": 1,
+          "enospc": 3,
+          "reloc": 3,
+          "ops": 1
+        },
+        "gpu_hours_measured_total": 6.3,
+        "gpu_hours_projected_remaining": 13.0,
+        "gpu_occupied_to_date_h": 8.4,
+        "gpu_occupied_quiet_equiv_h": 6.5,
+        "derate_tflops": "41-49 derated vs 231 quiet vs 88 at 09:01Z 10-03 (D22/D26)",
+        "checkpoint_cadence": "5 -> 2 samples (D27)",
+        "s2_half_wall_hours": {
+          "half_A_old_box": 15.7,
+          "brev_halves": "11.3-11.6 each (B done 20:02Z, A 20:52:36Z 10-06, D33)"
+        },
+        "campaign_complete": "2026-10-07T19:15:49Z (D36)",
+        "multi_arch": "llava-1.5-13b-hf (40 layers) + Qwen2-VL-7B-Instruct (28 layers) built and gated (phase28), fits queued (phase29/30) - no numbers yet (EXPERIMENTS.md)",
+        "citation": "DECISIONS.md D10-D47 headers (dates, parsed at run time) + in-body times; REPORT.md §9 GPU-hours table and §11 incidents"
+      },
+      "finding": "Eleven days, two boxes: 14 dated incident markers (OOM x3 plus one SIGKILL-with-OOM, 3 external SIGKILL/SIGTERM rounds, 3 storage-full/write-death, 3 output relocations, 1 TFLOPS derate, 1 scorer swap) never stopped the campaign - guarded windows, uncapped transient retries and checkpoint cadence 5->2 self-healed it; the core campaign completed 2026-10-07T19:15:49Z (D36) and four more rounds (improvement P1-P5, workspace 1-3, replication x20-x23, multi-arch 13b/qwen built+gated) ran through 2026-10-11."
+    }
+  ],
+  "notes": [
+    "figD9 panel (a) uses main.rows.default (placeholder-excluded): the JSON's default table carries text/image/all plus image-q3, which is identical to image (V5 last-patch collapse), so image-q0..q2 (only under include_placeholders) are not plotted.",
+    "figD9 panel (c) shows the two E6 transfer rows present in s2_eval.json. D35 also quotes S1's own WikiText rank 46.5 (1.70x ceiling) - that number lives in S1's step2 score, not in s2_eval.json, so it is cited as DECISIONS.md D35 only and not plotted.",
+    "figD10 GPU-hours inset covers only the rows REPORT.md §9 states (as of its 10-02 writing: measured Step0/X6/S1 rows + the remaining-campaign projection); S2/X1/X7X9 actuals and the later rounds (P1-P5, workspace, replication, multi-arch) have no §9 GPU-hour rows - marked measured vs derived/projected as §9 tags them.",
+    "figD10 multi-arch segment: raw/fits/{llava-1.5-13b-hf,qwen2-vl-7b-instruct}/ exist but are empty (gates ran, fits queued); EXPERIMENTS.md 'In-flight work' records no numbers - drawn hatched, no results claimed.",
+    "Deterministic: fixed palette/layout, D-header anchors parsed from DECISIONS.md at run time, no timestamps inside figures."
+  ]
+}

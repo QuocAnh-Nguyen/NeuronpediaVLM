@@ -42,7 +42,7 @@
   "chance_mean_rank": 16032.5,
   "uniform_mean_kl": 10.375489184444536,
   "fit_provenance": {
-    "created_utc": "2026-10-02T06:02:49+00:00",
+    "created_utc": "2026-10-03T13:52:54+00:00",
     "estimator": "reference jlens: sum over later target positions, mean over source positions",
     "corpus": {
       "corpus": "wikitext",
@@ -1057,5 +1057,17 @@
       "model_mean_rank_true": 27.306637806637806,
       "unigram_top1_agreement": 0.05339105339105339
     }
-  ]
+  ],
+  "gate": {
+    "i_identity_exact": true,
+    "ii_finite_difference_ok": null,
+    "iii_last_layers_agree": true,
+    "iv_depth_improves": true,
+    "j_not_worse_in_middle": false,
+    "not_measured": [
+      "ii_finite_difference_ok"
+    ],
+    "PASS": false,
+    "PASS_complete": false
+  }
 }

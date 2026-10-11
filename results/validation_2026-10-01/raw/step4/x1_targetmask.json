@@ -1,0 +1,304 @@
+{
+  "dir_all": "/data/anhnq/vlm-lens-out/validation/x1-all/artifacts",
+  "dir_text": "/data/anhnq/vlm-lens-out/validation/x1-text/artifacts",
+  "n_prompts": {
+    "all": {
+      "all": 20,
+      "image": 20,
+      "text": 20
+    },
+    "text": {
+      "all": 20,
+      "image": 20,
+      "text": 20
+    }
+  },
+  "provenance_target_mask": {
+    "all": {
+      "all": "all",
+      "image": "all",
+      "text": "all"
+    },
+    "text": {
+      "all": "text",
+      "image": "text",
+      "text": "text"
+    }
+  },
+  "sample_geometry": {
+    "sample": "COCO_val2014_000000012966::prompt+caption::c8b3ee67",
+    "question": "Summarize the scene in one sentence.",
+    "mask_positions": {
+      "text": 27,
+      "image": 576,
+      "all": 603
+    },
+    "full_prompt_mask_positions": {
+      "text": 31,
+      "image": 576,
+      "all": 607
+    },
+    "pre_image_text_positions": 4,
+    "prefix_chars_dropped": 6
+  },
+  "bit_check": {
+    "per_mask": {
+      "text": {
+        "0": {
+          "bit_identical": false,
+          "max_abs_diff": 0.06148725748062134,
+          "rel_fro": 0.01367020234465599,
+          "cosine": 1.0018856525421143,
+          "scale": 0.9998878240585327,
+          "rel_fro_after_scale": 0.013670270331203938
+        },
+        "8": {
+          "bit_identical": false,
+          "max_abs_diff": 0.019748270511627197,
+          "rel_fro": 0.008604285307228565,
+          "cosine": 1.0016008615493774,
+          "scale": 1.000030517578125,
+          "rel_fro_after_scale": 0.008604558184742928
+        },
+        "16": {
+          "bit_identical": false,
+          "max_abs_diff": 0.007631644606590271,
+          "rel_fro": 0.0038587795570492744,
+          "cosine": 1.002172589302063,
+          "scale": 1.0000022649765015,
+          "rel_fro_after_scale": 0.0038588133174926043
+        },
+        "24": {
+          "bit_identical": false,
+          "max_abs_diff": 0.0022063255310058594,
+          "rel_fro": 0.0009511694661341608,
+          "cosine": 1.0029202699661255,
+          "scale": 0.9999982714653015,
+          "rel_fro_after_scale": 0.0009512127144262195
+        },
+        "30": {
+          "bit_identical": false,
+          "max_abs_diff": 3.616511821746826e-05,
+          "rel_fro": 1.7527070212963736e-06,
+          "cosine": 1.0045140981674194,
+          "scale": 1.0,
+          "rel_fro_after_scale": 1.7527070212963736e-06
+        }
+      },
+      "image": {
+        "0": {
+          "bit_identical": false,
+          "max_abs_diff": 4.499009609222412,
+          "rel_fro": 24.451030731201172,
+          "cosine": 0.3866181969642639,
+          "scale": 9.579800605773926,
+          "rel_fro_after_scale": 22.896081924438477
+        },
+        "8": {
+          "bit_identical": false,
+          "max_abs_diff": 5.202901363372803,
+          "rel_fro": 27.350984573364258,
+          "cosine": 0.3669623136520386,
+          "scale": 10.14861011505127,
+          "rel_fro_after_scale": 25.77515983581543
+        },
+        "16": {
+          "bit_identical": false,
+          "max_abs_diff": 4.287777423858643,
+          "rel_fro": 38.13147735595703,
+          "cosine": 0.38181641697883606,
+          "scale": 14.680468559265137,
+          "rel_fro_after_scale": 35.594581604003906
+        },
+        "24": {
+          "bit_identical": false,
+          "max_abs_diff": 3.1164002418518066,
+          "rel_fro": 103.0475082397461,
+          "cosine": 0.4376382827758789,
+          "scale": 45.21695327758789,
+          "rel_fro_after_scale": 93.09851837158203
+        },
+        "30": {
+          "bit_identical": false,
+          "max_abs_diff": 1.7870384454727173,
+          "rel_fro": 254.9023895263672,
+          "cosine": 0.09044694900512695,
+          "scale": 23.011001586914062,
+          "rel_fro_after_scale": 253.93585205078125
+        }
+      },
+      "all": {
+        "0": {
+          "bit_identical": false,
+          "max_abs_diff": 4.297366619110107,
+          "rel_fro": 7.811864376068115,
+          "cosine": 0.28760749101638794,
+          "scale": 2.3078792095184326,
+          "rel_fro_after_scale": 7.701554775238037
+        },
+        "8": {
+          "bit_identical": false,
+          "max_abs_diff": 4.970067977905273,
+          "rel_fro": 20.237192153930664,
+          "cosine": 0.4717150032520294,
+          "scale": 9.742713928222656,
+          "rel_fro_after_scale": 18.249027252197266
+        },
+        "16": {
+          "bit_identical": false,
+          "max_abs_diff": 4.0957489013671875,
+          "rel_fro": 21.719663619995117,
+          "cosine": 0.7123492956161499,
+          "scale": 15.939271926879883,
+          "rel_fro_after_scale": 15.769336700439453
+        },
+        "24": {
+          "bit_identical": false,
+          "max_abs_diff": 2.9768502712249756,
+          "rel_fro": 22.807313919067383,
+          "cosine": 0.9226961135864258,
+          "scale": 21.837167739868164,
+          "rel_fro_after_scale": 9.273642539978027
+        },
+        "30": {
+          "bit_identical": false,
+          "max_abs_diff": 1.7070218324661255,
+          "rel_fro": 22.021282196044922,
+          "cosine": 0.992662787437439,
+          "scale": 22.738479614257812,
+          "rel_fro_after_scale": 3.494133234024048
+        }
+      }
+    },
+    "text_rows_bit_identical": false,
+    "image_rows_bit_identical": false
+  },
+  "lens_comparison": {
+    "text": {
+      "0": {
+        "bit_identical": false,
+        "max_abs_diff": 10.330078125,
+        "rel_fro": 2.1183102130889893,
+        "cosine": 0.449554443359375,
+        "scale": 1.062511682510376,
+        "rel_fro_after_scale": 2.11737322807312
+      },
+      "8": {
+        "bit_identical": false,
+        "max_abs_diff": 1.42169189453125,
+        "rel_fro": 0.9020124673843384,
+        "cosine": 0.7556377053260803,
+        "scale": 1.035391926765442,
+        "rel_fro_after_scale": 0.9013181328773499
+      },
+      "16": {
+        "bit_identical": false,
+        "max_abs_diff": 0.84222412109375,
+        "rel_fro": 0.33522817492485046,
+        "cosine": 0.9499515891075134,
+        "scale": 0.9949288368225098,
+        "rel_fro_after_scale": 0.3351939916610718
+      },
+      "24": {
+        "bit_identical": false,
+        "max_abs_diff": 0.821990966796875,
+        "rel_fro": 0.2142643928527832,
+        "cosine": 0.98109370470047,
+        "scale": 0.9989092946052551,
+        "rel_fro_after_scale": 0.21426130831241608
+      },
+      "30": {
+        "bit_identical": false,
+        "max_abs_diff": 0.9112548828125,
+        "rel_fro": 0.16668115556240082,
+        "cosine": 0.9906719923019409,
+        "scale": 0.992175281047821,
+        "rel_fro_after_scale": 0.16650010645389557
+      }
+    },
+    "image": {
+      "0": {
+        "bit_identical": false,
+        "max_abs_diff": 3.973968505859375,
+        "rel_fro": 23.67896842956543,
+        "cosine": 0.33039966225624084,
+        "scale": 7.913565158843994,
+        "rel_fro_after_scale": 22.64572525024414
+      },
+      "8": {
+        "bit_identical": false,
+        "max_abs_diff": 4.3182373046875,
+        "rel_fro": 25.02736473083496,
+        "cosine": 0.32738712430000305,
+        "scale": 8.281240463256836,
+        "rel_fro_after_scale": 23.94483757019043
+      },
+      "16": {
+        "bit_identical": false,
+        "max_abs_diff": 4.213653564453125,
+        "rel_fro": 29.00835609436035,
+        "cosine": 0.35358256101608276,
+        "scale": 10.358365058898926,
+        "rel_fro_after_scale": 27.456640243530273
+      },
+      "24": {
+        "bit_identical": false,
+        "max_abs_diff": 3.172679901123047,
+        "rel_fro": 68.92540740966797,
+        "cosine": 0.39824119210243225,
+        "scale": 27.55982780456543,
+        "rel_fro_after_scale": 63.59870147705078
+      },
+      "30": {
+        "bit_identical": false,
+        "max_abs_diff": 1.90032958984375,
+        "rel_fro": 115.6357421875,
+        "cosine": 0.06805769354104996,
+        "scale": 7.857949256896973,
+        "rel_fro_after_scale": 115.42619323730469
+      }
+    },
+    "all": {
+      "0": {
+        "bit_identical": false,
+        "max_abs_diff": 3.6510009765625,
+        "rel_fro": 6.695488452911377,
+        "cosine": 0.34280815720558167,
+        "scale": 2.3845458030700684,
+        "rel_fro_after_scale": 6.550424575805664
+      },
+      "8": {
+        "bit_identical": false,
+        "max_abs_diff": 3.969970703125,
+        "rel_fro": 14.69213581085205,
+        "cosine": 0.5661816596984863,
+        "scale": 8.608945846557617,
+        "rel_fro_after_scale": 12.569747924804688
+      },
+      "16": {
+        "bit_identical": false,
+        "max_abs_diff": 3.8466796875,
+        "rel_fro": 11.3576021194458,
+        "cosine": 0.7953769564628601,
+        "scale": 9.632181167602539,
+        "rel_fro_after_scale": 7.381959438323975
+      },
+      "24": {
+        "bit_identical": false,
+        "max_abs_diff": 2.8955078125,
+        "rel_fro": 11.152154922485352,
+        "cosine": 0.944291353225708,
+        "scale": 11.38186264038086,
+        "rel_fro_after_scale": 4.0701398849487305
+      },
+      "30": {
+        "bit_identical": false,
+        "max_abs_diff": 1.732421875,
+        "rel_fro": 10.614520072937012,
+        "cosine": 0.9881459474563599,
+        "scale": 11.404067993164062,
+        "rel_fro_after_scale": 2.076504707336426
+      }
+    }
+  }
+}

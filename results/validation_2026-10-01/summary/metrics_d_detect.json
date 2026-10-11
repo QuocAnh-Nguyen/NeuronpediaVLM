@@ -1,0 +1,385 @@
+{
+  "round": "validation_2026-10-01",
+  "family": "detection-round details (POPE handoff, uncertainty signals, attention mirror + sink clamp, workspace reasoning dynamics)",
+  "script": "results/validation_2026-10-01/code/figures_d_detect.py",
+  "figures": [
+    {
+      "file": "figD5_pope_handoff.png",
+      "sources": [
+        "raw/step11/x18_pope_handoff.json",
+        "DECISIONS.md D45 (x18 verdict; 0.895 low-gap detector quote)",
+        "DECISIONS.md D46 (detector ledger)"
+      ],
+      "key_numbers": {
+        "n_images": {
+          "value": 49,
+          "source": "raw/step11/x18_pope_handoff.json summary.n_images"
+        },
+        "n_questions": {
+          "value": 185,
+          "source": "raw/step11/x18_pope_handoff.json summary.n_questions"
+        },
+        "n_present": {
+          "value": 87,
+          "source": "raw/step11/x18_pope_handoff.json summary.n_present_questions"
+        },
+        "n_absent": {
+          "value": 98,
+          "source": "raw/step11/x18_pope_handoff.json summary.n_absent_questions"
+        },
+        "model_accuracy": {
+          "value": {
+            "present": 0.9655,
+            "absent": 0.9184,
+            "overall": 0.9405
+          },
+          "source": "raw/step11/x18_pope_handoff.json summary.model_accuracy"
+        },
+        "mean_gap_present_L28": {
+          "value": 5.2788,
+          "source": "raw/step11/x18_pope_handoff.json per_layer['28'].mean_gap_present (items mean agrees)"
+        },
+        "mean_gap_absent_L28": {
+          "value": -4.9724,
+          "source": "raw/step11/x18_pope_handoff.json per_layer['28'].mean_gap_absent"
+        },
+        "auroc_present_vs_absent_L28": {
+          "value": 0.9852,
+          "source": "raw/step11/x18_pope_handoff.json summary.auroc.present_vs_absent"
+        },
+        "auroc_present_vs_absent_by_layer": {
+          "value": {
+            "L20": 0.9825,
+            "L24": 0.9833,
+            "L28": 0.9852,
+            "L30": 0.985
+          },
+          "source": "raw/step11/x18_pope_handoff.json per_layer[L].auroc_present_vs_absent"
+        },
+        "best_layer": {
+          "value": 28,
+          "source": "raw/step11/x18_pope_handoff.json summary.best_layer"
+        },
+        "auroc_halluc_yes_vs_grounded_yes_raw": {
+          "value": 0.1057,
+          "source": "raw/step11/x18_pope_handoff.json summary.auroc.halluc_yes_vs_grounded_yes (hallucinated = positive class)"
+        },
+        "low_gap_detector_auroc": {
+          "value": 0.8943,
+          "source": "1 - auroc_halluc_yes_vs_grounded_yes; DECISIONS.md D45/D46 quote 0.895 from the 3-decimal 0.105"
+        },
+        "n_model_yes_halluc": {
+          "value": 8,
+          "source": "raw/step11/x18_pope_handoff.json per_layer['28'].n_model_yes_halluc"
+        },
+        "halluc_yes_gap_range": {
+          "value": [
+            -1.93,
+            4.76
+          ],
+          "source": "raw/step11/x18_pope_handoff.json items: model_answer=yes & present=false lens_gap"
+        },
+        "grounded_yes_gap_range": {
+          "value": [
+            -1.31,
+            8.63
+          ],
+          "source": "raw/step11/x18_pope_handoff.json items: model_answer=yes & present=true lens_gap"
+        }
+      },
+      "finding": "The calibrated lens's pre-generation yes/no gap at the last prompt position nearly solves POPE object presence (AUROC 0.985 at L28, 0.982-0.985 over L20-30; mean gap +5.28 present vs -4.97 absent) and its disagreements with the model are exactly the model's own hallucinations: the 8 hallucinated yes rank LOW on the gap (AUROC 0.106 halluc-positive = 0.895 as a low-gap detector) - a training-free, single-forward truth/risk readout."
+    },
+    {
+      "file": "figD6_uncertainty_signals.png",
+      "sources": [
+        "raw/step11/x15_hesitation_n200.json",
+        "DECISIONS.md D46 (S1 x15 n=200 verdict)"
+      ],
+      "key_numbers": {
+        "n_grounded_steps": {
+          "value": 385,
+          "source": "raw/step11/x15_hesitation_n200.json aggregate.grounded.n_steps (word rows reproduce it)"
+        },
+        "n_hallucinated_steps": {
+          "value": 39,
+          "source": "raw/step11/x15_hesitation_n200.json aggregate.hallucinated.n_steps"
+        },
+        "entropy_mean_grounded_vs_halluc": {
+          "value": [
+            0.62,
+            0.963
+          ],
+          "source": "raw/step11/x15_hesitation_n200.json aggregate.*.entropy_mean"
+        },
+        "margin_mean_grounded_vs_halluc": {
+          "value": [
+            5.549,
+            4.527
+          ],
+          "source": "raw/step11/x15_hesitation_n200.json aggregate.*.margin_mean"
+        },
+        "logprob_mean_grounded_vs_halluc": {
+          "value": [
+            -0.23,
+            -0.384
+          ],
+          "source": "raw/step11/x15_hesitation_n200.json aggregate.*.logprob_mean"
+        },
+        "auroc_model_entropy": {
+          "value": 0.5933,
+          "source": "raw/step11/x15_hesitation_n200.json aggregate.auroc.model_entropy"
+        },
+        "auroc_model_margin": {
+          "value": 0.4263,
+          "source": "raw/step11/x15_hesitation_n200.json aggregate.auroc.top1_margin"
+        },
+        "lens_entropy_auroc_peak": {
+          "value": [
+            7,
+            0.7297
+          ],
+          "source": "raw/step11/x15_hesitation_n200.json aggregate.auroc.lens_entropy"
+        },
+        "lens_entropy_auroc_band_L4_7": {
+          "value": {
+            "L4": 0.6393,
+            "L5": 0.6703,
+            "L6": 0.665,
+            "L7": 0.7297
+          },
+          "source": "raw/step11/x15_hesitation_n200.json aggregate.auroc.lens_entropy"
+        },
+        "model_entropy_is_lens_L31": {
+          "value": true,
+          "source": "raw/step11/x15_hesitation_n200.json steps.model_entropy == steps.lens_entropy['31'] per image (final-layer lens readout = model distribution); aggregate.auroc.model_entropy == lens_entropy L31"
+        }
+      },
+      "finding": "At power (385 grounded vs 39 hallucinated word-completion steps) the hesitation direction holds: hallucinated words arrive with higher entropy (0.963 vs 0.620), lower top-1 margin (4.53 vs 5.55) and lower chosen log-prob (-0.384 vs -0.230); the calibrated lens's entropy is the better uncertainty signal (AUROC 0.730 at L7, band L4-7 0.64-0.73) vs the model's own entropy 0.593 - a real but modest detector (near chance from L11 on)."
+    },
+    {
+      "file": "figD7_mirror_and_sink.png",
+      "sources": [
+        "raw/step11/x17_attention_mirror_n200.json",
+        "raw/step11/x16_sink_clamp.json",
+        "DECISIONS.md D45 (x16 clamp verdict) / D46 (S1b mirror + S2 census dims)"
+      ],
+      "key_numbers": {
+        "mirror_rho_by_layer": {
+          "value": {
+            "L0": 0.1048,
+            "L1": 0.2864,
+            "L2": 0.2332,
+            "L3": 0.0674,
+            "L4": 0.3407,
+            "L5": 0.3635,
+            "L6": 0.2991,
+            "L7": 0.4948,
+            "L8": 0.4413,
+            "L9": 0.5087,
+            "L10": 0.5028,
+            "L11": 0.3339,
+            "L12": 0.4629,
+            "L13": 0.5059,
+            "L14": 0.5029,
+            "L15": 0.5649,
+            "L16": 0.5772,
+            "L17": 0.4799,
+            "L18": 0.5969,
+            "L19": 0.595,
+            "L20": 0.6449,
+            "L21": 0.555,
+            "L22": 0.5982,
+            "L23": 0.5499,
+            "L24": 0.403,
+            "L25": 0.3004,
+            "L26": 0.435,
+            "L27": 0.1586,
+            "L28": 0.3386,
+            "L29": 0.331,
+            "L30": 0.1995
+          },
+          "source": "raw/step11/x17_attention_mirror_n200.json per_layer[L].rho_mean"
+        },
+        "mirror_peak": {
+          "value": [
+            "L20",
+            0.645
+          ],
+          "source": "raw/step11/x17_attention_mirror_n200.json per_layer['20'].rho_mean (also summary.best_abs_rho_layer)"
+        },
+        "mirror_L0_L30": {
+          "value": [
+            0.105,
+            0.199
+          ],
+          "source": "raw/step11/x17_attention_mirror_n200.json per_layer rho_mean at L0/L30"
+        },
+        "share_mid_L15": {
+          "value": 0.184,
+          "source": "raw/step11/x17_attention_mirror_n200.json per_layer['15'].share_mean (mid_layer=15)"
+        },
+        "halluc_join_share_mid_auroc": {
+          "value": 0.5014,
+          "source": "raw/step11/x17_attention_mirror_n200.json hallucination_join.share_mid_layer.auroc_hallucinating_vs_clean"
+        },
+        "halluc_join_rho_rpb": {
+          "value": -0.1022,
+          "source": "raw/step11/x17_attention_mirror_n200.json hallucination_join.rho_mid_layer.point_biserial_r"
+        },
+        "halluc_join_rho_auroc": {
+          "value": 0.4135,
+          "source": "raw/step11/x17_attention_mirror_n200.json hallucination_join.rho_mid_layer.auroc_hallucinating_vs_clean"
+        },
+        "halluc_join_n": {
+          "value": [
+            27,
+            170
+          ],
+          "source": "raw/step11/x17_attention_mirror_n200.json hallucination_join.share_mid_layer (n_hallucinating/n_clean; summary: 197 images analyzed)"
+        },
+        "bos_retention_L16": {
+          "value": 0.2778,
+          "source": "raw/step11/x16_sink_clamp.json per_layer_position['16'].bos.grounded_retention"
+        },
+        "all_groups_retention_L16": {
+          "value": 0.2222,
+          "source": "raw/step11/x16_sink_clamp.json per_layer_position['16'].all.grounded_retention"
+        },
+        "image_retention_range": {
+          "value": [
+            0.944,
+            1.0
+          ],
+          "source": "raw/step11/x16_sink_clamp.json per_layer_position[L].image.grounded_retention over L16/24/28/30"
+        },
+        "bos_rank_delta": {
+          "value": {
+            "L16": 1433.5,
+            "L24": 511.2,
+            "L28": 550.1,
+            "L30": 0.0
+          },
+          "source": "raw/step11/x16_sink_clamp.json per_layer_position[L].bos.mean_handoff_rank_delta"
+        },
+        "bos_dim_set_shared": {
+          "value": [
+            14,
+            16
+          ],
+          "source": "raw/step11/x16_sink_clamp.json results: group=bos clamp dims intersected over layers 16/24/28/30"
+        }
+      },
+      "finding": "The cross-modal attention mirror is real and depth-dependent (rho 0.105 at L0 -> 0.645 at L20 -> 0.199 at L30) but predicts nothing behaviorally: the hallucination join is NULL at power (share-mid AUROC 0.501, mirror-rho r_pb -0.10 over 27/170 images). The causal lever sits at the BOS sink instead: zero-clamping the stable BOS top-16 set (14/16 dims shared across L16/24/28/30) collapses grounded retention (0.278 at L16; 0.222 for all-groups) and explodes the true-object handoff rank (+1433 at L16, +550 at L28), while image-token clamps are inert (retention 0.94-1.00)."
+    },
+    {
+      "file": "figD8_workspace_dynamics.png",
+      "sources": [
+        "raw/step12/x22_reasoning_structure_multihop.json",
+        "raw/step12/x22_reasoning_structure_flexgen.json",
+        "raw/step12/x23_vlm_workspace_modulation.json",
+        "DECISIONS.md D47 (paper comparison values: onset gap ~-0.17; flexgen 40/53%; x23 item D exclusion verdict)"
+      ],
+      "key_numbers": {
+        "multihop_probe_pass1": {
+          "value": 0.2688,
+          "source": "raw/step12/x22_reasoning_structure_multihop.json results.probe_stats['lens-eval-multihop'].pass@1"
+        },
+        "multihop_n_items": {
+          "value": 93,
+          "source": "raw/step12/x22_reasoning_structure_multihop.json results.probe_stats['lens-eval-multihop'].n_items"
+        },
+        "onset_median_frac_intermediate": {
+          "value": 0.5294,
+          "source": "raw/step12/x22_reasoning_structure_multihop.json results.onset_stats.intermediate.median_effective_frac"
+        },
+        "onset_median_frac_answer": {
+          "value": 0.7059,
+          "source": "raw/step12/x22_reasoning_structure_multihop.json results.onset_stats.answer.median_effective_frac"
+        },
+        "onset_precedence_gap": {
+          "value": -0.1765,
+          "source": "raw/step12/x22_reasoning_structure_multihop.json results.onset_stats (intermediate - answer median_effective_frac; digest prints -0.176)"
+        },
+        "paper_precedence_gap": {
+          "value": -0.17,
+          "source": "DECISIONS.md D47 ('~-0.17')"
+        },
+        "swap_success_early_late": {
+          "value": {
+            "intermediate_early": 0.0,
+            "intermediate_late": 0.093,
+            "answer_early": 0.0698,
+            "answer_late": 0.3721
+          },
+          "source": "raw/step12/x22_reasoning_structure_multihop.json results.arm_stats.*.success_baseline_correct"
+        },
+        "flexgen_success_bc": {
+          "value": {
+            "alpha=1.0": 0.05,
+            "alpha=2.0": 0.05
+          },
+          "source": "raw/step12/x22_reasoning_structure_flexgen.json results.cells: successful directed swaps / 120 on baseline-correct cells (digest: success= 0.050 at both alphas)"
+        },
+        "flexgen_paper_success": {
+          "value": [
+            0.4,
+            0.53
+          ],
+          "source": "DECISIONS.md D47 ('paper: 40/53%')"
+        },
+        "flexgen_loading_success_pearson": {
+          "value": 0.256,
+          "source": "raw/step12/x22_reasoning_structure_flexgen.json results.correlation.pearson (alpha=1.0, n=16 arguments)"
+        },
+        "flexgen_baseline_correct_cells": {
+          "value": [
+            40,
+            64
+          ],
+          "source": "raw/step12/x22_reasoning_structure_flexgen.json results.cells baseline_correct"
+        },
+        "x23_concept_mention_rate_instructed": {
+          "value": 0.3661,
+          "source": "raw/step12/x23_vlm_workspace_modulation.json summary.concept_mention_rate_instructed"
+        },
+        "x23_n_runs": {
+          "value": [
+            590,
+            59
+          ],
+          "source": "raw/step12/x23_vlm_workspace_modulation.json summary (n_instructed_runs / n_baseline_runs)"
+        },
+        "x23_z_mean_by_layer": {
+          "value": {
+            "L16": 3.615,
+            "L20": 1.691,
+            "L24": 1.347,
+            "L28": 1.386
+          },
+          "source": "raw/step12/x23_vlm_workspace_modulation.json per_layer[L].z_mean"
+        },
+        "x23_p_vis_given_concept_by_layer": {
+          "value": {
+            "L16": 0.3214,
+            "L20": 0.1976,
+            "L24": 0.2804,
+            "L28": 0.2908
+          },
+          "source": "raw/step12/x23_vlm_workspace_modulation.json per_layer[L].p_visual_given_concept_mean"
+        },
+        "x23_exclusion_verdict": {
+          "value": "no task-exclusion: z > 0 at every measured layer",
+          "source": "DECISIONS.md D47 item D ('the paper's task-exclusion pattern did not clearly replicate at this n') + raw/step12/x23_vlm_workspace_modulation.json per_layer z_mean"
+        }
+      },
+      "finding": "Workspace reasoning dynamics on LLaVA-1.5-7B: the paper's depth precedence replicates almost exactly (intermediate-swap onset 0.529 vs answer-swap 0.706 of band depth; gap -0.176 vs paper ~-0.17; intermediates surface at pass@1 0.269), but causal leverage is weak - flexible-generalization swap success is 5% at alpha=1 AND alpha=2 vs the paper's 40/53% (loading-success Pearson only +0.256) - and during captioning the instructed concept co-occupies the lens top-10 with visual tokens ABOVE shuffle (z +1.3..+3.6; concept-mention 0.366 over 590 instructed runs): visual content behaves as passive context, not a competing task."
+    }
+  ],
+  "notes": [
+    "All plotted numbers are read from the raw JSONs at run time; the only DECISIONS.md-sourced values are the PAPER comparison points (flexgen 40/53%, multihop precedence gap ~-0.17) and the 0.895 low-gap-detector quote, each cited in place.",
+    "figD6 per-word distributions: a word's `step` indexes its own image's steps; the extracted means reproduce aggregate.grounded/hallucinated exactly (asserted in the script). The model's output entropy equals the L31 lens entropy per image (steps.model_entropy == steps.lens_entropy['31']).",
+    "figD7 BOS dim-set stability is recomputed from x16 results (group=bos clamp dims): 14/16 dims shared across L16/24/28/30 - DECISIONS.md D46 records the set as identical at the census level.",
+    "figD8 flexgen 'ours' bars recomputed from results.cells (successful directed swaps on baseline-correct cells / 120); digest prints the same 0.050.",
+    "Deterministic: fixed bins, fixed jitter seed (np.random.default_rng(0)), no timestamps; re-running regenerates byte-identical PNGs + metrics JSON."
+  ]
+}

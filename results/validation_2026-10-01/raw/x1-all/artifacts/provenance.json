@@ -1,0 +1,145 @@
+{
+  "artifacts": {
+    "all": {
+      "dtype": "torch.float16",
+      "file": "lens-all.pt",
+      "n_prompts": 20,
+      "sha256": "02e4802550beea2fa411d63effc1f19e2f2ad104540c640aa3c9b530290c86e9",
+      "source_layers": [
+        0,
+        8,
+        16,
+        24,
+        30
+      ]
+    },
+    "image": {
+      "dtype": "torch.float16",
+      "file": "lens-image.pt",
+      "n_prompts": 20,
+      "sha256": "93ec7868eac1bc63bc3bc78e8873f08649baf4eccda2289ea768819183b47d90",
+      "source_layers": [
+        0,
+        8,
+        16,
+        24,
+        30
+      ]
+    },
+    "text": {
+      "dtype": "torch.float16",
+      "file": "lens-text.pt",
+      "n_prompts": 20,
+      "sha256": "39fea5117d91bb78ff74bfed9fad35837f6d64ef664d6396b3e6a8df2560b44d",
+      "source_layers": [
+        0,
+        8,
+        16,
+        24,
+        30
+      ]
+    }
+  },
+  "corpus": {
+    "corpus": "coco_val2014_captions:half-a",
+    "half_a_questions": [
+      "Describe this image in detail.",
+      "Summarize the scene in one sentence.",
+      "What do you see in this image?",
+      "What is this image about?",
+      "Write a short caption for this image."
+    ],
+    "n_samples": 50,
+    "parent_manifest": "/data/anhnq/vlm-lens-out/validation/step0/manifest-fit.jsonl",
+    "prompt_template_sha256": "1cf033c083cb1f064cd6525c8b6363cd2fd597d8fb9a7fe111e7a4e554c9c3a0",
+    "question": [
+      "Describe this image in detail.",
+      "Summarize the scene in one sentence.",
+      "What do you see in this image?",
+      "What is this image about?",
+      "Write a short caption for this image."
+    ],
+    "version": 1
+  },
+  "created_utc": "2026-10-07T13:02:42+00:00",
+  "environment": {
+    "jlens_vendored_commit": "70faa5ac83a0f88080f718d58cdafc5ffa4a0c4f",
+    "jlens_vendored_dir": "/data/anhnq/NeuronpediaVLM/third_party/jacobian-lens",
+    "platform": "Linux-7.0.0-1011-gcp-x86_64-with-glibc2.39",
+    "python": "3.13.15",
+    "torch": "2.5.1+cu121",
+    "transformers": "5.17.0",
+    "vlm_lens_commit": "70faa5ac83a0f88080f718d58cdafc5ffa4a0c4f"
+  },
+  "estimator": "reference jlens: sum over later target positions, mean over source positions",
+  "extra": {
+    "allow_tf32": true,
+    "backend": "hf-llava",
+    "drop_rate": 0.0,
+    "model_id": "llava-hf/llava-1.5-7b-hf",
+    "n_samples_seen": 20,
+    "n_skipped": 0,
+    "prompt_template_sha256": "1cf033c083cb1f064cd6525c8b6363cd2fd597d8fb9a7fe111e7a4e554c9c3a0",
+    "skipped_examples": [],
+    "wall_seconds": 17881.6
+  },
+  "fit_config": {
+    "dim_batch": 1,
+    "masks": [
+      "text",
+      "image",
+      "all"
+    ],
+    "max_seq_len": 1536,
+    "n_samples": 20,
+    "shard": [
+      0,
+      1
+    ],
+    "skip_first": 1,
+    "source_layers": [
+      0,
+      8,
+      16,
+      24,
+      30
+    ],
+    "target_layer": 31,
+    "target_mask": "all"
+  },
+  "manifest": {
+    "path": "/data/anhnq/vlm-lens-out/validation/step3/manifest-half-a.jsonl",
+    "sha256": "1d1d1731598bd6bd79978617205c92baf9bb5b3abbc32f9f32dcd783c8ceb17c"
+  },
+  "masks": [
+    "all",
+    "image",
+    "text"
+  ],
+  "model": {
+    "class": "LlavaForConditionalGeneration",
+    "d_model": 4096,
+    "image_seq_length": 576,
+    "image_seq_length_source": "config",
+    "image_token_id": 32000,
+    "model_type": "llava",
+    "n_layers": 32,
+    "name_or_path": "llava-hf/llava-1.5-7b-hf",
+    "vision_feature_layer": -2,
+    "vision_feature_select_strategy": "default",
+    "vision_hidden_size": 1024,
+    "vision_image_size": 336,
+    "vision_model_type": "clip_vision_model",
+    "vision_patch_size": 14
+  },
+  "n_prompts": {
+    "all": 20,
+    "image": 20,
+    "text": 20
+  },
+  "notes": "X1 shard 20, target_mask=all",
+  "provenance_version": 1,
+  "tasks": [
+    "manifest"
+  ]
+}
