@@ -29,12 +29,12 @@ ruff check .
 Real-checkpoint gate before any H100 fit:
 
 ```bash
-python scripts/check_equivalence.py --backend hf-llava --model llava-hf/llava-1.5-7b-hf \
+python scripts/check_equivalence.py --backend hf-llava --model llava-7b \
     --device cuda --dtype bfloat16 --image /path/to.jpg
 ```
 
 Fitting runs through `scripts/fit_llava.py` (corpus build/load -> `fit_masked` -> artifacts;
-`--backend tiny|hf-llava`, `--shard I/N`, `--merge`).
+`--model llava-7b|llava-13b|qwen2vl`, `--backend tiny|hf-llava`, `--shard I/N`, `--merge`).
 
 Architecture, invariants and conventions: `AGENTS.md`. Assumption register (VLM-vs-LLM
 differences, failure modes): `docs/jlens-vlm-assumptions.md`. Validation campaign results and

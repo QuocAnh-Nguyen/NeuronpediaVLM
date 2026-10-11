@@ -7,8 +7,10 @@ Prior workspace work (text LLMs) found a "global workspace" band of layers where
 readouts carry task-relevant content and re-index. For LLaVA-1.5-7B (32 layers) the
 repo's prior results pin the text-mediated handoff at ~L20-25 and show that image-token
 J-lens readouts never contain the image's objects at ANY layer; the paper's band
-reindexes to ~[12, 29] of 32 layers. This script runs the four experiments that ONLY a
-VLM can run, one arm per ``--arm``:
+reindexes to ~[12, 29] of 32 layers. ``--model`` selects the checkpoint (default
+llava-7b; llava-13b and qwen2vl bring their registry bands, chat conventions and
+vision-projector module — see vlm_registry). This script runs the four experiments
+that ONLY a VLM can run, one arm per ``--arm``:
 
 report      CROSS-MODAL VERBAL REPORT SWAP. Prompt ``USER: <image>\\nWhat {category} is
             in the picture? Answer with one word:`` ({category} from the image's COCO
@@ -109,14 +111,18 @@ from jlens.lens import JacobianLens  # noqa: E402
 from vlm_lens.artifacts import load_lens_set  # noqa: E402
 from vlm_lens.data.captions import (  # noqa: E402
     DEFAULT_QUESTIONS,
-    PROMPT_TEMPLATE,
     list_coco_images,
-    prompt_template_hash,
-    prompt_text,
     select_images,
 )
 from vlm_lens.interventions import generate_with_edits  # noqa: E402
-from vlm_lens.models.llava import LlavaLensModel, MultimodalBatch  # noqa: E402
+from vlm_lens.models.llava import MultimodalBatch  # noqa: E402
+
+import vlm_registry as registry  # noqa: E402
+
+#: Any registry-built lens model (``LlavaLensModel`` for the llava kinds,
+#: ``Qwen2VLLensModel`` for qwen2vl -- same public surface), so the annotations
+#: stay honest without importing the qwen2vl class at module scope.
+LensModel = Any
 
 from x13_cure_test import (  # noqa: E402
     category_in_caption,
@@ -138,11 +144,10 @@ DEFAULT_BIAS_DIR = "/data/anhnq/vlm-lens-out/validation/step5e"
 DEFAULT_IMAGES_DIR = "/data/baodq/coco2014/val2014"
 DEFAULT_ANNOTATIONS = "/data/baodq/coco2014/annotations/instances_val2014.json"
 
-#: Residual layers inside the workspace band ([12, 29] of 32) for the report/modulation
-#: arms; ignition/band sweep a wider grid so the band's emergence is visible (31 is the
-#: final layer, the readout layer's own block).
-DEFAULT_BAND_LAYERS: tuple[int, ...] = (16, 20, 24, 28)
-DEFAULT_SWEEP_LAYERS: tuple[int, ...] = (12, 16, 20, 24, 28, 31)
+#: Residual readout layers default from the registry's per-model band: four stride-4
+#: layers inside the band for report/modulation (llava-7b: 16, 20, 24, 28 of [12, 29]),
+#: and a wider stride-4 grid from band_lo through the final layer (the readout layer's
+#: own block) for ignition/band so the band's emergence is visible.
 
 #: Position scopes for the report arm. ``text``/``all`` recur on the single-token decode
 #: forwards (x16's DECODE_GROUPS convention); image positions exist only in the prefill.
@@ -254,6 +259,12 @@ def parse_args() -> argparse.Namespace:
         help="model backend: 'hf-llava' (default, CUDA) or the tiny CPU smoke fixture "
              "(4 layers, d_model 32; pass --layers within 0..3 and --synthetic)",
     )
+    parser.add_argument(
+        "--model", choices=registry.MODEL_KINDS, default=registry.DEFAULT_KIND,
+        help="checkpoint kind (HF backend): " + ", ".join(registry.MODEL_KINDS)
+             + "; --backend tiny implies llava-7b geometry (no tiny stand-in exists "
+               "for the other kinds)",
+    )
     parser.add_argument("--lens-dir", default=DEFAULT_LENS_DIR,
                         help="J source lens dir: its fitted layers define the identity-"
                              "transport lens; if it cannot be loaded the identity lens "
@@ -275,8 +286,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--layers", default=None,
         help="comma-separated residual layers for the arm's readouts/edits; default "
-             "16,20,24,28 (report/modulation, inside the [12,29] band) or "
-             "12,16,20,24,28,31 (ignition/band)",
+             "is the registry band subset for the model (llava-7b: 16,20,24,28 for "
+             "report/modulation; 12,16,20,24,28,31 for ignition/band)",
     )
     parser.add_argument("--max-new-tokens", type=int, default=None,
                         help="generation budget; per-arm default (report 8, modulation "
@@ -316,16 +327,9 @@ def parse_args() -> argparse.Namespace:
 # --------------------------------------------------------------------------- shared
 
 
-def load_model(args: argparse.Namespace) -> LlavaLensModel:
-    """The arm model: the HF checkpoint (default, CUDA) or the tiny CPU fixture."""
-    if args.backend == "tiny":
-        from vlm_lens.models.tiny_llava import TinyLlavaConfig, build_tiny_llava
-
-        hf_model, processor = build_tiny_llava(TinyLlavaConfig())
-        return LlavaLensModel(hf_model, processor)
-    return LlavaLensModel.from_pretrained(
-        dtype=torch.bfloat16, device="cuda", local_files_only=True
-    )
+def load_model(args: argparse.Namespace) -> LensModel:
+    """The arm model: dispatched by --model via the registry, or the tiny fixture."""
+    return registry.load_lens_model(args)
 
 
 def load_lens_optional(
@@ -392,9 +396,10 @@ def name_map(annotations: str | None, synthetic: bool) -> dict[int, str]:
 
 @dataclass
 class Workspace:
-    """Everything the arms share: model, calibrated lens, corpus, category tables."""
+    """Everything the arms share: model kind, calibrated lens, corpus, category tables."""
 
-    model: LlavaLensModel
+    kind: str
+    model: LensModel
     lens: JacobianLens
     bias: dict[int, torch.Tensor] | None
     scale: dict[int, float] | None
@@ -414,13 +419,15 @@ class Workspace:
 
 def build_workspace(args: argparse.Namespace) -> Workspace:
     """One model load + lens/bias loads + corpus and category tables for the arm."""
-    layers = default_layers(args)
+    kind = registry.kind_for(args)
+    layers = default_layers(args, kind)
     model = load_model(args)
     invalid = [layer for layer in layers if not 0 <= layer < model.n_layers]
     if invalid:
         raise ValueError(
             f"layers {invalid} outside 0..{model.n_layers - 1} (backend "
-            f"{args.backend!r}, n_layers={model.n_layers}); pass --layers within range"
+            f"{args.backend!r} model {kind!r}, n_layers={model.n_layers}); "
+            "pass --layers within range"
         )
     final_layer = model.n_layers - 1
     source_lens, lens_meta = load_lens_optional(args)
@@ -465,7 +472,7 @@ def build_workspace(args: argparse.Namespace) -> Workspace:
     all_names = sorted({name for name in name_by_id.values()})
     emission = dict(zip(all_names, _category_token_ids(model.tokenizer, all_names)))
     return Workspace(
-        model=model, lens=lens, bias=bias, scale=scale, temp=temp,
+        kind=kind, model=model, lens=lens, bias=bias, scale=scale, temp=temp,
         logit_bias=logit_bias, readout_layer=readout_layer, layers=layers,
         device=device, calibrated=calibrated, name_by_id=name_by_id,
         emission=emission, samples=samples, top_k=args.top_k,
@@ -488,13 +495,20 @@ def coco_samples(
     return samples
 
 
-def default_layers(args: argparse.Namespace) -> list[int]:
-    """The arm's layer list (band subset for report/modulation, wider sweep otherwise)."""
+def default_layers(args: argparse.Namespace, kind: str) -> list[int]:
+    """The arm's layer list (band subset for report/modulation, wider sweep otherwise).
+
+    Defaults come from the registry band at the spec's depth (llava-7b reproduces
+    the old hardcoded (16, 20, 24, 28) and (12, 16, 20, 24, 28, 31) exactly); the
+    ``--layers`` flag remains the override.
+    """
     if args.layers is not None:
         return [int(part) for part in args.layers.split(",") if part.strip()]
+    n_layers = int(registry.MODEL_SPECS[kind]["n_layers"])
     base = (
-        DEFAULT_BAND_LAYERS if args.arm in ("report", "modulation")
-        else DEFAULT_SWEEP_LAYERS
+        registry.band_layers(kind, n_layers)
+        if args.arm in ("report", "modulation")
+        else registry.sweep_layers(kind, n_layers)
     )
     return list(base)
 
@@ -520,7 +534,7 @@ def scope_masks(batch: MultimodalBatch) -> dict[str, torch.Tensor]:
 
 
 def lens_vectors_ids(
-    model: LlavaLensModel,
+    model: LensModel,
     lens: JacobianLens,
     token_ids: list[int],
     layers: list[int],
@@ -589,7 +603,7 @@ class SwapPatcher:
     """
 
     def __init__(
-        self, model: LlavaLensModel, prompt_len: int, specs: dict[int, SwapSpec]
+        self, model: LensModel, prompt_len: int, specs: dict[int, SwapSpec]
     ) -> None:
         self._model = model
         self._prompt_len = int(prompt_len)
@@ -652,7 +666,7 @@ class SwapPatcher:
 
 
 def generate_swapped(
-    model: LlavaLensModel,
+    model: LensModel,
     batch: MultimodalBatch,
     specs: dict[int, SwapSpec],
     *,
@@ -749,8 +763,8 @@ def run_report(args: argparse.Namespace, ws: Workspace) -> dict[str, Any]:
             continue
         category = random.Random(args.seed + index).choice(sorted(gt_names))
         question = REPORT_QUESTION_TEMPLATE.format(category=category)
-        prompt = prompt_text(question)
-        batch = model.encode_mm(prompt, sample.image, max_length=args.max_seq_len)
+        prompt = registry.image_prompt(ws.kind, question)
+        batch = registry.image_encode(model, ws.kind, prompt, sample.image, max_length=args.max_seq_len)
 
         baseline = generate_with_edits(model, None, batch, max_new_tokens=budget)
         answer_ids = baseline["token_ids"]
@@ -1049,9 +1063,9 @@ def run_modulation(args: argparse.Namespace, ws: Workspace) -> dict[str, Any]:
         assigned_concept = concepts[index % len(concepts)]
 
         # ---- baseline condition (concept-independent prompt, once per image)
-        baseline_prompt = prompt_text(MODULATION_BASELINE_QUESTION)
-        batch = model.encode_mm(
-            baseline_prompt, sample.image, max_length=args.max_seq_len
+        baseline_prompt = registry.image_prompt(ws.kind, MODULATION_BASELINE_QUESTION)
+        batch = registry.image_encode(
+            model, ws.kind, baseline_prompt, sample.image, max_length=args.max_seq_len
         )
         new_tokens, step_records = generate_with_residual_traces(
             model, batch, layers, max_new_tokens=budget
@@ -1099,8 +1113,8 @@ def run_modulation(args: argparse.Namespace, ws: Workspace) -> dict[str, Any]:
         # ---- instructed conditions (one per concept)
         for concept_index, concept in enumerate(concepts):
             question = MODULATION_INSTRUCTED_TEMPLATE.format(concept=concept)
-            prompt = prompt_text(question)
-            batch = model.encode_mm(prompt, sample.image, max_length=args.max_seq_len)
+            prompt = registry.image_prompt(ws.kind, question)
+            batch = registry.image_encode(model, ws.kind, prompt, sample.image, max_length=args.max_seq_len)
             new_tokens, step_records = generate_with_residual_traces(
                 model, batch, layers, max_new_tokens=budget
             )
@@ -1260,18 +1274,16 @@ def run_modulation(args: argparse.Namespace, ws: Workspace) -> dict[str, Any]:
 # ------------------------------------------------------------- arm c: ignition
 
 
-def capture_projector_output(
-    model: LlavaLensModel, pixel_values: torch.Tensor
-) -> torch.Tensor:
-    """The multi-modal projector's output for one image (no LM forward needed).
+def capture_projector_output(model: LensModel, kind: str, batch: MultimodalBatch) -> torch.Tensor:
+    """The projected visual features for one image (no LM forward needed).
 
-    A hook on ``hf_model.model.multi_modal_projector`` records the module output during
-    a standalone ``get_image_features`` call (vision tower + feature selection +
-    projector only); this is the exact tensor the prefill's ``masked_scatter``
-    consumes, so blending it IS blending the projected visual features at the 576
-    placeholder positions.
+    A hook on the registry's vision module (llava: ``multi_modal_projector``;
+    qwen2vl: the vision tower whose merged-embed output plays the same role) records
+    the module output during a standalone vision-only call; this is the exact tensor
+    the prefill merges into the input embeddings, so blending it IS blending the
+    projected visual features at the image placeholder positions.
     """
-    module = model.hf_model.model.multi_modal_projector
+    module = registry.vision_projector(model, kind)
     box: dict[str, torch.Tensor] = {}
 
     def hook(_module: Any, _inputs: Any, output: Any) -> Any:
@@ -1281,9 +1293,7 @@ def capture_projector_output(
     handle = module.register_forward_hook(hook)
     try:
         with torch.no_grad():
-            model.hf_model.model.get_image_features(
-                pixel_values=pixel_values, return_dict=True
-            )
+            registry.vision_only(model, kind, batch)
     finally:
         handle.remove()
     if "out" not in box:
@@ -1292,15 +1302,15 @@ def capture_projector_output(
 
 
 class ProjectorMixer:
-    """Hook on ``multi_modal_projector``: out' = (1 - alpha) out + alpha donor.
+    """Hook on the registry's vision module: out' = (1 - alpha) out + alpha donor.
 
     The blend replaces the projected visual features of the batch's own image before
-    the ``masked_scatter`` merges them into the input embeddings. With KV caching the
-    projector fires on the prefill forward only, so the mix persists through decode.
+    they merge into the input embeddings. With KV caching the module fires on the
+    prefill forward only, so the mix persists through decode.
     """
 
-    def __init__(self, model: LlavaLensModel, donor: torch.Tensor, alpha: float) -> None:
-        self._module = model.hf_model.model.multi_modal_projector
+    def __init__(self, model: LensModel, kind: str, donor: torch.Tensor, alpha: float) -> None:
+        self._module = registry.vision_projector(model, kind)
         self._donor = donor
         self.alpha = float(alpha)
         self.n_fires = 0
@@ -1480,7 +1490,7 @@ def run_ignition(args: argparse.Namespace, ws: Workspace) -> dict[str, Any]:
     caption_alphas = alpha_grid(args.caption_alpha_step)
     n_trials = 2 * args.n_pairs
     question = DEFAULT_QUESTIONS[0]
-    prompt = prompt_text(question)
+    prompt = registry.image_prompt(ws.kind, question)
     pairs = select_disjoint_pairs(ws.samples, ws.name_by_id, n_trials)
     print(
         f"== X23 arm=ignition: {len(pairs)} trials, {len(alphas)} mix alphas "
@@ -1498,14 +1508,14 @@ def run_ignition(args: argparse.Namespace, ws: Workspace) -> dict[str, Any]:
     for trial_index, (sample_a, sample_b) in enumerate(pairs):
         names_a = gt_name_set(sample_a, ws.name_by_id)
         names_b = gt_name_set(sample_b, ws.name_by_id)
-        batch_a = model.encode_mm(prompt, sample_a.image, max_length=args.max_seq_len)
-        batch_b = model.encode_mm(prompt, sample_b.image, max_length=args.max_seq_len)
-        donor = capture_projector_output(model, batch_b.pixel_values)
+        batch_a = registry.image_encode(model, ws.kind, prompt, sample_a.image, max_length=args.max_seq_len)
+        batch_b = registry.image_encode(model, ws.kind, prompt, sample_b.image, max_length=args.max_seq_len)
+        donor = capture_projector_output(model, ws.kind, batch_b)
 
         # ---- alpha sweep: one recorded prefill per alpha (the blend fires once)
         handoff: dict[float, dict[int, torch.Tensor]] = {}
         for alpha in alphas:
-            mixer = ProjectorMixer(model, donor, alpha)
+            mixer = ProjectorMixer(model, ws.kind, donor, alpha)
             with mixer, ActivationRecorder(model.layers, at=layers) as recorder:
                 model.forward_mm(batch_a)
             mixer.assert_fired()
@@ -1581,7 +1591,7 @@ def run_ignition(args: argparse.Namespace, ws: Workspace) -> dict[str, Any]:
         # ---- committed captions on the coarse grid
         captions: list[dict[str, Any]] = []
         for alpha in caption_alphas:
-            mixer = ProjectorMixer(model, donor, alpha)
+            mixer = ProjectorMixer(model, ws.kind, donor, alpha)
             with mixer:
                 generated = model.hf_model.generate(
                     **batch_a.hf_kwargs(),
@@ -1839,7 +1849,7 @@ def run_band(args: argparse.Namespace, ws: Workspace) -> dict[str, Any]:
     model = ws.model
     layers = ws.layers
     question = DEFAULT_QUESTIONS[0]
-    prompt = prompt_text(question)
+    prompt = registry.image_prompt(ws.kind, question)
     object_ids_all = sorted(set(ws.emission.values()))
     object_tensor = torch.tensor(object_ids_all)
     effective_dim = {
@@ -1868,7 +1878,7 @@ def run_band(args: argparse.Namespace, ws: Workspace) -> dict[str, Any]:
         if not sample.gt_ids:
             n_skipped += 1
             continue
-        batch = model.encode_mm(prompt, sample.image, max_length=args.max_seq_len)
+        batch = registry.image_encode(model, ws.kind, prompt, sample.image, max_length=args.max_seq_len)
         masks = scope_masks(batch)
         image_mask = masks["image"]
         text_mask = masks["text"]
@@ -2063,8 +2073,8 @@ def main() -> int:
         "top_k": args.top_k,
         "max_new_tokens": max_new_tokens(args),
         "max_seq_len": args.max_seq_len,
-        "prompt_template": PROMPT_TEMPLATE,
-        "prompt_template_hash": prompt_template_hash(),
+        "prompt_template": registry.image_prompt_template(ws.kind),
+        "prompt_template_hash": registry.prompt_template_sha256(ws.kind),
         "workspace_band": {
             "paper_band_32l": [12, 29],
             "handoff_completion_layers": [20, 25],

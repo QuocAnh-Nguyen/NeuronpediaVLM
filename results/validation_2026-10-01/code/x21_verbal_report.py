@@ -5,8 +5,9 @@ introspection, directed modulation — replicated on the LLaVA J-lens stack.
 
 Paper: Gurnee et al. 2026, "workspace" (transformer-circuits.pub/2026/workspace); the
 items/templates come from the vendored ``third_party/jacobian-lens/data/experiments/``
-JSONs. The model is ``LlavaLensModel`` on text-only prompts (the LLM is a 32-layer
-Vicuna fine-tune; workspace band = layers ~[12, 29], 0-indexed). Three arms:
+JSONs. The model is dispatched by ``--model`` (default llava-7b: ``LlavaLensModel`` on
+text-only prompts, a 32-layer Vicuna fine-tune, workspace band layers ~[12, 29]
+0-indexed; llava-13b and qwen2vl come with their registry bands). Three arms:
 
 ``--arm report`` (paper verbal-report, parts a+b)
     Prompt ``Think of a {category}, and name it in a single word:`` (14 categories x
@@ -100,7 +101,15 @@ from jlens.lens import JacobianLens  # noqa: E402
 
 from vlm_lens.artifacts import load_bias, load_lens_set  # noqa: E402
 from vlm_lens.interventions import ResidualEdit, apply_edit  # noqa: E402
-from vlm_lens.models.llava import LlavaLensModel, MultimodalBatch  # noqa: E402
+from vlm_lens.models.llava import MultimodalBatch  # noqa: E402
+
+import vlm_registry as registry  # noqa: E402
+
+#: Any registry-built lens model (``LlavaLensModel`` for the llava kinds,
+#: ``Qwen2VLLensModel`` for qwen2vl -- same public surface), so the annotations
+#: stay honest without importing the qwen2vl class at module scope.
+LensModel = Any
+
 
 DEFAULT_LENS_DIR = "/data/anhnq/vlm-lens-out/validation/s2-merged/artifacts"
 DEFAULT_BIAS_DIR = "/data/anhnq/vlm-lens-out/validation/step5e"
@@ -127,13 +136,12 @@ def _vendored_root() -> Path:
 
 DEFAULT_EXPERIMENTS_DIR = _vendored_root() / "data" / "experiments"
 
-WORKSPACE_LO = 12
-WORKSPACE_HI = 29
+#: The workspace band defaults come from the registry's per-model spec (llava-7b
+#: [12, 29]); --layer-lo/--layer-hi remain as overrides.
 
-#: The paper's verbal-report template, wrapped in the repo's chat convention.
+#: The paper's verbal-report template, wrapped in the registry's chat convention
+#: (llava: 'USER: {body}\\nASSISTANT:'; qwen2vl: the wrapper's processor template).
 REPORT_TEMPLATE = "Think of a {category}, and name it in a single word:"
-CHAT_USER = "USER:"
-CHAT_ASSISTANT = "\nASSISTANT:"
 
 #: Modulation prompt bodies. The instruction slot carries the vendored phrasing
 #: (focus/dismissal) with ``{x}`` filled, or "" for the no-instruction baseline.
@@ -146,8 +154,8 @@ COUNT_FOCUS = "While you copy, count the number of characters in each line."
 COUNT_IGNORE = "While you copy, ignore the number of characters in each line."
 
 COLON_NOTE = (
-    "the chat-wrapped prompt ends 'ASSISTANT:', so the colon token immediately before "
-    "the answer is the LAST PROMPT position; with KV caching its prefill record is "
+    "the chat-wrapped prompt ends at the assistant header, so the token immediately "
+    "before the answer is the LAST PROMPT position; with KV caching its prefill record is "
     "step_records[0] (x14's handoff convention) and generated.scores[0] is the model's "
     "next-token distribution there"
 )
@@ -187,8 +195,9 @@ DECOMPOSITION_NOTE = (
     "(jlens/lens.py provides transport/apply only) - recorded as a deviation"
 )
 TEMPLATE_NOTE = (
-    "introspection/modulation prompts wrap the vendored contents in the repo's chat "
-    "convention (USER:/ASSISTANT:, x13's PROMPT_TEMPLATE family); assistant turns are "
+    "introspection/modulation prompts wrap the vendored contents in the model's chat "
+    "convention from vlm_registry (llava: USER:/ASSISTANT:, x13's PROMPT_TEMPLATE "
+    "family; qwen2vl: the Qwen2 im_start/im_end template); assistant turns are "
     "separated by the eos token (the literal '</s>' piece becomes "
     "tokenizer.eos_token_id when the tokenizer has one); vendored content strings are "
     "used verbatim"
@@ -219,9 +228,10 @@ WRAP_NOTE = (
     "wrap, single spaces); the numeric ground truth is the FIRST line's actual length"
 )
 BAND_NOTE = (
-    "workspace band = layers [layer-lo, layer-hi] (0-indexed) intersected with the "
-    "lens's fitted layers; if the intersection is empty (tiny fixture) ALL fitted "
-    "layers are used and noted"
+    "workspace band = layers [layer-lo, layer-hi] (0-indexed; the model's registry "
+    "band unless --layer-lo/--layer-hi override) intersected with the lens's fitted "
+    "layers; if the intersection is empty (tiny fixture) ALL fitted layers are used "
+    "and noted"
 )
 
 ARM_DEFAULT_NEW_TOKENS = {"report": 6, "introspect": 8, "modulation": 64}
@@ -239,6 +249,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--backend", choices=("hf-llava", "tiny"), default="hf-llava",
         help="model backend: 'hf-llava' (default, CUDA) or the tiny CPU smoke fixture",
+    )
+    parser.add_argument(
+        "--model", choices=registry.MODEL_KINDS, default=registry.DEFAULT_KIND,
+        help="checkpoint kind (HF backend): " + ", ".join(registry.MODEL_KINDS)
+             + "; --backend tiny implies llava-7b geometry (no tiny stand-in exists "
+               "for the other kinds)",
     )
     parser.add_argument(
         "--lens-dir", default=DEFAULT_LENS_DIR,
@@ -263,8 +279,10 @@ def parse_args() -> argparse.Namespace:
         "--layers", default=None,
         help="comma-separated band layers override (default: the workspace band)",
     )
-    parser.add_argument("--layer-lo", type=int, default=WORKSPACE_LO, help="workspace band low (0-indexed)")
-    parser.add_argument("--layer-hi", type=int, default=WORKSPACE_HI, help="workspace band high (inclusive)")
+    parser.add_argument("--layer-lo", type=int, default=None,
+                        help="workspace band low (0-indexed; default: the model's registry band)")
+    parser.add_argument("--layer-hi", type=int, default=None,
+                        help="workspace band high (inclusive; default: the model's registry band)")
     parser.add_argument("--max-new-tokens", type=int, default=None,
                         help="generation cap (per-arm default: "
                              + ", ".join(f"{arm}={n}" for arm, n in ARM_DEFAULT_NEW_TOKENS.items()) + ")")
@@ -298,19 +316,12 @@ def parse_args() -> argparse.Namespace:
 # -------------------------------------------------------------------- plumbing
 
 
-def load_model(args: argparse.Namespace) -> LlavaLensModel:
-    """The protocol model: the HF checkpoint (default, CUDA) or the tiny CPU fixture."""
-    if args.backend == "tiny":
-        from vlm_lens.models.tiny_llava import TinyLlavaConfig, build_tiny_llava
-
-        hf_model, processor = build_tiny_llava(TinyLlavaConfig())
-        return LlavaLensModel(hf_model, processor)
-    return LlavaLensModel.from_pretrained(
-        dtype=torch.bfloat16, device="cuda", local_files_only=True
-    )
+def load_model(args: argparse.Namespace) -> LensModel:
+    """The protocol model: dispatched by --model via the registry, or the tiny fixture."""
+    return registry.load_lens_model(args)
 
 
-def load_lens(args: argparse.Namespace, model: LlavaLensModel) -> tuple[JacobianLens, dict[str, Any]]:
+def load_lens(args: argparse.Namespace, model: LensModel) -> tuple[JacobianLens, dict[str, Any]]:
     """The fitted J-lens on the model's device; the tiny fixture gets an identity lens.
 
     The paper's protocol reads out (and swaps coordinates in) the *J-lens* basis, so
@@ -368,7 +379,7 @@ class Calibration:
     logit_bias: dict[int, torch.Tensor]
 
 
-def load_calibration(args: argparse.Namespace, model: LlavaLensModel) -> Calibration | None:
+def load_calibration(args: argparse.Namespace, model: LensModel) -> Calibration | None:
     """``--calibrated`` payload, or None for the paper's raw J-lens readout."""
     if not args.calibrated:
         return None
@@ -390,12 +401,17 @@ def load_calibration(args: argparse.Namespace, model: LlavaLensModel) -> Calibra
     )
 
 
-def resolve_layers(args: argparse.Namespace, lens: JacobianLens) -> tuple[list[int], str]:
+def resolve_layers(args: argparse.Namespace, lens: JacobianLens, kind: str) -> tuple[list[int], str]:
     """The workspace-band layers the lens actually fitted (see BAND_NOTE)."""
     if args.layers:
         requested = [int(part) for part in args.layers.split(",")]
+    elif args.layer_lo is not None or args.layer_hi is not None:
+        spec = registry.MODEL_SPECS[kind]
+        lo = args.layer_lo if args.layer_lo is not None else spec["band_lo"]
+        hi = args.layer_hi if args.layer_hi is not None else spec["band_hi"]
+        requested = list(range(lo, hi + 1))
     else:
-        requested = list(range(args.layer_lo, args.layer_hi + 1))
+        requested = registry.resolve_band(kind, lens)
     fitted = set(lens.source_layers)
     resolved = sorted(layer for layer in requested if layer in fitted)
     note = BAND_NOTE
@@ -405,7 +421,7 @@ def resolve_layers(args: argparse.Namespace, lens: JacobianLens) -> tuple[list[i
     return resolved, note
 
 
-def _encode_no_special(model: LlavaLensModel, text: str) -> list[int]:
+def _encode_no_special(model: LensModel, text: str) -> list[int]:
     """Token ids for ``text`` with no specials (the tiny fixture always adds BOS)."""
     ids = model.tokenizer(text, add_special_tokens=False)["input_ids"]
     if isinstance(ids, torch.Tensor):
@@ -417,7 +433,7 @@ def _encode_no_special(model: LlavaLensModel, text: str) -> list[int]:
     return [int(i) for i in ids]
 
 
-def token_last_id(model: LlavaLensModel, token: str) -> int:
+def token_last_id(model: LensModel, token: str) -> int:
     """The id of the token that would be emitted for ``token`` (edit-path convention)."""
     ids = _encode_no_special(model, token)
     if not ids:
@@ -426,7 +442,7 @@ def token_last_id(model: LlavaLensModel, token: str) -> int:
 
 
 def vectors_for_ids(
-    model: LlavaLensModel,
+    model: LensModel,
     lens: JacobianLens,
     token_ids: Sequence[int],
     layers: Sequence[int],
@@ -448,7 +464,7 @@ def vectors_for_ids(
 
 
 def lens_logits(
-    model: LlavaLensModel,
+    model: LensModel,
     lens: JacobianLens,
     hidden: torch.Tensor,
     layer: int,
@@ -522,7 +538,7 @@ def mean_or_none(values: Sequence[float | None]) -> float | None:
 
 @torch.no_grad()
 def trace_generation(
-    model: LlavaLensModel,
+    model: LensModel,
     batch: MultimodalBatch,
     layers: Sequence[int],
     *,
@@ -578,7 +594,7 @@ def trace_generation(
 
 
 @contextmanager
-def hooked(model: LlavaLensModel, handles: list[Any]):
+def hooked(model: LensModel, handles: list[Any]):
     """Install forward hooks for the duration of the block (x16's handle pattern)."""
     for handle in handles:
         handle.install()
@@ -592,7 +608,7 @@ def hooked(model: LlavaLensModel, handles: list[Any]):
 class _LayerHook:
     """One forward hook on ``model.layers[layer]`` rewriting the block output."""
 
-    def __init__(self, model: LlavaLensModel, layer: int, fn: Callable[[torch.Tensor], torch.Tensor]):
+    def __init__(self, model: LensModel, layer: int, fn: Callable[[torch.Tensor], torch.Tensor]):
         self._model = model
         self._layer = layer
         self._fn = fn
@@ -631,7 +647,7 @@ class SwapPatcher:
 
     def __init__(
         self,
-        model: LlavaLensModel,
+        model: LensModel,
         layer_vectors: dict[int, dict[str, torch.Tensor]],
         alpha: float,
     ) -> None:
@@ -677,7 +693,7 @@ class InjectPatcher:
 
     def __init__(
         self,
-        model: LlavaLensModel,
+        model: LensModel,
         prompt_len: int,
         layer_specs: dict[int, tuple[torch.Tensor, float, torch.Tensor]],
     ) -> None:
@@ -714,7 +730,7 @@ class InjectPatcher:
 
 
 def greedy_generate(
-    model: LlavaLensModel,
+    model: LensModel,
     batch: MultimodalBatch,
     *,
     max_new_tokens: int,
@@ -739,12 +755,12 @@ def greedy_generate(
     return new_tokens, scores
 
 
-def encode_chat(model: LlavaLensModel, body: str, max_seq_len: int) -> MultimodalBatch:
-    """Text-only chat-wrapped prompt through the canonical processor path."""
-    return model.encode_mm(f"{CHAT_USER} {body}{CHAT_ASSISTANT}", None, max_length=max_seq_len)
+def encode_chat(model: LensModel, kind: str, body: str, max_seq_len: int) -> MultimodalBatch:
+    """Text-only chat turn through the registry's per-model chat convention."""
+    return registry.chat_encode(model, kind, body, max_length=max_seq_len)
 
 
-def decode_new(model: LlavaLensModel, new_tokens: torch.Tensor) -> str:
+def decode_new(model: LensModel, new_tokens: torch.Tensor) -> str:
     return model._decode(new_tokens)
 
 
@@ -780,7 +796,7 @@ def load_experiment(path: Path) -> dict[str, Any]:
 
 
 def _segment_prompt(
-    model: LlavaLensModel, pieces: Sequence[tuple[str, str]]
+    model: LensModel, pieces: Sequence[tuple[str, str]]
 ) -> tuple[torch.Tensor, dict[str, torch.Tensor], str]:
     """Assemble a prompt from (tag, text) pieces with exact per-tag token spans.
 
@@ -815,7 +831,7 @@ def _segment_prompt(
 
 
 def text_only_batch(
-    input_ids: torch.Tensor, model: LlavaLensModel, text: str
+    input_ids: torch.Tensor, model: LensModel, text: str
 ) -> MultimodalBatch:
     """A prompt already encoded as ids into a batch (no image tokens anywhere)."""
     image_token_mask = input_ids == model.image_token_id
@@ -829,7 +845,7 @@ def text_only_batch(
 
 
 def span_norms(
-    model: LlavaLensModel,
+    model: LensModel,
     batch: MultimodalBatch,
     layers: Sequence[int],
     mask: torch.Tensor,
@@ -845,12 +861,12 @@ def span_norms(
     }
 
 
-def decode_id(model: LlavaLensModel, token_id: int) -> str:
+def decode_id(model: LensModel, token_id: int) -> str:
     """One token's decoded surface (used to read the model's top-10 outputs)."""
     return str(model.tokenizer.decode([int(token_id)]))
 
 
-def _numeric_token_id(model: LlavaLensModel, value: int) -> int | None:
+def _numeric_token_id(model: LensModel, value: int) -> int | None:
     """The numeric token id for ``value``: leading-space form, else bare (NUMERIC_NOTE)."""
     for form in (f" {value}", str(value)):
         ids = _encode_no_special(model, form)
@@ -859,7 +875,7 @@ def _numeric_token_id(model: LlavaLensModel, value: int) -> int | None:
     return None
 
 
-def numeric_id_map(model: LlavaLensModel, max_value: int) -> dict[int, int]:
+def numeric_id_map(model: LensModel, max_value: int) -> dict[int, int]:
     """Single-token numeric forms of ``0..max_value`` -> value (NUMERIC_NOTE)."""
     by_id: dict[int, int] = {}
     for value in range(max_value + 1):
@@ -871,7 +887,7 @@ def numeric_id_map(model: LlavaLensModel, max_value: int) -> dict[int, int]:
 
 def base_meta(
     args: argparse.Namespace,
-    model: LlavaLensModel,
+    model: LensModel,
     lens_meta: dict[str, Any],
     calib: Calibration | None,
     layers: list[int],
@@ -881,6 +897,7 @@ def base_meta(
     return {
         "experiment": "x21_verbal_report",
         "arm": args.arm,
+        "model": registry.kind_for(args),
         "created_utc": datetime.now(timezone.utc).isoformat(),
         "backend": args.backend,
         "n_layers": model.n_layers,
@@ -907,12 +924,13 @@ def base_meta(
 @torch.no_grad()
 def arm_report(
     args: argparse.Namespace,
-    model: LlavaLensModel,
+    model: LensModel,
     lens: JacobianLens,
     calib: Calibration | None,
     layers: list[int],
 ) -> dict[str, Any]:
     """Verbal report: (a) lens-vs-output Spearman at the colon; (b) coordinate swaps."""
+    kind = registry.kind_for(args)
     data = load_experiment(Path(args.experiments_dir) / "verbal-report.json")
     categories = list(data["candidates"].keys())
     max_new = args.max_new_tokens or ARM_DEFAULT_NEW_TOKENS["report"]
@@ -931,7 +949,7 @@ def arm_report(
         all_candidates = [str(name) for name in data["candidates"][category]]
         readout_candidates = all_candidates[: args.n_candidates]
         cand_ids = [token_last_id(model, f" {name}") for name in readout_candidates]
-        batch = encode_chat(model, REPORT_TEMPLATE.format(category=category), args.max_seq_len)
+        batch = encode_chat(model, kind, REPORT_TEMPLATE.format(category=category), args.max_seq_len)
         new_tokens, step_records, scores = trace_generation(
             model, batch, layers, max_new_tokens=max_new
         )
@@ -1106,7 +1124,7 @@ def arm_report(
 @torch.no_grad()
 def arm_introspect(
     args: argparse.Namespace,
-    model: LlavaLensModel,
+    model: LensModel,
     lens: JacobianLens,
     layers: list[int],
 ) -> dict[str, Any]:
@@ -1117,14 +1135,16 @@ def arm_introspect(
     assistant_1 = turns[1]["content"]
     user_2 = turns[2]["content"]
     prefill = data["prefills"][args.prefill_key]
+    kind = registry.kind_for(args)
+    frames = registry.chat_turn_frames(kind)
     pieces = [
-        ("frame", f"{CHAT_USER} "),
+        ("frame", frames["user_open"]),
         ("u1", user_1),
-        ("frame", f"{CHAT_ASSISTANT} "),
+        ("frame", frames["assistant_open"]),
         ("a1", assistant_1),
-        ("frame", "</s>\nUSER: "),
+        ("frame", frames["turn_sep"]),
         ("u2", user_2),
-        ("frame", CHAT_ASSISTANT),
+        ("frame", frames["assistant_close"]),
         ("prefill", prefill),
     ]
     input_ids, masks, full_text = _segment_prompt(model, pieces)
@@ -1248,12 +1268,13 @@ def arm_introspect(
 @torch.no_grad()
 def arm_modulation(
     args: argparse.Namespace,
-    model: LlavaLensModel,
+    model: LensModel,
     lens: JacobianLens,
     calib: Calibration | None,
     layers: list[int],
 ) -> dict[str, Any]:
     """Directed modulation: focus/ignore/baseline while copying, target-in-top-10 rates."""
+    kind = registry.kind_for(args)
     mod = load_experiment(Path(args.experiments_dir) / "directed-modulation.json")
     linecount = load_experiment(Path(args.experiments_dir) / "selectivity-linecount.json")
     carrier = str(mod["carrier_sentences"][0])
@@ -1332,7 +1353,7 @@ def arm_modulation(
             else:
                 instruction = phrasing[condition].format(x=item["x"]) if condition != "baseline" else ""
                 body = MOD_BODY.format(carrier=carrier, instruction=instruction)
-            batch = encode_chat(model, body, args.max_seq_len)
+            batch = encode_chat(model, kind, body, args.max_seq_len)
             new_tokens, step_records, _scores = trace_generation(
                 model, batch, layers, max_new_tokens=max_new
             )
@@ -1433,12 +1454,14 @@ def arm_modulation(
 
 def main() -> int:
     args = parse_args()
+    kind = registry.kind_for(args)
     model = load_model(args)
     lens, lens_meta = load_lens(args, model)
     calib = load_calibration(args, model)
-    layers, band_note = resolve_layers(args, lens)
+    layers, band_note = resolve_layers(args, lens, kind)
     print(
-        f"model ready: layers={model.n_layers} d_model={model.d_model} backend={args.backend}; "
+        f"model ready: layers={model.n_layers} d_model={model.d_model} "
+        f"backend={args.backend} model={kind}; "
         f"lens={lens_meta}; band layers={layers}"
     )
     if args.arm == "report":

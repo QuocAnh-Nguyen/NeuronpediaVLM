@@ -9,6 +9,10 @@ call from ``vlm_lens`` so the scripts stay thin. Examples:
     python scripts/fit_llava.py --backend tiny --corpus dummy --n-samples 4 \\
         --out runs/dry-fit
 
+    # select a different checkpoint family (--model llava-7b|llava-13b|qwen2vl)
+    python scripts/fit_llava.py --model qwen2vl --backend tiny --corpus dummy \\
+        --n-samples 4 --out runs/qwen2vl-dry-fit
+
     # H100 fit on LLaVA's own COCO val2014 captions
     python scripts/fit_llava.py --backend hf-llava --corpus coco \\
         --images-dir data/val2014 --n-images 100 --out runs/coco-100
@@ -27,6 +31,7 @@ import sys
 import time
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Any
 
 import torch
 
@@ -53,8 +58,7 @@ from vlm_lens.fitting import (  # noqa: E402
     drop_stats,
     fit_masked,
 )
-from vlm_lens.models.llava import LlavaLensModel  # noqa: E402
-from vlm_lens.models.tiny_llava import TinyLlavaConfig, build_tiny_llava  # noqa: E402
+from vlm_lens.models.registry import FITS_ROOT, MODEL_SPECS  # noqa: E402
 
 DTYPES = {"bfloat16": torch.bfloat16, "float16": torch.float16, "float32": torch.float32}
 CORPORA = ("dummy", "coco", "pope", "text")
@@ -65,11 +69,20 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
     )
     parser.add_argument("--merge", nargs="+", metavar="SHARD_DIR", help="merge fitted shards")
-    parser.add_argument("--out", required=True, help="output directory (checkpoint + artifacts)")
+    parser.add_argument(
+        "--out",
+        default=None,
+        help="output directory (checkpoint + artifacts); default: fits/<model subdir>",
+    )
 
     model = parser.add_argument_group("model")
     model.add_argument("--backend", choices=("hf-llava", "tiny"), default="hf-llava")
-    model.add_argument("--model", default="llava-hf/llava-1.5-7b-hf")
+    model.add_argument(
+        "--model",
+        choices=tuple(MODEL_SPECS),
+        default="llava-7b",
+        help="checkpoint family: llava-7b (default), llava-13b or qwen2vl",
+    )
     model.add_argument("--dtype", choices=tuple(DTYPES), default=None, help="default: bf16 on CUDA, fp32 on CPU")
     model.add_argument("--device", default=None, help="default: cuda when available else cpu")
     model.add_argument("--attn-implementation", default=None)
@@ -159,15 +172,17 @@ def resolve_dtype(args: argparse.Namespace, device: torch.device) -> torch.dtype
     return torch.bfloat16 if device.type == "cuda" else torch.float32
 
 
-def build_model(args: argparse.Namespace) -> LlavaLensModel:
+def build_model(args: argparse.Namespace) -> Any:
+    """Wrapper for the ``--model`` family: tiny CPU fixture or the real checkpoint."""
+    spec = MODEL_SPECS[args.model]
     if args.backend == "tiny":
-        hf_model, processor = build_tiny_llava(TinyLlavaConfig(image_size=args.tiny_image_size))
-        return LlavaLensModel(hf_model, processor)
+        hf_model, processor = spec.build_tiny(image_size=args.tiny_image_size)
+        return spec.lens_model_cls()(hf_model, processor)
     device = resolve_device(args)
     dtype = resolve_dtype(args, device)
-    print(f"loading {args.model} (device={device}, dtype={dtype})")
-    return LlavaLensModel.from_pretrained(
-        args.model,
+    print(f"loading {spec.hf_id} (device={device}, dtype={dtype})")
+    return spec.lens_model_cls().from_pretrained(
+        spec.hf_id,
         dtype=dtype,
         device=device,
         attn_implementation=args.attn_implementation,
@@ -176,7 +191,14 @@ def build_model(args: argparse.Namespace) -> LlavaLensModel:
     )
 
 
-def build_corpus(args: argparse.Namespace, model: LlavaLensModel, out_dir: Path) -> Path:
+def resolve_out_dir(args: argparse.Namespace) -> Path:
+    """``--out`` when given, else the model's default subdir under the fits root."""
+    if args.out:
+        return Path(args.out)
+    return FITS_ROOT / MODEL_SPECS[args.model].out_subdir
+
+
+def build_corpus(args: argparse.Namespace, model: Any, out_dir: Path) -> Path:
     if args.corpus == "dummy":
         image_size = args.tiny_image_size if args.backend == "tiny" else 336
         return build_dummy_manifest(
@@ -281,7 +303,9 @@ def main(argv: list[str] | None = None) -> int:
         format="%(asctime)s %(levelname)s %(name)s: %(message)s",
         force=True,
     )
-    out_dir = Path(args.out)
+    spec = MODEL_SPECS[args.model]
+    out_dir = resolve_out_dir(args)
+    args.out = str(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     if args.merge:
         return run_merge(args)
@@ -295,7 +319,7 @@ def main(argv: list[str] | None = None) -> int:
     precision = configure_tf32(enabled=args.allow_tf32)
     print(
         f"model ready: n_layers={model.n_layers} d_model={model.d_model} "
-        f"image_seq_length={model.image_seq_length} tf32={precision['allow_tf32']}"
+        f"image_seq_length={getattr(model, 'image_seq_length', None)} tf32={precision['allow_tf32']}"
     )
 
     if args.manifest:
@@ -314,7 +338,7 @@ def main(argv: list[str] | None = None) -> int:
     source_layers = parse_layers(args.layers, model.n_layers)
 
     print(
-        f"fitting {len(samples)} samples: backend={args.backend} layers={source_layers or 'all below target'} "
+        f"fitting {len(samples)} samples: backend={args.backend} model={args.model} layers={source_layers or 'all below target'} "
         f"target={args.target_layer if args.target_layer is not None else model.n_layers - 1} "
         f"dim_batch={args.dim_batch} skip_first={skip_first} masks={masks} "
         f"target_mask={args.target_mask} shard={shard}"
@@ -352,7 +376,8 @@ def main(argv: list[str] | None = None) -> int:
         notes=args.notes,
         extra={
             "backend": args.backend,
-            "model_id": args.model if args.backend == "hf-llava" else "tiny-llava",
+            "model_id": spec.hf_id if args.backend != "tiny" else spec.tiny_id,
+            "lens_model_class": spec.lens_model_cls().__name__,
             "allow_tf32": precision["allow_tf32"],
             "wall_seconds": round(time.perf_counter() - started, 1),
             **drop_stats(int(result.config["n_samples"]), result.skipped),

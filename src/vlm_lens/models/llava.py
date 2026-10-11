@@ -39,6 +39,9 @@ class MultimodalBatch:
     pixel_values: torch.Tensor | None  # [n_images, 3, H, W] on the vision device
     image_token_mask: torch.Tensor  # [1, seq_len] bool
     text: str
+    # (t, h, w) grid in patch units for the (single) image; the Qwen2-VL adapter
+    # populates it for its variable-resolution token accounting, LLaVA leaves it None.
+    image_grid_thw: tuple[int, int, int] | None = None
 
     @property
     def seq_len(self) -> int:
@@ -55,6 +58,7 @@ class MultimodalBatch:
             pixel_values=None if self.pixel_values is None else self.pixel_values.to(device),
             image_token_mask=self.image_token_mask.to(device),
             text=self.text,
+            image_grid_thw=self.image_grid_thw,
         )
 
     def hf_kwargs(self) -> dict[str, torch.Tensor]:
@@ -92,6 +96,7 @@ class MultimodalBatch:
             ),
             image_token_mask=self.image_token_mask.expand(n, -1),
             text=self.text,
+            image_grid_thw=self.image_grid_thw,
         )
 
 

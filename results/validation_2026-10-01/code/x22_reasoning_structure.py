@@ -103,9 +103,16 @@ from vlm_lens.interventions import (  # noqa: E402
     ResidualEditor,  # noqa: E402
     lens_vectors,  # noqa: E402
 )
-from vlm_lens.models.llava import LlavaLensModel, MultimodalBatch  # noqa: E402
+from vlm_lens.models.llava import MultimodalBatch  # noqa: E402
 
-# --------------------------------------------------------------- vendored data
+import vlm_registry as registry  # noqa: E402
+
+#: Any registry-built lens model (``LlavaLensModel`` for the llava kinds,
+#: ``Qwen2VLLensModel`` for qwen2vl -- same public surface), so the annotations
+#: stay honest without importing the qwen2vl class at module scope.
+LensModel = Any
+
+
 def _vendored_root() -> Path:
     """The vendored jacobian-lens checkout the imported ``jlens`` comes from.
 
@@ -132,9 +139,9 @@ DEFAULT_FLEXGEN = VENDORED_DATA / "experiments" / "flexible-generalization.json"
 
 DEFAULT_LENS_DIR = "/data/anhnq/vlm-lens-out/validation/s2-merged/artifacts"
 DEFAULT_MASK = "text"
-#: The paper's workspace band, in layers of a 32-layer LLM (see context/README:
-#: "experiments report over this band").
-DEFAULT_BAND = (12, 29)
+#: The workspace band defaults come from the registry's per-model spec (llava-7b
+#: [12, 29], the paper's 32-layer band; see context/README: "experiments report over
+#: this band"); --band remains an override.
 DEFAULT_MAX_SEQ_LEN = 1536
 
 RAW_LENS_NOTE = (
@@ -194,6 +201,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--json", required=True, help="output JSON report path")
     parser.add_argument("--backend", choices=("hf-llava", "tiny"), default="hf-llava",
                         help="'hf-llava' (checkpoint, CUDA) or the tiny CPU smoke fixture")
+    parser.add_argument(
+        "--model", choices=registry.MODEL_KINDS, default=registry.DEFAULT_KIND,
+        help="checkpoint kind (HF backend): " + ", ".join(registry.MODEL_KINDS)
+             + "; --backend tiny implies llava-7b geometry (no tiny stand-in exists "
+               "for the other kinds)",
+    )
     parser.add_argument("--device", choices=("auto", "cuda", "cpu"), default="auto")
     parser.add_argument("--dtype", choices=("bfloat16", "float32"), default="bfloat16",
                         help="hf-llava checkpoint dtype (tiny is always fp32)")
@@ -202,11 +215,11 @@ def parse_args() -> argparse.Namespace:
                              "the vectors (ignored for --backend tiny, which builds an "
                              "identity lens over all layers)")
     parser.add_argument("--mask", default=DEFAULT_MASK)
-    parser.add_argument("--band", default=f"{DEFAULT_BAND[0]},{DEFAULT_BAND[1]}",
-                        help="workspace band '<lo>,<hi>' in layer indices; layers outside "
-                             "the lens's fitted set are dropped, and an empty "
-                             "intersection falls back to the fitted middle half "
-                             "(tiny smoke)")
+    parser.add_argument("--band", default=None,
+                        help="workspace band '<lo>,<hi>' in layer indices (default: the "
+                             "model's registry band); layers outside the lens's fitted "
+                             "set are dropped, and an empty intersection falls back to "
+                             "the fitted middle half (tiny smoke)")
     parser.add_argument("--n-items", type=int, default=0,
                         help="cap on items/cells for multihop and flexgen (0 = all)")
     parser.add_argument("--max-new-tokens", type=int, default=6)
@@ -240,23 +253,12 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def load_model(args: argparse.Namespace) -> LlavaLensModel:
-    """The arm model: the HF checkpoint (default, CUDA/bf16) or the tiny CPU fixture."""
-    if args.backend == "tiny":
-        from vlm_lens.models.tiny_llava import TinyLlavaConfig, build_tiny_llava
-
-        hf_model, processor = build_tiny_llava(TinyLlavaConfig())
-        return LlavaLensModel(hf_model, processor)
-    device = args.device
-    if device == "auto":
-        device = "cuda" if torch.cuda.is_available() else "cpu"
-    dtype = torch.bfloat16 if args.dtype == "bfloat16" else torch.float32
-    return LlavaLensModel.from_pretrained(
-        dtype=dtype, device=device, local_files_only=True
-    )
+def load_model(args: argparse.Namespace) -> LensModel:
+    """The arm model: dispatched by --model via the registry, or the tiny fixture."""
+    return registry.load_lens_model(args)
 
 
-def build_lens(args: argparse.Namespace, model: LlavaLensModel) -> tuple[JacobianLens, dict[str, Any]]:
+def build_lens(args: argparse.Namespace, model: LensModel) -> tuple[JacobianLens, dict[str, Any]]:
     """The J-lens whose vectors drive every readout and edit.
 
     ``--backend tiny`` has no fitted artifact: an identity lens over ALL layers
@@ -295,7 +297,7 @@ def build_lens(args: argparse.Namespace, model: LlavaLensModel) -> tuple[Jacobia
     return lens, meta
 
 
-def resolve_band(lens: JacobianLens, model: LlavaLensModel, lo: int, hi: int) -> tuple[list[int], str]:
+def resolve_band(lens: JacobianLens, model: LensModel, lo: int, hi: int) -> tuple[list[int], str]:
     """The workspace band: fitted layers in [lo, hi]; middle-half fallback for smokes."""
     fitted = [layer for layer in lens.source_layers if 0 <= layer < model.n_layers]
     band = [layer for layer in fitted if lo <= layer <= hi]
@@ -321,7 +323,7 @@ def _flat_ids(ids: Any) -> list[int]:
     return flat
 
 
-def _content_ids(model: LlavaLensModel, text: str) -> list[int]:
+def _content_ids(model: LensModel, text: str) -> list[int]:
     """Content ids of ``text``: flat, minus any bos the tokenizer force-prepends
     (the tiny fixture's ``encode_text`` adds bos even with
     ``add_special_tokens=False``; a real tokenizer's content ids never start
@@ -333,7 +335,7 @@ def _content_ids(model: LlavaLensModel, text: str) -> list[int]:
     return ids
 
 
-def token_id_of(model: LlavaLensModel, text: str) -> int:
+def token_id_of(model: LensModel, text: str) -> int:
     """Last subword id of ``text`` (the token that would be emitted there)."""
     ids = _content_ids(model, text)
     if not ids:
@@ -341,7 +343,7 @@ def token_id_of(model: LlavaLensModel, text: str) -> int:
     return ids[-1]
 
 
-def form_ids(model: LlavaLensModel, word: str) -> list[int]:
+def form_ids(model: LensModel, word: str) -> list[int]:
     """Last-subword ids of both emitted forms (' word' preferred, then 'word')."""
     out: list[int] = []
     for form in (f" {word}", word):
@@ -429,7 +431,7 @@ def excess_kurtosis(values: torch.Tensor) -> float:
 # ------------------------------------------------------------- forwards/edits
 @torch.no_grad()
 def recorded_forward(
-    model: LlavaLensModel, batch: MultimodalBatch, layers: list[int]
+    model: LensModel, batch: MultimodalBatch, layers: list[int]
 ) -> dict[int, torch.Tensor]:
     """One no-grad forward: block-output residuals ``[seq, d]`` fp32 CPU per layer."""
     recorder = ActivationRecorder(model.layers, at=layers)
@@ -442,7 +444,7 @@ def recorded_forward(
 
 @torch.no_grad()
 def lens_last_logits(
-    model: LlavaLensModel,
+    model: LensModel,
     lens: JacobianLens,
     residuals: dict[int, torch.Tensor],
     layer: int,
@@ -465,7 +467,7 @@ class CachedVectorEditor(ResidualEditor):
 
     def __init__(
         self,
-        model: LlavaLensModel,
+        model: LensModel,
         edits: list[ResidualEdit],
         vectors_by_layer: dict[int, dict[str, torch.Tensor]],
     ) -> None:
@@ -485,7 +487,7 @@ class CachedVectorEditor(ResidualEditor):
 
 @torch.no_grad()
 def generate_swapped(
-    model: LlavaLensModel,
+    model: LensModel,
     sample: str | MultimodalBatch,
     edits: list[ResidualEdit],
     vectors_by_layer: dict[int, dict[str, torch.Tensor]],
@@ -522,7 +524,7 @@ def swap_edits(
 
 
 def probe_intermediates(
-    model: LlavaLensModel,
+    model: LensModel,
     lens: JacobianLens,
     entries: list[dict[str, Any]],
     *,
@@ -562,7 +564,7 @@ def probe_intermediates(
 
 
 # ------------------------------------------------------------------ multihop
-def run_multihop(args: argparse.Namespace, model: LlavaLensModel, lens: JacobianLens,
+def run_multihop(args: argparse.Namespace, model: LensModel, lens: JacobianLens,
                  band: list[int]) -> dict[str, Any]:
     started = time.time()
     eval_items = json.loads(Path(args.multihop_eval).read_text(encoding="utf-8"))["items"]
@@ -838,7 +840,7 @@ def _cell(value: float | None, width: int = 6, precision: int = 3) -> str:
 
 # ------------------------------------------------------------------- flexgen
 def find_arg_positions(
-    model: LlavaLensModel, prompt_ids: list[int], arg: str
+    model: LensModel, prompt_ids: list[int], arg: str
 ) -> tuple[list[int], str | None]:
     """Token positions of the argument span in the prompt (space form first)."""
     for form in (f" {arg}", arg):
@@ -851,7 +853,7 @@ def find_arg_positions(
     return [], None
 
 
-def run_flexgen(args: argparse.Namespace, model: LlavaLensModel, lens: JacobianLens,
+def run_flexgen(args: argparse.Namespace, model: LensModel, lens: JacobianLens,
                 band: list[int]) -> dict[str, Any]:
     started = time.time()
     data = json.loads(Path(args.flexgen_dataset).read_text(encoding="utf-8"))
@@ -1157,7 +1159,7 @@ def load_corpus(args: argparse.Namespace) -> tuple[list[str], dict[str, Any]]:
 
 
 @torch.no_grad()
-def run_structure(args: argparse.Namespace, model: LlavaLensModel, lens: JacobianLens,
+def run_structure(args: argparse.Namespace, model: LensModel, lens: JacobianLens,
                   band: list[int]) -> dict[str, Any]:
     started = time.time()
     prompts, corpus_meta = load_corpus(args)
@@ -1300,7 +1302,7 @@ def _match_rate(seq: list[int], delta: int) -> float | None:
 
 
 def _effective_dimensionality(
-    args: argparse.Namespace, model: LlavaLensModel, lens: JacobianLens,
+    args: argparse.Namespace, model: LensModel, lens: JacobianLens,
     layers: list[int],
 ) -> dict[int, dict[str, float]]:
     """Fraction of d_model PCA dims capturing 90% of the variance of ``W_U J_l``.
@@ -1429,12 +1431,16 @@ def main() -> int:
     if args.arm == "structure" and args.positions_per_prompt < 2:
         raise ValueError("--positions-per-prompt must be >= 2")
 
+    kind = registry.kind_for(args)
     model = load_model(args)
     lens, lens_meta = build_lens(args, model)
-    band_lo, band_hi = (int(part) for part in args.band.split(","))
+    if args.band is None:
+        band_lo, band_hi = registry.spec_band(kind)
+    else:
+        band_lo, band_hi = (int(part) for part in args.band.split(","))
     band, band_origin = resolve_band(lens, model, band_lo, band_hi)
     device = model.unembed_weight().device
-    print(f"== X22 arm={args.arm} backend={args.backend} device={device} "
+    print(f"== X22 arm={args.arm} backend={args.backend} model={kind} device={device} "
           f"layers={model.n_layers} d_model={model.d_model} ==")
     print(f"lens: {lens_meta.get('source')} (loaded={lens_meta.get('loaded')}); "
           f"band={band} [{band_origin}]")

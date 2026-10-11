@@ -35,17 +35,22 @@ Protocol (verbatim from the vendored ``data/evaluations/README.md``):
   synonyms that do not tokenize to a single token (leading-space form) are dropped at
   scoring time, and if none survives the key's word form first-subword is used as a
   fallback (counted in ``n_synonym_fallbacks``).
-* **Intermediate token ids** — the llava-hf tokenizer emits a leading space as its own
-  whitespace piece (decodes to ``''``), so a word's candidate set is judged on the
-  non-whitespace pieces of its ``' ' + word`` form; the canonical id is the first
-  non-whitespace piece (the piece the model must emit first to start the word, matching
-  the next-token readout). Words whose form has extra subwords still score on that
-  first piece and are counted in ``n_multi_token_intermediates`` (order-ops, per the
-  README, only lets *single-token* synonyms into the min and falls back to the word
-  form when none survives — both counted).
+* **Intermediate token ids** — the leading-space continuation form is judged on its
+  non-whitespace pieces (the llava-hf tokenizer emits the space as its own whitespace
+  piece that decodes to ``''``; qwen2vl's byte-level BPE merges it into the word), the
+  canonical id is the first non-whitespace piece (the piece the model must emit first
+  to start the word, matching the next-token readout). Words whose form has extra
+  subwords still score on that first piece and are counted in
+  ``n_multi_token_intermediates`` (order-ops, per the README, only lets *single-token*
+  synonyms into the min and falls back to the word form when none survives — both
+  counted). The convention is dispatched per ``--model`` by
+  ``vlm_registry.word_piece_ids``.
 * **Workspace band** — the paper's 0-100 percent-of-depth reindex places the workspace
   band at ~[38, 92] percent, i.e. layers [12, 29] of a 32-layer model; the digest
-  reports the band midpoint (layer 20) against the final layer.
+  reports the band midpoint (layer 20) against the final layer. ``--model`` selects
+  the checkpoint and its registry band (llava-7b [12, 29], llava-13b [15, 36],
+  qwen2vl [11, 26]); the fractions remain the provenance for the llava reindex bands
+  and for models shallower than their spec band (the tiny fixture).
 
 Lens variants (the paper compares the J-lens against a logit lens):
 
@@ -111,8 +116,14 @@ from jlens.hooks import ActivationRecorder  # noqa: E402
 from jlens.lens import JacobianLens  # noqa: E402
 
 from vlm_lens.artifacts import load_bias, load_lens_set  # noqa: E402
-from vlm_lens.models.llava import LlavaLensModel, MultimodalBatch  # noqa: E402
+from vlm_lens.models.llava import MultimodalBatch  # noqa: E402
 
+import vlm_registry as registry  # noqa: E402
+
+#: Any registry-built lens model (``LlavaLensModel`` for the llava kinds,
+#: ``Qwen2VLLensModel`` for qwen2vl -- same public surface), so the annotations
+#: stay honest without importing the qwen2vl class at module scope.
+LensModel = Any
 
 def _vendored_root() -> Path:
     """The vendored jacobian-lens checkout the imported ``jlens`` comes from.
@@ -143,7 +154,9 @@ ALL_VARIANTS = ("j-lens", "logit-lens", "identity-uncal")
 DEFAULT_VARIANTS = ("j-lens", "logit-lens")
 
 #: The paper's workspace band as a fraction of depth (0-100 reindex): ~[38, 92] percent
-#: of depth -> layers [12, 29] for a 32-layer model.
+#: of depth -> layers [12, 29] for a 32-layer model. Kept as provenance for the llava
+#: reindex bands and as the fallback derivation for models shallower than their
+#: registry band (the tiny fixture); real models read their band from the registry.
 BAND_LO_FRAC = 0.38
 BAND_HI_FRAC = 0.92
 
@@ -210,6 +223,12 @@ def parse_args() -> argparse.Namespace:
         "--backend", choices=("hf-llava", "tiny"), default="hf-llava",
         help="model backend: 'hf-llava' (default, CUDA) or the tiny CPU smoke fixture",
     )
+    parser.add_argument(
+        "--model", choices=registry.MODEL_KINDS, default=registry.DEFAULT_KIND,
+        help="checkpoint kind (HF backend): " + ", ".join(registry.MODEL_KINDS)
+             + "; --backend tiny implies llava-7b geometry (no tiny stand-in exists "
+               "for the other kinds)",
+    )
     parser.add_argument("--device", default="", help="override the backend's device (e.g. cpu)")
     parser.add_argument("--lens-dir", default=DEFAULT_LENS_DIR, help="merged lens dir with lens-<mask>.pt")
     parser.add_argument("--bias-dir", default=DEFAULT_BIAS_DIR, help="dir holding bias-<mask>.pt (step5e payload)")
@@ -227,28 +246,40 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def load_model(args: argparse.Namespace) -> LlavaLensModel:
-    """The eval model: the HF checkpoint (default, CUDA) or the tiny CPU fixture."""
-    if args.backend == "tiny":
-        from vlm_lens.models.tiny_llava import TinyLlavaConfig, build_tiny_llava
-
-        hf_model, processor = build_tiny_llava(TinyLlavaConfig())
-        return LlavaLensModel(hf_model, processor)
-    device = args.device or "cuda"
-    dtype = torch.bfloat16 if str(device).startswith("cuda") else torch.float32
-    return LlavaLensModel.from_pretrained(
-        dtype=dtype, device=device, local_files_only=True
-    )
+def load_model(args: argparse.Namespace) -> LensModel:
+    """The eval model: dispatched by --model via the registry, or the tiny fixture."""
+    return registry.load_lens_model(args)
 
 
-def workspace_band(n_layers: int) -> tuple[int, int, int]:
-    """(band_lo, band_hi, band_mid) from the paper's 0-100 reindex fractions."""
-    lo = max(0, min(n_layers - 1, int(BAND_LO_FRAC * n_layers)))
-    hi = max(lo, min(n_layers - 1, int(BAND_HI_FRAC * n_layers)))
+def workspace_band(kind: str, n_layers: int) -> tuple[int, int, int]:
+    """(band_lo, band_hi, band_mid) from the registry's per-model band.
+
+    Models too shallow for their spec band (the 4-layer tiny fixture) fall back to
+    the paper's 0-100 reindex fractions, the original derivation.
+    """
+    lo_spec, hi_spec = registry.spec_band(kind)
+    if n_layers - 1 >= hi_spec:
+        lo, hi = lo_spec, hi_spec
+    else:
+        lo = max(0, min(n_layers - 1, int(BAND_LO_FRAC * n_layers)))
+        hi = max(lo, min(n_layers - 1, int(BAND_HI_FRAC * n_layers)))
     return lo, hi, (lo + hi) // 2
 
 
-def synth_tiny_lens(model: LlavaLensModel) -> JacobianLens:
+def band_fractions(kind: str, band: tuple[int, int, int], n_layers: int) -> list[float]:
+    """The band's depth fractions for the digest/report (0-100 reindex provenance).
+
+    The paper's fractions stand for the llava kinds (their registry bands are that
+    reindex applied at 32/40 layers) and for any model shallower than its spec band
+    (the fraction fallback); other kinds report the realized fractions.
+    """
+    if kind.startswith("llava") or n_layers - 1 < registry.spec_band(kind)[1]:
+        return [BAND_LO_FRAC, BAND_HI_FRAC]
+    lo, hi = registry.spec_band(kind)
+    return [lo / n_layers, hi / n_layers]
+
+
+def synth_tiny_lens(model: LensModel) -> JacobianLens:
     """Identity + small seeded noise over the tiny fixture's fitted layers.
 
     Mirrors the production fit geometry (skip_first=1, exclude_last=True), so the
@@ -267,7 +298,7 @@ def synth_tiny_lens(model: LlavaLensModel) -> JacobianLens:
     )
 
 
-def synth_tiny_bias(model: LlavaLensModel) -> dict[str, dict[str, Any]]:
+def synth_tiny_bias(model: LensModel) -> dict[str, dict[str, Any]]:
     """Seeded per-layer bias payload (same layers as ``synth_tiny_lens``)."""
     generator = torch.Generator().manual_seed(1)
     return {
@@ -303,34 +334,29 @@ def variant_coverage(name: str, lens: JacobianLens, n_layers: int) -> list[int]:
     return list(range(n_layers))
 
 
-def _word_pieces(model: LlavaLensModel, word: str) -> list[int]:
+def _word_pieces(model: LensModel, kind: str, word: str) -> list[int]:
     """Non-whitespace piece ids of a word's leading-space continuation form.
 
-    The llava-hf tokenizer emits the leading space as its own whitespace piece
-    (``' Brazil' -> [29871, 'Brazil-piece']``, the space piece decodes to ``''``), so
-    whitespace-only pieces are dropped before judging; the tiny tokenizer hashes the
-    whole word to one id.
+    Dispatched by ``--model`` through the registry: the llava-hf tokenizer emits the
+    leading space as its own whitespace piece, qwen2vl's byte-level BPE merges it
+    into the word, the tiny tokenizer hashes the whole word to one id.
     """
-    tokenizer = model.tokenizer
-    if hasattr(tokenizer, "encode_text"):  # TinyLlavaProcessor: one id per word
-        return [int(tokenizer.encode_text(word)[1])]
-    pieces = tokenizer(" " + word, add_special_tokens=False, return_tensors=None)["input_ids"]
-    return [int(piece) for piece in pieces if tokenizer.decode([piece]).strip()]
+    return registry.word_piece_ids(model, kind, word)
 
 
-def canonical_token_id(model: LlavaLensModel, word: str) -> tuple[int | None, int]:
+def canonical_token_id(model: LensModel, kind: str, word: str) -> tuple[int | None, int]:
     """(canonical id, n_word_pieces) for one intermediate word.
 
     The canonical id is the first non-whitespace piece of ``' ' + word`` — the piece
     the model must emit first to start the word, matching the next-token readout.
     ``(None, 0)`` for a word with no word pieces.
     """
-    pieces = _word_pieces(model, word)
+    pieces = _word_pieces(model, kind, word)
     return (pieces[0] if pieces else None), len(pieces)
 
 
 def intermediate_ids(
-    model: LlavaLensModel, suite: str, intermediates: list[str]
+    model: LensModel, kind: str, suite: str, intermediates: list[str]
 ) -> tuple[list[list[int]], int, int]:
     """Per-intermediate candidate token ids for one item.
 
@@ -346,16 +372,16 @@ def intermediate_ids(
     for key in intermediates:
         if suite == "order-ops":
             singles = [canonical for form in expand_order_ops(key)
-                       if len(pieces := _word_pieces(model, form)) == 1
+                       if len(pieces := _word_pieces(model, kind, form)) == 1
                        for canonical in pieces]
             if singles:
                 candidates.append(singles)
                 continue
-            canonical, _ = canonical_token_id(model, key)
+            canonical, _ = canonical_token_id(model, kind, key)
             n_fallback += 1
             candidates.append([canonical] if canonical is not None else [])
         else:
-            canonical, n_pieces = canonical_token_id(model, key)
+            canonical, n_pieces = canonical_token_id(model, kind, key)
             candidates.append([canonical] if canonical is not None else [])
             if n_pieces != 1:
                 n_multi += 1
@@ -371,7 +397,7 @@ def _per_intermediate_min_over_layers(record: dict[int, list[int]], layers: list
     ]
 
 
-def last_newline_position(model: LlavaLensModel, input_ids: torch.Tensor) -> int:
+def last_newline_position(model: LensModel, input_ids: torch.Tensor) -> int:
     """Index of the last token whose decoded form contains a newline, else -1."""
     ids = input_ids.tolist()
     for index in range(len(ids) - 1, -1, -1):
@@ -380,7 +406,7 @@ def last_newline_position(model: LlavaLensModel, input_ids: torch.Tensor) -> int
     return -1
 
 
-def resolve_position(suite: str, batch: MultimodalBatch, model: LlavaLensModel) -> tuple[int, str]:
+def resolve_position(suite: str, batch: MultimodalBatch, model: LensModel) -> tuple[int, str]:
     """The suite's single readout position (see module docstring)."""
     if suite == "poetry":
         position = last_newline_position(model, batch.input_ids[0])
@@ -397,7 +423,7 @@ def rank_of_id(logits: torch.Tensor, token_id: int) -> int:
 
 @torch.no_grad()
 def item_ranks(
-    model: LlavaLensModel,
+    model: LensModel,
     variants: dict[str, dict[str, Any]],
     coverage: dict[str, list[int]],
     batch: MultimodalBatch,
@@ -523,7 +549,8 @@ def aggregate_suite(
 def score_suite(
     suite: str,
     items: list[dict[str, Any]],
-    model: LlavaLensModel,
+    model: LensModel,
+    kind: str,
     variants: dict[str, dict[str, Any]],
     coverage: dict[str, list[int]],
     ks: tuple[int, ...],
@@ -545,7 +572,7 @@ def score_suite(
             continue
         position, rule = resolve_position(suite, batch, model)
         rules[rule] = rules.get(rule, 0) + 1
-        candidates, n_multi, n_fallback = intermediate_ids(model, suite, item["intermediates"])
+        candidates, n_multi, n_fallback = intermediate_ids(model, kind, suite, item["intermediates"])
         n_multi_total += n_multi
         n_fallback_total += n_fallback
         ranks = item_ranks(
@@ -622,14 +649,17 @@ def main() -> int:
         raise SystemExit(f"unknown variants {unknown_variants}; choose from {ALL_VARIANTS}")
 
     started = time.time()
+    kind = registry.kind_for(args)
     model = load_model(args)
     n_layers = model.n_layers
-    band = workspace_band(n_layers)
+    band = workspace_band(kind, n_layers)
+    fractions = band_fractions(kind, band, n_layers)
     final_layer = n_layers - 1
     print(
-        f"model ready: layers={n_layers} d_model={model.d_model} backend={args.backend}; "
+        f"model ready: layers={n_layers} d_model={model.d_model} backend={args.backend} "
+        f"model={kind}; "
         f"workspace band layers [{band[0]}, {band[1]}] (mid L{band[2]}), "
-        f"band frac [{BAND_LO_FRAC}, {BAND_HI_FRAC}]"
+        f"band frac [{fractions[0]}, {fractions[1]}]"
     )
 
     # Tiny synthesizes in-process unless an explicit --lens-dir was given (the default
@@ -697,7 +727,7 @@ def main() -> int:
         data = json.loads(path.read_text(encoding="utf-8"))
         items = data["items"][: args.max_items] if args.max_items else data["items"]
         result = score_suite(
-            suite, items, model, variants, coverage, ks, band, args.max_seq_len
+            suite, items, model, kind, variants, coverage, ks, band, args.max_seq_len
         )
         suite_results[suite] = result
         print_digest(suite, result, ks)
@@ -716,10 +746,11 @@ def main() -> int:
         "ks": list(ks),
         "variants": {name: VARIANT_DESCRIPTIONS[name] for name in variant_names},
         "model": {
+            "kind": kind,
             "n_layers": n_layers,
             "d_model": model.d_model,
             "workspace_band": {"layers": [band[0], band[1]], "mid": band[2],
-                               "depth_fractions": [BAND_LO_FRAC, BAND_HI_FRAC]},
+                               "depth_fractions": fractions},
             "final_layer": final_layer,
         },
         "lens": {

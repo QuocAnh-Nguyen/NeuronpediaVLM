@@ -27,6 +27,7 @@ data/manifest.py  JSONL: header+FitSample -> artifacts.py          generate_with
 | --- | --- |
 | `src/vlm_lens/fitting.py` | Core: `jacobian_for_sample`, `fit_masked` (resumable checkpoints, per-sample diagnostics) |
 | `src/vlm_lens/models/llava.py` | HF LLaVA adapter (`LlavaLensModel`, `MultimodalBatch`); `tiny_llava.py` = CPU random-weight fixture model |
+| `src/vlm_lens/models/registry.py` | `--model` dispatch shared by the CLIs: wrapper class, checkpoint id, tiny fixture builder, image-token id and fits-root subdir per model family |
 | `src/vlm_lens/data/` | Corpus builders → `manifest.py` JSONL; no model imports except optional caption generation |
 | `src/vlm_lens/artifacts.py` | `lens-{mask}.pt` I/O + `provenance.json`, shard merging |
 | `src/vlm_lens/readout.py`, `interventions.py` | Lens logits/`trace_generation`; J-lens-vector residual edits and edited generation |
@@ -35,7 +36,7 @@ data/manifest.py  JSONL: header+FitSample -> artifacts.py          generate_with
 | `src/vlm_lens/_batch.py` | Shared `as_batch` sample resolver (`FitSample`/`MultimodalBatch`/`str`) used by fit, readout, edits, scoring |
 | `tests/` | pytest suite on tiny CPU fixtures (no downloads, no GPU) |
 | `scripts/check_equivalence.py` | Equivalence gate: tiny CPU fixture or real checkpoint |
-| `scripts/fit_llava.py` | Fit CLI: corpus build/load → `fit_masked` → artifacts; supports `--backend tiny|hf-llava`, `--shard I/N`, `--merge` |
+| `scripts/fit_llava.py` | Fit CLI: corpus build/load → `fit_masked` → artifacts; supports `--model {llava-7b,llava-13b,qwen2vl}` (wrapper class + checkpoint + fits-root subdir come from `models/registry.py`), `--backend tiny|hf-llava`, `--shard I/N`, `--merge` |
 | `scripts/dry_run.py` | CPU-only end-to-end pipeline check (tiny model, synthetic images, shape assertions); `--shape-check` verifies the real config offline |
 | `third_party/jacobian-lens/` | Vendored upstream (`jlens`); read-only |
 
@@ -52,7 +53,7 @@ ruff check .                                         # lint config [tool.ruff], 
 Real-checkpoint gate before any H100 fit:
 
 ```bash
-python scripts/check_equivalence.py --backend hf-llava --model llava-hf/llava-1.5-7b-hf \
+python scripts/check_equivalence.py --backend hf-llava --model llava-7b \
     --device cuda --dtype bfloat16 --image /path/to.jpg
 ```
 
