@@ -84,12 +84,28 @@ import time
 from pathlib import Path
 from typing import Any
 
-REPO = Path(__file__).resolve().parents[3]
+def _find_repo_root() -> Path:
+    """The repo owning ``third_party/jacobian-lens`` (walk up from this file).
+
+    The orchestrator may run this script from an arbitrary directory (e.g.
+    /home/nvidia/vlm-run), where ``__file__``-relative parents do not reach the
+    repo; the vendored-data paths then anchor on the imported packages instead —
+    see ``_vendored_root`` (defined after the imports, on ``jlens.__file__``).
+    """
+    here = Path(__file__).resolve()
+    for candidate in (here, *here.parents):
+        if (candidate / "third_party" / "jacobian-lens").is_dir():
+            return candidate
+    return here.parents[3] if len(here.parents) > 3 else Path(here.anchor)
+
+
+REPO = _find_repo_root()
 if str(REPO / "src") not in sys.path:
     sys.path.insert(0, str(REPO / "src"))
 
 import torch  # noqa: E402, I001  # the vlm_lens import must precede jlens: it installs the path
 import vlm_lens  # noqa: E402, F401
+import jlens  # noqa: E402  (the vendored-data root anchor: see _vendored_root)
 
 from jlens.hooks import ActivationRecorder  # noqa: E402
 from jlens.lens import JacobianLens  # noqa: E402
@@ -97,7 +113,27 @@ from jlens.lens import JacobianLens  # noqa: E402
 from vlm_lens.artifacts import load_bias, load_lens_set  # noqa: E402
 from vlm_lens.models.llava import LlavaLensModel, MultimodalBatch  # noqa: E402
 
-EVALS_DIR = REPO / "third_party" / "jacobian-lens" / "data" / "evaluations"
+
+def _vendored_root() -> Path:
+    """The vendored jacobian-lens checkout the imported ``jlens`` comes from.
+
+    Anchored on ``jlens.__file__``: vlm_lens prepends the checkout relative to its
+    own install location, so this resolves wherever the orchestrator runs the
+    script. Walking up from this file covers an ``jlens`` that resolves elsewhere
+    (e.g. an installed distribution without the paper data).
+    """
+    candidate = Path(jlens.__file__).resolve().parents[1]
+    if (candidate / "data" / "evaluations").is_dir():
+        return candidate
+    here = Path(__file__).resolve()
+    for parent in (here, *here.parents):
+        candidate = parent / "third_party" / "jacobian-lens"
+        if (candidate / "data" / "evaluations").is_dir():
+            return candidate
+    return REPO / "third_party" / "jacobian-lens"
+
+
+EVALS_DIR = _vendored_root() / "data" / "evaluations"
 DEFAULT_LENS_DIR = "/data/anhnq/vlm-lens-out/validation/s2-merged/artifacts"
 DEFAULT_BIAS_DIR = "/data/anhnq/vlm-lens-out/validation/step5e"
 

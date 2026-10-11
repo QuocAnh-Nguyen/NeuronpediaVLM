@@ -2,6 +2,7 @@
 # P23 (x20): the paper's methodological lens-eval suites (association/multihop/multilingual/
 # order-ops/poetry/typo as vendored) replicated on the LLaVA-7B J-lens vs logit lens.
 # Home-redirected per D46 (scripts in /home/nvidia/vlm-run; outputs /home/nvidia/vlm-lens-out).
+# Guard raised to 26 GB after a shared-GPU OOM on the first attempt.
 set -u
 R=/data/anhnq/NeuronpediaVLM; V=/data/anhnq/vlm-lens-out/validation
 S=$R/results/validation_2026-10-01/code
@@ -18,7 +19,7 @@ wait_gpu() { local need=$1 label=$2 waited=0 g; while :; do g=$(pick_gpu "$need"
 run_step() { local label=$1 need=$2 g; shift 2; g=$(wait_gpu "$need" "$label") || return 1; CUDA_VISIBLE_DEVICES=$g "$@"; }
 
 if [ ! -f "$OUT/x20_lens_evals.json" ]; then
-    run_step x20 20000 $P $C/x20_lens_evals.py \
+    run_step x20 26000 $P $C/x20_lens_evals.py \
         --lens-dir $V/s2-merged/artifacts --bias-dir $V/step5e \
         --json $OUT/x20_lens_evals.json || echo "X20_FAILED"
 else

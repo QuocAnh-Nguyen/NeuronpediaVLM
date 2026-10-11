@@ -72,13 +72,29 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-REPO = Path(__file__).resolve().parents[3]
+def _find_repo_root() -> Path:
+    """The repo owning ``third_party/jacobian-lens`` (walk up from this file).
+
+    The orchestrator may run this script from an arbitrary directory (e.g.
+    /home/nvidia/vlm-run), where ``__file__``-relative parents do not reach the
+    repo; the vendored-data paths then anchor on the imported packages instead —
+    see ``_vendored_root`` (defined after the imports, on ``jlens.__file__``).
+    """
+    here = Path(__file__).resolve()
+    for candidate in (here, *here.parents):
+        if (candidate / "third_party" / "jacobian-lens").is_dir():
+            return candidate
+    return here.parents[3] if len(here.parents) > 3 else Path(here.anchor)
+
+
+REPO = _find_repo_root()
 if str(REPO / "src") not in sys.path:
     sys.path.insert(0, str(REPO / "src"))
 
 import torch  # noqa: E402, I001  # the vlm_lens import must precede jlens: it installs the path
 import vlm_lens  # noqa: E402, F401
 
+import jlens  # noqa: E402  (the vendored-data root anchor: see _vendored_root)
 from jlens.hooks import ActivationRecorder  # noqa: E402
 from jlens.lens import JacobianLens  # noqa: E402
 
@@ -88,7 +104,28 @@ from vlm_lens.models.llava import LlavaLensModel, MultimodalBatch  # noqa: E402
 
 DEFAULT_LENS_DIR = "/data/anhnq/vlm-lens-out/validation/s2-merged/artifacts"
 DEFAULT_BIAS_DIR = "/data/anhnq/vlm-lens-out/validation/step5e"
-DEFAULT_EXPERIMENTS_DIR = REPO / "third_party" / "jacobian-lens" / "data" / "experiments"
+
+
+def _vendored_root() -> Path:
+    """The vendored jacobian-lens checkout the imported ``jlens`` comes from.
+
+    Anchored on ``jlens.__file__``: vlm_lens prepends the checkout relative to its
+    own install location, so this resolves wherever the orchestrator runs the
+    script. Walking up from this file covers an ``jlens`` that resolves elsewhere
+    (e.g. an installed distribution without the paper data).
+    """
+    candidate = Path(jlens.__file__).resolve().parents[1]
+    if (candidate / "data" / "experiments").is_dir():
+        return candidate
+    here = Path(__file__).resolve()
+    for parent in (here, *here.parents):
+        candidate = parent / "third_party" / "jacobian-lens"
+        if (candidate / "data" / "experiments").is_dir():
+            return candidate
+    return REPO / "third_party" / "jacobian-lens"
+
+
+DEFAULT_EXPERIMENTS_DIR = _vendored_root() / "data" / "experiments"
 
 WORKSPACE_LO = 12
 WORKSPACE_HI = 29
@@ -1268,6 +1305,17 @@ def arm_modulation(
     numeric_ids = torch.tensor(
         sorted(numeric_map), dtype=torch.long, device=model.unembed_weight().device
     )
+    numeric_ready = bool(numeric_ids.numel())
+    if not numeric_ready:
+        # The real LLaVA tokenizer splits numeric forms into per-digit pieces
+        # (" 0" -> [" ", "0"]), so the single-token filter can come up empty;
+        # skip the numeric readout (nulls) instead of crashing on argmax.
+        print(
+            f"WARNING: no single-token numeric forms of 0..{args.numeric_max} under "
+            "this tokenizer; skipping the line-count numeric readout (numeric_mae / "
+            "numeric_exact_rate recorded as null)",
+            flush=True,
+        )
 
     print(
         f"== X21 modulation arm: {n_items} items x 3 families x 3 conditions "
@@ -1302,7 +1350,7 @@ def arm_modulation(
                     if any(tid in target_set for tid in top10):
                         hit = True
                         n_hit_positions += 1
-                    if item["family"] == "linecount":
+                    if item["family"] == "linecount" and numeric_ready:
                         gathered = z[numeric_ids]
                         value = numeric_map[int(numeric_ids[int(gathered.argmax().item())].item())]
                         error = abs(value - int(item["truth"]))
@@ -1357,18 +1405,24 @@ def arm_modulation(
         "focus condition's count"
     )
 
+    notes: dict[str, Any] = {
+        "template": TEMPLATE_NOTE,
+        "carrier": carrier,
+        "phrasing_index": args.phrasing_index,
+        "count_focus": COUNT_FOCUS,
+        "count_ignore": COUNT_IGNORE,
+        "numeric": NUMERIC_NOTE,
+        "wrap": WRAP_NOTE,
+        "match": MATCH_NOTE,
+    }
+    if not numeric_ready:
+        notes["numeric_readout"] = (
+            "skipped: this tokenizer yields no single-token numeric forms of 0.."
+            f"{args.numeric_max}; numeric_mae / numeric_exact_rate are null"
+        )
     return {
         "meta": base_meta(args, model, {}, calib, layers, BAND_NOTE),
-        "notes": {
-            "template": TEMPLATE_NOTE,
-            "carrier": carrier,
-            "phrasing_index": args.phrasing_index,
-            "count_focus": COUNT_FOCUS,
-            "count_ignore": COUNT_IGNORE,
-            "numeric": NUMERIC_NOTE,
-            "wrap": WRAP_NOTE,
-            "match": MATCH_NOTE,
-        },
+        "notes": notes,
         "digest": digest,
         "trials": trials,
     }

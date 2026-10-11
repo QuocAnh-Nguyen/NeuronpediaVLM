@@ -80,7 +80,21 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-REPO = Path(__file__).resolve().parents[3]
+def _find_repo_root() -> Path:
+    """The repo owning ``third_party/jacobian-lens`` (walk up from this file).
+
+    The orchestrator may run this script from an arbitrary directory (e.g.
+    /home/nvidia/vlm-run), where ``__file__``-relative parents do not reach the
+    repo; the imports then resolve via the environment's PYTHONPATH instead.
+    """
+    here = Path(__file__).resolve()
+    for candidate in (here, *here.parents):
+        if (candidate / "third_party" / "jacobian-lens").is_dir():
+            return candidate
+    return here.parents[3] if len(here.parents) > 3 else Path(here.anchor)
+
+
+REPO = _find_repo_root()
 CODE = Path(__file__).resolve().parent
 for _path in (str(REPO / "src"), str(CODE)):
     if _path not in sys.path:
@@ -1432,12 +1446,11 @@ def _representative_categories(
     handoff_b: dict[int, torch.Tensor],
     names_a: set[str],
     names_b: set[str],
+    layer: int,
 ) -> tuple[str, str]:
     """Each image's committed-object category: the annotated category with the best
     (lowest) calibrated J-lens rank at the handoff position in its OWN pure run
-    (alpha = 0 for A, alpha = 1 for B, readout layer); ties broken by name order."""
-    layer = ws.readout_layer
-
+    (alpha = 0 for A, alpha = 1 for B, at ``layer``); ties broken by name order."""
     def best(names: set[str], handoff: dict[int, torch.Tensor]) -> str:
         ordered = sorted(name for name in names if name in ws.emission)
         logits = _calibrated_lens_logits(
@@ -1456,6 +1469,12 @@ def run_ignition(args: argparse.Namespace, ws: Workspace) -> dict[str, Any]:
     """Arm (c): image-mixing ignition — alpha sweep, shares, sharpness, commitment."""
     model = ws.model
     layers = ws.layers
+    # The readout layer this arm reads out at: the lens's own readout layer when the
+    # sweep covers it, else the sweep's highest layer at/below it, else the sweep's
+    # highest (the fitted lens's deepest layer need not be one of the sweep layers —
+    # the box lens reads out at L30 while the ignition/band sweep steps 12..31).
+    at_or_below = [layer for layer in layers if layer <= ws.readout_layer]
+    readout_layer = max(at_or_below) if at_or_below else max(layers)
     budget = max_new_tokens(args)
     alphas = alpha_grid(args.alpha_step)
     caption_alphas = alpha_grid(args.caption_alpha_step)
@@ -1496,7 +1515,8 @@ def run_ignition(args: argparse.Namespace, ws: Workspace) -> dict[str, Any]:
             }
 
         rep_a, rep_b = _representative_categories(
-            ws, handoff[alphas[0]], handoff[alphas[-1]], names_a, names_b
+            ws, handoff[alphas[0]], handoff[alphas[-1]], names_a, names_b,
+            readout_layer,
         )
         vector_a = lens_vectors_ids(model, ws.lens, [ws.emission[rep_a]], layers)
         vector_b = lens_vectors_ids(model, ws.lens, [ws.emission[rep_b]], layers)
@@ -1578,15 +1598,15 @@ def run_ignition(args: argparse.Namespace, ws: Workspace) -> dict[str, Any]:
                 "committed_class": committed_class(text, rep_a, rep_b),
             })
         flip = caption_flip_alpha(captions)
-        thr_at_readout = per_layer_rows[str(ws.readout_layer)]["threshold_alpha_lens"]
+        thr_at_readout = per_layer_rows[str(readout_layer)]["threshold_alpha_lens"]
         if flip is not None and thr_at_readout is not None:
-            per_layer_acc[ws.readout_layer]["caption_flip"].append(flip)
-            per_layer_acc[ws.readout_layer]["thr_for_flip"].append(thr_at_readout)
+            per_layer_acc[readout_layer]["caption_flip"].append(flip)
+            per_layer_acc[readout_layer]["thr_for_flip"].append(thr_at_readout)
 
         print(
             f"  [{trial_index + 1}] {sample_a.name} + {sample_b.name}: A={rep_a!r} "
-            f"B={rep_b!r} width_lens(L{ws.readout_layer})="
-            f"{per_layer_rows[str(ws.readout_layer)]['width_lens']} "
+            f"B={rep_b!r} width_lens(L{readout_layer})="
+            f"{per_layer_rows[str(readout_layer)]['width_lens']} "
             f"caption_flip={flip}"
         )
         trial_rows.append({
@@ -1859,7 +1879,7 @@ def run_band(args: argparse.Namespace, ws: Workspace) -> dict[str, Any]:
             for layer in layers
         }
         input_ids = batch.input_ids[0]
-        next_ids = input_ids[1:]  # position p's teacher-forced target (p < seq - 1)
+        next_ids = input_ids[1:].cpu()  # position p's teacher-forced target (p < seq - 1); cpu: joined with the cpu top-k ids at the isin below
         object_ids = [
             ws.emission[name]
             for name in sorted(gt_name_set(sample, ws.name_by_id))

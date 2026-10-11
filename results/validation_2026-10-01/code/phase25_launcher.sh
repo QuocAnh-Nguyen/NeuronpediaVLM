@@ -1,6 +1,7 @@
 #!/bin/bash
 # P25 (x22): internal-reasoning two-hop swaps (+ depth precedence), flexible-generalization
 # swaps (vendored 192 trials), and the layer-band structure statistics.
+# NOTE: x22 uses the RAW J-lens only (the paper's convention) - no --bias-dir flag.
 set -u
 R=/data/anhnq/NeuronpediaVLM; V=/data/anhnq/vlm-lens-out/validation
 S=$R/results/validation_2026-10-01/code
@@ -19,7 +20,7 @@ run_step() { local label=$1 need=$2 g; shift 2; g=$(wait_gpu "$need" "$label") |
 for arm in multihop flexgen structure; do
     if [ ! -f "$OUT/x22_reasoning_structure_$arm.json" ]; then
         run_step x22-$arm 20000 $P $C/x22_reasoning_structure.py --arm $arm \
-            --lens-dir $V/s2-merged/artifacts --bias-dir $V/step5e \
+            --lens-dir $V/s2-merged/artifacts \
             --json $OUT/x22_reasoning_structure_$arm.json || echo "X22_${arm}_FAILED"
     else
         echo "[x22-$arm] present - skip"

@@ -39,7 +39,9 @@ bias/scale/temp corrections) — the paper's lens; see RAW_LENS_NOTE.
 ``--arm structure`` — per-layer structure statistics over ~200 text prompts.
   Per lens layer: (a) top-k next-token accuracy of the J-lens readout vs the
   corpus's actual next token (k = 1, 5, 25) with the model's own top-1 as a
-  reference; (b) excess kurtosis of the lens readout logit distribution across
+  reference; the final layer, which has no fitted Jacobian, reads out the
+  model's own logits (the x20 convention); (b) excess kurtosis of the lens
+  readout logit distribution across
   positions (per-position max logit, plus the pooled all-logit value);
   (c) top-1 lens-token autocorrelation at lags 1..8 against a
   position-shuffled null; (d) effective dimensionality — the fraction of
@@ -65,7 +67,22 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-REPO = Path(__file__).resolve().parents[3]
+def _find_repo_root() -> Path:
+    """The repo owning ``third_party/jacobian-lens`` (walk up from this file).
+
+    The orchestrator may run this script from an arbitrary directory (e.g.
+    /home/nvidia/vlm-run), where ``__file__``-relative parents do not reach the
+    repo; the vendored-data paths then anchor on the imported packages instead —
+    see ``_vendored_root`` (defined after the imports, on ``jlens.__file__``).
+    """
+    here = Path(__file__).resolve()
+    for candidate in (here, *here.parents):
+        if (candidate / "third_party" / "jacobian-lens").is_dir():
+            return candidate
+    return here.parents[3] if len(here.parents) > 3 else Path(here.anchor)
+
+
+REPO = _find_repo_root()
 CODE = Path(__file__).resolve().parent
 for _path in (str(REPO / "src"), str(CODE)):
     if _path not in sys.path:
@@ -75,6 +92,7 @@ import torch  # noqa: E402
 import torch.nn.functional as F  # noqa: E402
 
 import vlm_lens  # noqa: E402, F401  # installs the vendored jlens path: must precede jlens
+import jlens  # noqa: E402  (the vendored-data root anchor: see _vendored_root)
 from jlens.hooks import ActivationRecorder  # noqa: E402
 from jlens.lens import JacobianLens  # noqa: E402
 from vlm_lens._batch import as_batch  # noqa: E402
@@ -88,7 +106,26 @@ from vlm_lens.interventions import (  # noqa: E402
 from vlm_lens.models.llava import LlavaLensModel, MultimodalBatch  # noqa: E402
 
 # --------------------------------------------------------------- vendored data
-VENDORED_DATA = REPO / "third_party" / "jacobian-lens" / "data"
+def _vendored_root() -> Path:
+    """The vendored jacobian-lens checkout the imported ``jlens`` comes from.
+
+    Anchored on ``jlens.__file__``: vlm_lens prepends the checkout relative to its
+    own install location, so this resolves wherever the orchestrator runs the
+    script. Walking up from this file covers an ``jlens`` that resolves elsewhere
+    (e.g. an installed distribution without the paper data).
+    """
+    candidate = Path(jlens.__file__).resolve().parents[1]
+    if (candidate / "data" / "experiments").is_dir():
+        return candidate
+    here = Path(__file__).resolve()
+    for parent in (here, *here.parents):
+        candidate = parent / "third_party" / "jacobian-lens"
+        if (candidate / "data" / "experiments").is_dir():
+            return candidate
+    return REPO / "third_party" / "jacobian-lens"
+
+
+VENDORED_DATA = _vendored_root() / "data"
 DEFAULT_MULTIHOP_EVAL = VENDORED_DATA / "evaluations" / "lens-eval-multihop.json"
 DEFAULT_PROBE_SWAP = VENDORED_DATA / "experiments" / "probe-swap.json"
 DEFAULT_FLEXGEN = VENDORED_DATA / "experiments" / "flexible-generalization.json"
@@ -1124,7 +1161,10 @@ def run_structure(args: argparse.Namespace, model: LlavaLensModel, lens: Jacobia
                   band: list[int]) -> dict[str, Any]:
     started = time.time()
     prompts, corpus_meta = load_corpus(args)
-    readout_layers = sorted({l for l in lens.source_layers if 0 <= l < model.n_layers}
+    # Fitted layers from the lens's actual jacobians (its ground truth); the
+    # final layer has no fitted J and is read out with the model's own logits
+    # (the x20 convention), which is what model_top1_acc measures.
+    readout_layers = sorted({l for l in lens.jacobians if 0 <= l < model.n_layers}
                             | {model.n_layers - 1})
     print(f"-- structure: {len(prompts)} prompts ({corpus_meta['source']}), "
           f"readout layers {readout_layers[0]}..{readout_layers[-1]}, "
@@ -1151,7 +1191,12 @@ def run_structure(args: argparse.Namespace, model: LlavaLensModel, lens: Jacobia
         residuals = recorded_forward(model, batch, readout_layers)
         for layer in readout_layers:
             hidden = residuals[layer][:n_pos]
-            logits = model.unembed(lens.transport(hidden, layer)).float().cpu()
+            if layer == model.n_layers - 1:
+                # No fitted Jacobian at the final layer: identity readout, the
+                # model's own logits (x20 / s2_eval convention).
+                logits = model.unembed(hidden).float().cpu()
+            else:
+                logits = model.unembed(lens.transport(hidden, layer)).float().cpu()
             top = torch.topk(logits, k=min(max_k, logits.shape[-1]), dim=-1).indices
             hits = [(truth.unsqueeze(-1) == top[:, :k]).any(-1).float().mean().item()
                     for k in ks]
@@ -1197,7 +1242,9 @@ def run_structure(args: argparse.Namespace, model: LlavaLensModel, lens: Jacobia
         }
 
     # (d) effective dimensionality of the J-lens vector matrix W_U J_l
-    effdim = _effective_dimensionality(args, model, lens, readout_layers)
+    # (only layers with a fitted Jacobian; the final layer is skipped)
+    effdim = _effective_dimensionality(
+        args, model, lens, [l for l in readout_layers if l in lens.jacobians])
 
     layer_rows: dict[str, dict[str, Any]] = {}
     for layer in readout_layers:
@@ -1274,6 +1321,8 @@ def _effective_dimensionality(
         mean_row = weight.mean(dim=0)  # [d]
     generator = torch.Generator().manual_seed(args.seed)
     for layer in layers:
+        if layer not in lens.jacobians:
+            continue  # guarded access: no fitted Jacobian at this layer
         J = lens.jacobians[layer].to(device).float()
         if args.pca_sample_rows <= 0:
             mtm = J.T @ gram @ J
