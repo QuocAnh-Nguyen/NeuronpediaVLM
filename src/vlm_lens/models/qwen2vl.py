@@ -28,6 +28,14 @@ Where Qwen2-VL genuinely differs from LLaVA, and how it is absorbed:
   ``processor.apply_chat_template(..., tokenize=False, add_generation_prompt=False)``.
   Whether to append the generation prompt is the caller's choice, as with LLaVA, where
   the prompt string carries the ``ASSISTANT:`` scaffold itself.
+- **The processor loads without the video stack.** ``AutoProcessor.from_pretrained``
+  also builds ``Qwen2VLVideoProcessor``, whose module imports torchvision at module
+  level and fails on torchvision-less boxes (see AGENTS invariants); transformers 5.17
+  additionally rejects ``video_processor=None`` when constructing the composite
+  directly. :func:`_load_processor` therefore builds a ``Qwen2VLProcessor`` subclass
+  carrying only the image processor and tokenizer — the generic ``__call__`` guards
+  the video branch with ``hasattr`` — with the PIL image processor pinned so loading
+  and image preprocessing never touch torchvision.
 """
 
 from __future__ import annotations
@@ -132,6 +140,67 @@ class MultimodalBatch:
         )
 
 
+def _load_processor(model_id: str, *, local_files_only: bool = False) -> Any:
+    """Assemble the Qwen2-VL processor without ever touching the video stack.
+
+    ``AutoProcessor.from_pretrained`` builds every ``Qwen2VLProcessor`` sub-component,
+    including ``Qwen2VLVideoProcessor``, whose module imports torchvision at module
+    level — an ``ImportError`` on torchvision-less environments (the fit box). The
+    direct-construction escape hatch is closed too: transformers 5.17 class-checks
+    ``video_processor`` against a torchvision-gated base, so ``video_processor=None``
+    is rejected. The only torchvision-free construction is a subclass whose ``__init__``
+    signature simply has no video component; ``ProcessorMixin.__call__`` guards the
+    video branch with ``hasattr(self, "video_processor")``, and the token-label
+    attributes the image/text path reads are set exactly as ``Qwen2VLProcessor.__init__``
+    sets them.
+
+    The image processor is resolved through ``AutoImageProcessor`` with
+    ``backend="pil"`` — imported from its submodule, because the top-level lazy
+    attribute is a ``DummyObject`` that raises without torchvision. Pinning PIL keeps
+    the wrapper torchvision-independent everywhere; the PIL and torchvision Qwen2-VL
+    processors share the same ``smart_resize`` and patchify math, so ``image_grid_thw``
+    and the ``<|image_pad|>`` expansion come out identical. The chat template is read
+    with the same ``get_processor_dict`` helper ``ProcessorMixin.from_pretrained``
+    uses, so ``apply_chat_template`` sees the checkpoint's processor-level template.
+    """
+    from transformers import AutoTokenizer, Qwen2VLProcessor
+    from transformers.models.auto.image_processing_auto import AutoImageProcessor
+    from transformers.processing_utils import ProcessorMixin
+
+    class _Qwen2VLImageOnlyProcessor(Qwen2VLProcessor):
+        """``Qwen2VLProcessor`` carrying only ``image_processor`` and ``tokenizer``."""
+
+        def __init__(self, image_processor=None, tokenizer=None, chat_template=None):
+            # Same token attributes as Qwen2VLProcessor.__init__; only the mandatory
+            # video_processor argument is dropped (see _load_processor docstring).
+            self.image_token = (
+                "<|image_pad|>" if not hasattr(tokenizer, "image_token") else tokenizer.image_token
+            )
+            self.video_token = (
+                "<|video_pad|>" if not hasattr(tokenizer, "video_token") else tokenizer.video_token
+            )
+            self.image_token_id = (
+                tokenizer.image_token_id
+                if getattr(tokenizer, "image_token_id", None)
+                else tokenizer.convert_tokens_to_ids(self.image_token)
+            )
+            self.video_token_id = (
+                tokenizer.video_token_id
+                if getattr(tokenizer, "video_token_id", None)
+                else tokenizer.convert_tokens_to_ids(self.video_token)
+            )
+            ProcessorMixin.__init__(self, image_processor, tokenizer, chat_template=chat_template)
+
+    processor_dict, _ = ProcessorMixin.get_processor_dict(model_id, local_files_only=local_files_only)
+    return _Qwen2VLImageOnlyProcessor(
+        image_processor=AutoImageProcessor.from_pretrained(
+            model_id, local_files_only=local_files_only, backend="pil"
+        ),
+        tokenizer=AutoTokenizer.from_pretrained(model_id, local_files_only=local_files_only),
+        chat_template=processor_dict.get("chat_template"),
+    )
+
+
 class Qwen2VLLensModel(HFLensModel):
     """``LensModel`` over a loaded ``Qwen2VLForConditionalGeneration``.
 
@@ -184,9 +253,10 @@ class Qwen2VLLensModel(HFLensModel):
 
         Kept separate from :func:`jlens.hf.from_hf` because Qwen2-VL needs the processor
         (image preprocessing + chat template) in addition to the tokenizer, and defaults
-        to bf16 for the real-fit path.
+        to bf16 for the real-fit path. The processor is assembled image-only by
+        :func:`_load_processor`, so loading never requires a video/torchvision backend.
         """
-        from transformers import AutoProcessor, Qwen2VLForConditionalGeneration
+        from transformers import Qwen2VLForConditionalGeneration
 
         kwargs: dict[str, Any] = {"local_files_only": local_files_only}
         if dtype is not None:
@@ -197,7 +267,7 @@ class Qwen2VLLensModel(HFLensModel):
         if device is not None:
             hf_model = hf_model.to(device)
         if processor is None:
-            processor = AutoProcessor.from_pretrained(model_id, local_files_only=local_files_only)
+            processor = _load_processor(model_id, local_files_only=local_files_only)
         return cls(hf_model, processor, compile=compile)
 
     # ------------------------------------------------------------------ encoding
