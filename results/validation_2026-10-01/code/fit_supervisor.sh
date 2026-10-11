@@ -33,6 +33,7 @@ while :; do
         rm -f "$LOG"
         CUDA_VISIBLE_DEVICES=$g setsid $P $R/scripts/fit_llava.py --model $MODEL --backend hf-llava \
             --corpus coco --images-dir /data/baodq/coco2014/val2014 --n-images 100 --dtype bfloat16 \
+            ${FIT_EXTRA:-} \
             --shard $SHARD --out "$OUT" > "$LOG" 2>&1 &
         pid=$!
         ok=1
