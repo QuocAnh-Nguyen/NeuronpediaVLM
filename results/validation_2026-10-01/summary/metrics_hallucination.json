@@ -1,0 +1,183 @@
+{
+  "figures": {
+    "figB1_dose_response": {
+      "file": "figures/figB1_dose_response.png",
+      "sources": [
+        "DECISIONS.md D40 P3 (x9b alpha sweep: 2800 greedy generations, add/ablate/swap at L16/L24; raw JSON not archived under results/raw)",
+        "DECISIONS.md D39 (directionality mining of X9's 215 changed generations)"
+      ],
+      "key_numbers": {
+        "ablate_change_rate_pct_L16_alpha_0.5_1_2_4": [
+          7,
+          16,
+          24,
+          34
+        ],
+        "swap_change_rate_pct_L16_alpha_0.5_1_2_4": [
+          7,
+          12,
+          24,
+          39
+        ],
+        "swap_change_rate_pct_L24_alpha_4": 35,
+        "add_grid_alpha_range_D40": [
+          27,
+          1035
+        ],
+        "add_grid_alpha_range_D39": [
+          1.34,
+          14.68
+        ],
+        "concept_directed_of_changed": {
+          "n_directed": 7,
+          "n_changed": 215,
+          "fraction_pct": 3.3
+        },
+        "directed_alpha_needed_x_residual_norm": [
+          5,
+          14
+        ]
+      },
+      "finding": "Caption change is cheap (7-39% of generations at alpha 0.5-4, monotone in alpha) but concept-DIRECTED change is rare (7/215 = 3.3% of changed generations, needing alpha 5-14x the residual norm); alpha >= 27 breaks down into repetition degeneration, not injection."
+    },
+    "figB2_cure_test": {
+      "file": "figures/figB2_cure_test.png",
+      "sources": [
+        "raw/step10/x13_cure_test.json (per_layer, summary)",
+        "DECISIONS.md D44 (X13)"
+      ],
+      "key_numbers": {
+        "halluc_removed_rate_by_layer_L16_24_28_30": [
+          0.5,
+          0.6,
+          0.7,
+          0.9
+        ],
+        "clean_cure_rate_by_layer": [
+          0.5,
+          0.6,
+          0.7,
+          0.9
+        ],
+        "grounded_retention_halluc_dir_by_layer": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "grounded_retention_grounded_dir_control_by_layer": [
+          0.9722,
+          0.7907,
+          0.5222,
+          0.3463
+        ],
+        "n_images": 39,
+        "n_hallucination_arms": 10,
+        "n_control_arms": 36
+      },
+      "finding": "Mean-replacement ablation of the hallucinated category's J-lens direction at alpha=1 removes 0.50/0.60/0.70/0.90 of hallucinations at L16/24/28/30 while grounded-category retention stays 1.00 on those arms; ablating a GROUNDED category's direction is destructive (retention falls 0.97 -> 0.35 by L30) - a training-free 90% surgical cure at L30."
+    },
+    "figB3_commitment_boundary": {
+      "file": "figures/figB3_commitment_boundary.png",
+      "sources": [
+        "raw/step10/x12_cross_image_patch.json (digest)",
+        "DECISIONS.md D44 (X12)"
+      ],
+      "key_numbers": {
+        "changed_rate_by_layer_L0_8_12_16_20_24_28_30": [
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          0.875,
+          0.125,
+          0.5,
+          0.25
+        ],
+        "a_objects_vanish_by_layer": [
+          1.0,
+          1.0,
+          1.0,
+          0.8125,
+          0.3125,
+          0.0,
+          0.125,
+          0.0
+        ],
+        "b_objects_appear_by_layer": [
+          0.4062,
+          0.4375,
+          0.4896,
+          0.3333,
+          0.125,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "single_position_control_changed_max": 0.25,
+        "text_control_changed_range": [
+          0.125,
+          0.375
+        ],
+        "n_pairs": 8
+      },
+      "finding": "Visual content is causally live at image positions only until ~L16-20: patching all 576 image tokens changes the caption at rate 1.00 -> 0.125 across L0-24 (A-objects vanish 1.00 -> 0 by L24; B-objects appear 0.41-0.49 only through L16), and single-token patches do nothing (<= 0.25) - the commitment boundary sits at L20-24 and content is distributed."
+    },
+    "figB4_prior_grounding_race": {
+      "file": "figures/figB4_prior_grounding_race.png",
+      "sources": [
+        "raw/step10/x14_workspace_probe.json (per_layer)",
+        "DECISIONS.md D44 (X14)"
+      ],
+      "key_numbers": {
+        "grounded_rank_L0": 5358.333,
+        "halluc_rank_L0": 787.0,
+        "crossing_L24": {
+          "grounded_rank": 4.863,
+          "halluc_rank": 6.5
+        },
+        "crossing_L26": {
+          "grounded_rank": 1.176,
+          "halluc_rank": 4.5
+        },
+        "handoff_true_object_rank_mean_L16": 1422.917,
+        "handoff_true_object_rank_best_L20": 34,
+        "handoff_true_object_rank_best_L22_25": [
+          14,
+          14,
+          15,
+          6
+        ],
+        "motor_flip_mean_rank_L31": 3463.625,
+        "n_images": 24
+      },
+      "finding": "The language prior leads from L0 (hallucinated words rank ~787 vs grounded ~5358) while grounding is computed (5358 -> 1.18); the two trajectories cross at L24-26, the image's true objects surface at the last prompt position (mean 1423 at L16 -> best 34 at L20 -> 6-15 at L22-25), and the L31 motor regime flips the readout to the imminent token (mean rank 3464) - hallucination is the prior's default, grounding the computation that must overtake it."
+    },
+    "figB5_detector_ledger": {
+      "file": "figures/figB5_detector_ledger.png",
+      "sources": [
+        "raw/step11/x18_pope_handoff.json (summary.auroc)",
+        "raw/step11/x15_hesitation_n200.json (aggregate.auroc)",
+        "raw/step11/x19_halluc_risk.json (per_layer)",
+        "raw/step11/x17_attention_mirror_n200.json (hallucination_join.share_mid_layer)",
+        "DECISIONS.md D46 (detector ledger table)"
+      ],
+      "key_numbers": {
+        "auroc_pre_generation_yes_no_gap_per_question_L28": 0.9851630307295332,
+        "auroc_lens_entropy_L7_per_word": 0.7297369297369297,
+        "auroc_fused_per_image_L30": 0.6659441233140655,
+        "auroc_true_category_gap_per_image_L30": 0.6321050096339114,
+        "auroc_image_mean_lens_entropy_per_image_L28": 0.619942196531792,
+        "auroc_model_entropy_per_word": 0.5933399933399933,
+        "auroc_attention_share_mid_per_image_NULL": 0.501416,
+        "n_questions_pope": 185,
+        "n_images_x19": 197,
+        "n_words_grounded_vs_hallucinated_x15": [
+          385,
+          39
+        ]
+      },
+      "finding": "Hallucination is best predicted by calibrated workspace content, not attention: the pre-generation yes/no gap nearly solves object presence (0.985 over 185 questions; 0.895 as a low-gap detector of the model's own hallucinated yes), while caption-level risk is a 0.6-0.73 problem (fused 0.666) and the attention mirror is NULL (0.501); all lens detectors are training-free and single-pass."
+    }
+  }
+}

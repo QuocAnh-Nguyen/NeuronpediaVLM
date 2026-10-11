@@ -1,0 +1,450 @@
+{
+  "family": "global-workspace replication (x20-x22) + VLM-only novelty (x23)",
+  "band_mapping": "paper band [38,92] of 0-100 maps to LLaVA-7B ~L12-29 (DECISIONS.md D47)",
+  "figures": [
+    {
+      "file": "figures/figC1_band_structure.png",
+      "sources": [
+        "raw/step12/x22_reasoning_structure_structure.json",
+        "raw/step12/x22_reasoning_structure_multihop.json",
+        "raw/step12/x22_reasoning_structure_flexgen.json",
+        "DECISIONS.md D47"
+      ],
+      "key_numbers": {
+        "autocorr_onset_layer": {
+          "value": 12,
+          "source": "raw/step12/x22_reasoning_structure_structure.json digest (autocorr_delta)"
+        },
+        "effdim_onset_layer": {
+          "value": 17,
+          "source": "raw/step12/x22_reasoning_structure_structure.json digest"
+        },
+        "top1_onset_layer": {
+          "value": 20,
+          "source": "raw/step12/x22_reasoning_structure_structure.json digest"
+        },
+        "kurtosis_onset_layer": {
+          "value": 28,
+          "source": "raw/step12/x22_reasoning_structure_structure.json digest"
+        },
+        "onset_bracketed_band": {
+          "value": [
+            17,
+            29
+          ],
+          "source": "raw/step12/x22_reasoning_structure_structure.json digest + band"
+        },
+        "mapped_workspace_band": {
+          "value": [
+            12,
+            29
+          ],
+          "source": "raw/step12/x22_reasoning_structure_structure.json band (fitted \u2229 [12,29])"
+        },
+        "paper_band_0_100": {
+          "value": [
+            38,
+            92
+          ],
+          "source": "DECISIONS.md D47"
+        },
+        "effdim_onset_to_offset": {
+          "value": [
+            0.327,
+            0.702
+          ],
+          "source": "raw/step12/x22_reasoning_structure_structure.json digest (effdim min/max in band)"
+        },
+        "multihop_precedence_gap": {
+          "value": -0.176,
+          "source": "raw/step12/x22_reasoning_structure_multihop.json results.onset_stats (intermediate minus answer median_effective_frac; digest prints -0.176)"
+        },
+        "paper_precedence_gap": {
+          "value": -0.17,
+          "source": "DECISIONS.md D47"
+        },
+        "multihop_probe_pass1": {
+          "value": 0.26881720430107525,
+          "source": "raw/step12/x22_reasoning_structure_multihop.json results.probe_stats['lens-eval-multihop'].pass@1"
+        },
+        "flexgen_success_alpha1": {
+          "value": 0.05,
+          "source": "raw/step12/x22_reasoning_structure_flexgen.json results.cells[*].swap_success (baseline-correct trials; digest prints 0.050)"
+        },
+        "flexgen_success_alpha2": {
+          "value": 0.05,
+          "source": "raw/step12/x22_reasoning_structure_flexgen.json results.cells[*].swap_success (baseline-correct trials; digest prints 0.050)"
+        },
+        "paper_flexgen_success": {
+          "value": [
+            0.4,
+            0.53
+          ],
+          "source": "DECISIONS.md D47"
+        },
+        "flexgen_loading_pearson": {
+          "value": 0.256,
+          "source": "raw/step12/x22_reasoning_structure_flexgen.json results.correlation.pearson"
+        }
+      },
+      "gaps": [
+        "layer_rows['31'] has no effdim90 field (digest prints '-'); effdim onset/offset use in-band layers only"
+      ],
+      "finding": "The four x22 band metrics (autocorrelation, effective dimensionality, top-1 accuracy, readout kurtosis) bracket a workspace band L17-29 inside the mapped paper band L12-29, reproducing the sensory/workspace/motor trichotomy; the multihop depth precedence replicates (-0.176 vs paper ~-0.17) while flexible generalization via J-lens vectors is far weaker than the paper's models (5% vs 40/53%)."
+    },
+    {
+      "file": "figures/figC2_lens_vs_logit_suites.png",
+      "sources": [
+        "raw/step12/x20_lens_evals.json",
+        "DECISIONS.md D47 (32k vocab size)"
+      ],
+      "key_numbers": {
+        "multihop_best_jlens_pass10": {
+          "value": 0.4839,
+          "source": "raw/step12/x20_lens_evals.json suites.multihop.per_layer.j-lens"
+        },
+        "multihop_best_logitlens_pass10": {
+          "value": 0.3656,
+          "source": "raw/step12/x20_lens_evals.json suites.multihop.per_layer.logit-lens"
+        },
+        "multihop_pass10_at_L20": {
+          "value": {
+            "j-lens": 0.3118,
+            "logit-lens": 0.0538
+          },
+          "source": "raw/step12/x20_lens_evals.json suites.multihop.per_layer.*[layer=20].pass@10"
+        },
+        "multilingual_best_jlens_pass10": {
+          "value": 0.28,
+          "source": "raw/step12/x20_lens_evals.json suites.multilingual.per_layer.j-lens"
+        },
+        "multilingual_best_logitlens_pass10": {
+          "value": 0.235,
+          "source": "raw/step12/x20_lens_evals.json suites.multilingual.per_layer.logit-lens"
+        },
+        "multilingual_pass10_at_L20": {
+          "value": {
+            "j-lens": 0.265,
+            "logit-lens": 0.0575
+          },
+          "source": "raw/step12/x20_lens_evals.json suites.multilingual.per_layer.*[layer=20].pass@10"
+        },
+        "typo_best_jlens_pass10": {
+          "value": 0.125,
+          "source": "raw/step12/x20_lens_evals.json suites.typo.per_layer.j-lens"
+        },
+        "typo_best_logitlens_pass10": {
+          "value": 0.0312,
+          "source": "raw/step12/x20_lens_evals.json suites.typo.per_layer.logit-lens"
+        },
+        "typo_pass10_at_L20": {
+          "value": {
+            "j-lens": 0.125,
+            "logit-lens": 0.0104
+          },
+          "source": "raw/step12/x20_lens_evals.json suites.typo.per_layer.*[layer=20].pass@10"
+        },
+        "order-ops_best_jlens_pass10": {
+          "value": 0.4364,
+          "source": "raw/step12/x20_lens_evals.json suites.order-ops.per_layer.j-lens"
+        },
+        "order-ops_best_logitlens_pass10": {
+          "value": 0.3273,
+          "source": "raw/step12/x20_lens_evals.json suites.order-ops.per_layer.logit-lens"
+        },
+        "poetry_best_jlens_pass10": {
+          "value": 0.0408,
+          "source": "raw/step12/x20_lens_evals.json suites.poetry.per_layer.j-lens"
+        },
+        "poetry_best_logitlens_pass10": {
+          "value": 0.0204,
+          "source": "raw/step12/x20_lens_evals.json suites.poetry.per_layer.logit-lens"
+        },
+        "association_mean_rank_L20": {
+          "value": 20660.12,
+          "source": "raw/step12/x20_lens_evals.json suites.association.digest.j-lens.mean_rank_at_workspace_mid"
+        },
+        "suites_favoring_jlens": {
+          "value": 5,
+          "source": "raw/step12/x20_lens_evals.json (computed: count of suites with max pass@10(j-lens) > max pass@10(logit-lens))"
+        },
+        "association_pass10_both_variants": {
+          "value": 0.0,
+          "source": "raw/step12/x20_lens_evals.json suites.association.per_layer (all layers, both variants)"
+        }
+      },
+      "finding": "Across the six vendored eval suites the J-lens reads workspace intermediates better than the calibrated logit lens on 5/6 suites (multihop 0.312 vs 0.054 pass@10 at L20; multilingual 0.265 vs 0.058; typo 0.125 vs 0.031 best), while the association suite is NULL on both variants (pass@10 = 0 everywhere; gold mean rank 20,660 of 32k at L20)."
+    },
+    {
+      "file": "figures/figC3_report_introspection.png",
+      "sources": [
+        "raw/step12/x21_verbal_report_report.json",
+        "raw/step12/x21_verbal_report_introspect.json",
+        "raw/step12/x21_verbal_report_modulation.json"
+      ],
+      "key_numbers": {
+        "spearman_L12": {
+          "value": 0.47513643732810584,
+          "source": "raw/step12/x21_verbal_report_report.json per_layer['12'].pooled_spearman"
+        },
+        "spearman_L20": {
+          "value": 0.8644678487815901,
+          "source": "raw/step12/x21_verbal_report_report.json per_layer['20'].pooled_spearman"
+        },
+        "spearman_L29": {
+          "value": 0.9577732011856885,
+          "source": "raw/step12/x21_verbal_report_report.json per_layer['29'].pooled_spearman"
+        },
+        "introspect_user_alpha1": {
+          "value": 0.65,
+          "source": "raw/step12/x21_verbal_report_introspect.json rates.user['1.0']"
+        },
+        "introspect_user_alpha05": {
+          "value": 0.6,
+          "source": "raw/step12/x21_verbal_report_introspect.json rates.user['0.5']"
+        },
+        "introspect_assistant_control": {
+          "value": 0.0,
+          "source": "raw/step12/x21_verbal_report_introspect.json rates.assistant (0.0 at every strength)"
+        },
+        "modulation_concept_focus_ignore_baseline": {
+          "value": [
+            1.0,
+            0.6,
+            0.2
+          ],
+          "source": "raw/step12/x21_verbal_report_modulation.json digest.concept"
+        },
+        "modulation_math_all_zero": {
+          "value": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "source": "raw/step12/x21_verbal_report_modulation.json digest.math (0.0 in all conditions)"
+        },
+        "modulation_linecount_focus": {
+          "value": 0.4,
+          "source": "raw/step12/x21_verbal_report_modulation.json digest.linecount.focus"
+        },
+        "swap_flip_rate": {
+          "value": 0.2143,
+          "source": "raw/step12/x21_verbal_report_report.json summary.swap_success_rate (9/42)"
+        },
+        "swap_target_top5_rate": {
+          "value": 0.0,
+          "source": "raw/step12/x21_verbal_report_report.json summary.target_top5_rate"
+        },
+        "paper_swap_flip_rate": {
+          "value": [
+            0.59,
+            0.88
+          ],
+          "source": "DECISIONS.md D47"
+        }
+      },
+      "finding": "The paper's verbal-report phenomena replicate on LLaVA-7B with the raw J-lens readout: Spearman(lens order, output order) rises 0.475 (L12) -> 0.865 (L20) -> 0.958 (L29); injected-thought introspection reports the concept 0.65 at alpha=1.0 (0.6 at 0.5) from the user turn while the assistant-span control is 0.00 at every strength; directed modulation shows the white-bear ordering focus 1.00 > ignore 0.60 > baseline 0.20, and math intermediates never surface (0.0 all conditions)."
+    },
+    {
+      "file": "figures/figC4_ignition.png",
+      "sources": [
+        "raw/step12/x23_vlm_workspace_ignition.json"
+      ],
+      "key_numbers": {
+        "width_lens_L12": {
+          "value": 0.4188,
+          "source": "raw/step12/x23_vlm_workspace_ignition.json per_layer['12'].width_lens_mean"
+        },
+        "width_full_L12": {
+          "value": 0.6328,
+          "source": "raw/step12/x23_vlm_workspace_ignition.json per_layer['12'].width_full_mean"
+        },
+        "width_lens_L16": {
+          "value": 0.3758,
+          "source": "raw/step12/x23_vlm_workspace_ignition.json per_layer['16'].width_lens_mean"
+        },
+        "width_full_L16": {
+          "value": 0.4421,
+          "source": "raw/step12/x23_vlm_workspace_ignition.json per_layer['16'].width_full_mean"
+        },
+        "width_lens_L20": {
+          "value": 0.3345,
+          "source": "raw/step12/x23_vlm_workspace_ignition.json per_layer['20'].width_lens_mean"
+        },
+        "width_full_L20": {
+          "value": 0.4037,
+          "source": "raw/step12/x23_vlm_workspace_ignition.json per_layer['20'].width_full_mean"
+        },
+        "width_lens_L24": {
+          "value": 0.3327,
+          "source": "raw/step12/x23_vlm_workspace_ignition.json per_layer['24'].width_lens_mean"
+        },
+        "width_full_L24": {
+          "value": 0.3921,
+          "source": "raw/step12/x23_vlm_workspace_ignition.json per_layer['24'].width_full_mean"
+        },
+        "width_lens_L28": {
+          "value": 0.2876,
+          "source": "raw/step12/x23_vlm_workspace_ignition.json per_layer['28'].width_lens_mean"
+        },
+        "width_full_L28": {
+          "value": 0.3954,
+          "source": "raw/step12/x23_vlm_workspace_ignition.json per_layer['28'].width_full_mean"
+        },
+        "width_lens_L31": {
+          "value": 0.2795,
+          "source": "raw/step12/x23_vlm_workspace_ignition.json per_layer['31'].width_lens_mean"
+        },
+        "width_full_L31": {
+          "value": 0.3829,
+          "source": "raw/step12/x23_vlm_workspace_ignition.json per_layer['31'].width_full_mean"
+        },
+        "L28_threshold_vs_caption_pearson": {
+          "value": 0.9887,
+          "source": "raw/step12/x23_vlm_workspace_ignition.json per_layer['28'].threshold_vs_caption_pearson"
+        },
+        "L28_threshold_alpha_mean": {
+          "value": 0.3949,
+          "source": "raw/step12/x23_vlm_workspace_ignition.json per_layer['28'].threshold_alpha_lens_mean"
+        },
+        "L28_caption_flip_alpha_mean": {
+          "value": 0.4792,
+          "source": "raw/step12/x23_vlm_workspace_ignition.json per_layer['28'].caption_flip_alpha_mean"
+        },
+        "n_trials_alpha_steps": {
+          "value": [
+            20,
+            41
+          ],
+          "source": "raw/step12/x23_vlm_workspace_ignition.json summary (n_trials, n_alphas)"
+        }
+      },
+      "gaps": [
+        "caption_flip_alpha is null outside L28 (flip-vs-threshold Pearson computed at L28 only); at L28 only 3 of 20 trials show a committed-class flip within the 9 sampled caption alphas"
+      ],
+      "finding": "Blending two images' projected features and sweeping alpha, the J-space component's 10-90% transition is sharper than the full activation's at every layer (0.42 vs 0.63 at L12 -> 0.28 vs 0.38 at L31) and sharpens with depth; at L28 the caption's committed class flips at the same alpha as the lens transition (Pearson 0.9887) - the visual workspace ignites all-or-none with a behaviorally aligned readout."
+    },
+    {
+      "file": "figures/figC5_modality_split.png",
+      "sources": [
+        "raw/step12/x23_vlm_workspace_band.json",
+        "raw/step12/x23_vlm_workspace_report.json",
+        "DECISIONS.md D47"
+      ],
+      "key_numbers": {
+        "stickiness_z_image_L12": {
+          "value": 9.182,
+          "source": "raw/step12/x23_vlm_workspace_band.json per_layer['12'].image.stickiness_z"
+        },
+        "stickiness_z_text_L12": {
+          "value": 0.248,
+          "source": "raw/step12/x23_vlm_workspace_band.json per_layer['12'].text.stickiness_z"
+        },
+        "object_in_top10_image_L12": {
+          "value": 0.0,
+          "source": "raw/step12/x23_vlm_workspace_band.json per_layer['12'].image.object_in_top10_rate"
+        },
+        "object_in_top10_text_L12": {
+          "value": 0.0,
+          "source": "raw/step12/x23_vlm_workspace_band.json per_layer['12'].text.object_in_top10_rate"
+        },
+        "stickiness_z_image_L16": {
+          "value": 3.2052,
+          "source": "raw/step12/x23_vlm_workspace_band.json per_layer['16'].image.stickiness_z"
+        },
+        "stickiness_z_text_L16": {
+          "value": 0.575,
+          "source": "raw/step12/x23_vlm_workspace_band.json per_layer['16'].text.stickiness_z"
+        },
+        "object_in_top10_image_L16": {
+          "value": 0.0,
+          "source": "raw/step12/x23_vlm_workspace_band.json per_layer['16'].image.object_in_top10_rate"
+        },
+        "object_in_top10_text_L16": {
+          "value": 0.0,
+          "source": "raw/step12/x23_vlm_workspace_band.json per_layer['16'].text.object_in_top10_rate"
+        },
+        "stickiness_z_image_L20": {
+          "value": 3.5008,
+          "source": "raw/step12/x23_vlm_workspace_band.json per_layer['20'].image.stickiness_z"
+        },
+        "stickiness_z_text_L20": {
+          "value": 1.7412,
+          "source": "raw/step12/x23_vlm_workspace_band.json per_layer['20'].text.stickiness_z"
+        },
+        "object_in_top10_image_L20": {
+          "value": 0.0064,
+          "source": "raw/step12/x23_vlm_workspace_band.json per_layer['20'].image.object_in_top10_rate"
+        },
+        "object_in_top10_text_L20": {
+          "value": 0.0038,
+          "source": "raw/step12/x23_vlm_workspace_band.json per_layer['20'].text.object_in_top10_rate"
+        },
+        "stickiness_z_image_L24": {
+          "value": 6.4095,
+          "source": "raw/step12/x23_vlm_workspace_band.json per_layer['24'].image.stickiness_z"
+        },
+        "stickiness_z_text_L24": {
+          "value": 1.9927,
+          "source": "raw/step12/x23_vlm_workspace_band.json per_layer['24'].text.stickiness_z"
+        },
+        "object_in_top10_image_L24": {
+          "value": 0.0223,
+          "source": "raw/step12/x23_vlm_workspace_band.json per_layer['24'].image.object_in_top10_rate"
+        },
+        "object_in_top10_text_L24": {
+          "value": 0.0094,
+          "source": "raw/step12/x23_vlm_workspace_band.json per_layer['24'].text.object_in_top10_rate"
+        },
+        "stickiness_z_image_L28": {
+          "value": 9.1106,
+          "source": "raw/step12/x23_vlm_workspace_band.json per_layer['28'].image.stickiness_z"
+        },
+        "stickiness_z_text_L28": {
+          "value": 0.3637,
+          "source": "raw/step12/x23_vlm_workspace_band.json per_layer['28'].text.stickiness_z"
+        },
+        "object_in_top10_image_L28": {
+          "value": 0.047,
+          "source": "raw/step12/x23_vlm_workspace_band.json per_layer['28'].image.object_in_top10_rate"
+        },
+        "object_in_top10_text_L28": {
+          "value": 0.016,
+          "source": "raw/step12/x23_vlm_workspace_band.json per_layer['28'].text.object_in_top10_rate"
+        },
+        "stickiness_z_image_L31": {
+          "value": 18.5625,
+          "source": "raw/step12/x23_vlm_workspace_band.json per_layer['31'].image.stickiness_z"
+        },
+        "stickiness_z_text_L31": {
+          "value": 1.3188,
+          "source": "raw/step12/x23_vlm_workspace_band.json per_layer['31'].text.stickiness_z"
+        },
+        "object_in_top10_image_L31": {
+          "value": 0.069,
+          "source": "raw/step12/x23_vlm_workspace_band.json per_layer['31'].image.object_in_top10_rate"
+        },
+        "object_in_top10_text_L31": {
+          "value": 0.0179,
+          "source": "raw/step12/x23_vlm_workspace_band.json per_layer['31'].text.object_in_top10_rate"
+        },
+        "swap_flip_rates_pooled": {
+          "value": {
+            "text": 0.0169,
+            "image": 0.0,
+            "all": 0.0212
+          },
+          "source": "raw/step12/x23_vlm_workspace_report.json summary.pooled_flip_token_rate (text/image/all)"
+        },
+        "effective_dim_category_vectors": {
+          "value": 68.4758,
+          "source": "raw/step12/x23_vlm_workspace_band.json per_layer.*.effective_dim_category_vectors (position-independent, constant 68.48)"
+        }
+      },
+      "gaps": [
+        "x23_vlm_workspace_modulation.json occupancy table (co-occupancy z 1.35-1.69 in-band over 590 instructed runs) is not visualized: no figure in this family covers it; the paper's task-exclusion pattern did not clearly replicate (DECISIONS.md D47 item D)"
+      ],
+      "finding": "The paper's band statistics split by modality: image positions carry highly persistent top-1 lens content at every layer (stickiness z 9.2 at L12 -> 18.6 at L31) yet stay object-free until the motor regime (object-in-top10 0.000 band-wide -> 0.006 at L20, 0.022 at L24, 0.047 at L28, 0.069 at L31), while text positions stay token-local (z 0.2-2.0) and hold the object workspace; image-sourced concept swaps flip the verbal report in 0.0% of runs (text 1.7%, all 2.1%)."
+    }
+  ]
+}

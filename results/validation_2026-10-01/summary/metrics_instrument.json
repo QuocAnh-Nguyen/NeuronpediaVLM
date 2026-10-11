@@ -1,0 +1,140 @@
+{
+  "round": "validation_2026-10-01",
+  "family": "instrument (fitting precision, depth fidelity, masks/census, model-class ladder, data scaling)",
+  "script": "results/validation_2026-10-01/code/figures_instrument.py",
+  "figures": [
+    {
+      "file": "figA1_dtype_precision.png",
+      "sources": [
+        "results/validation_2026-10-01/raw/step1/x6_dtype.json"
+      ],
+      "key_numbers": {
+        "text_L0_rel_frobenius_pct": 49.187,
+        "all_L0_rel_frobenius_pct": 20.132,
+        "median_rel_pct": {
+          "all": 1.201,
+          "image": 1.264,
+          "text": 1.479
+        },
+        "max_rel_pct": {
+          "all": 20.132,
+          "image": 4.35,
+          "text": 49.187
+        },
+        "rule": "fp32 if median > 0.03 or max > 0.1",
+        "use_fp32": true
+      },
+      "finding": "bf16-vs-fp32 relative error falls with depth to 1.2-1.5% at the per-mask medians by L16, but the text mask shows 49.2% relative error at L0 - X6 verdict: production = fp32 + TF32."
+    },
+    {
+      "file": "figA2_depth_fidelity.png",
+      "sources": [
+        "results/validation_2026-10-01/raw/step2/s1_score.json"
+      ],
+      "key_numbers": {
+        "j_lens_L0_mean_rank": 4153.6,
+        "logit_lens_L0_mean_rank": 8500.8,
+        "j_lens_L16_mean_rank": 885.5,
+        "logit_lens_L16_mean_rank": 3683.6,
+        "mid_L17_24_mean_rank_j_vs_lens": [
+          2228.8,
+          2119.3
+        ],
+        "mid_layers_j_worse_count": 5,
+        "L30_mean_rank_j_vs_lens": [
+          46.5,
+          75.2
+        ],
+        "L31_exact_rank_kl_top1": [
+          27.31,
+          0.0,
+          1.0
+        ],
+        "chance_mean_rank": 16032.5
+      },
+      "gap": "S2 depth-curve JSON absent from raw/ (raw/step3/ holds only fit manifests); figure uses S1 only, as instructed.",
+      "finding": "The J-lens beats the untrained logit lens on mean rank at every layer except the L17-24 mid-layer bump (worse at 5/8 of those layers; mean rank 2228.8 vs 2119.3), and is exact at L31 (rank 27.31 = the model's own, KL = 0, top-1 = 1.00)."
+    },
+    {
+      "file": "figA3_census_masks.png",
+      "sources": [
+        "results/validation_2026-10-01/raw/step1/x3_norms.json"
+      ],
+      "key_numbers": {
+        "n_samples": 50,
+        "bos_mean_norm": {
+          "0": 8.323,
+          "16": 1568.825,
+          "24": 1567.426,
+          "31": 633.649
+        },
+        "bos_growth_L0_to_L16_x": 188.5,
+        "bos_over_text_post_at_L16_x": 42.0,
+        "text_post_mean_norm_L16": 37.387,
+        "positions_per_mask": {
+          "text": 3604,
+          "image": 28800,
+          "all": 32454,
+          "bos": 50
+        },
+        "image_position_share_pct": 88.7
+      },
+      "finding": "Position census (50 samples): image patches are 88.7% of the 32,454 positions, and the BOS sink is the outlier - the smallest group norm at L0 (8.3) but 1,569 by L16 (188x), ~42x the text norms, decaying to 634 by L31."
+    },
+    {
+      "file": "figA4_model_class_ladder.png",
+      "sources": [
+        "results/validation_2026-10-01/DECISIONS.md D41 (ladder table, lines 859-871)",
+        "results/validation_2026-10-01/DECISIONS.md D42 (best J readout +0.947)"
+      ],
+      "key_numbers": {
+        "untrained_logit_lens_LQS": 0.0,
+        "full_J_uncorrected_LQS": -0.102,
+        "full_J_census_bias_scale_LQS": 0.766,
+        "full_J_bias_logit_bias_merged_LQS": 0.922,
+        "best_J_readout_LQS": 0.947,
+        "lowrankJ_LQS": 1.714,
+        "lowrankRaw_LQS": 1.718,
+        "transport_gain_over_ident_bias_LQS": 0.119,
+        "L30_rank_ratio_J_vs_translator": "1.30-1.79 vs 5.62-5.82",
+        "citation": "DECISIONS.md D41 (table, lines 859-871) and D42; no lens_zoo JSON under raw/"
+      },
+      "finding": "Affine correction does the early work, transport the late work: bias+scale lifts LQS from -0.102 to +0.766, logit_bias to +0.922, and the tmtext50 refit to +0.947; rank-32 translators lead overall (1.714-1.718) but are 3x worse at L30 (5.62-5.82 vs 1.30-1.79)."
+    },
+    {
+      "file": "figA5_data_scaling.png",
+      "sources": [
+        "results/validation_2026-10-01/DECISIONS.md D43"
+      ],
+      "key_numbers": {
+        "translator_LQS_by_n": {
+          "40": 1.714,
+          "100": 2.043,
+          "500": 2.691,
+          "1000": 3.009
+        },
+        "rung_deltas": [
+          0.329,
+          0.648,
+          0.318
+        ],
+        "lqs_per_log_fold_approx": 0.4,
+        "J_class_flat_band": [
+          0.92,
+          0.95
+        ],
+        "fit_side_val_kl_40_to_1000": [
+          1.424,
+          0.888
+        ],
+        "citation": "DECISIONS.md D43; no step8/lens_zoo_scaling.json under raw/"
+      },
+      "finding": "The J-class is data-saturated (flat LQS 0.92-0.95 by n~100) while the translator's held-out LQS keeps rising ~linearly in log n: 1.714@40 -> 2.043@100 -> 2.691@500 -> 3.009@1000 - the production recommendation flips to the translator (n>=1000, keep scaling)."
+    }
+  ],
+  "notes": [
+    "All JSON-sourced numbers are read from the raw files at run time; ladder and scaling numbers exist only in DECISIONS.md (no step4/lens_zoo_*.json or step8/lens_zoo_scaling.json under raw/), so they are cited as DECISIONS.md D41/D42/D43.",
+    "figA2 S2-depth-curve gap: no step3/step4 result JSON under raw/; S1 used alone.",
+    "figA3 right-panel mask counts are derived from x3_norms.json per_sample (text = seq_len - 1 - 576 image patches; BOS = 1 per sample)."
+  ]
+}
