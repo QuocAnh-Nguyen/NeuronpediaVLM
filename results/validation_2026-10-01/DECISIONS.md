@@ -1142,3 +1142,74 @@ says at the handoff/decoding positions), not by attention allocation; the pre-ge
 object-presence question is nearly solved; caption-level prediction is a ~0.6-0.73 problem.
 Artifacts: step11 JSONs (box /data for rounds 1-2; /home/nvidia for round 3 + slimmed copies
 in raw/step11); commits 48bb2d9 (+ this D46); scripts x15/x16/x17/x18/x19 + phase13-22.
+
+## D47 - 2026-10-11 ~11:00Z: the workspace-paper replication round - LLaVA-7B has the J-space structure, with weaker causal leverage; the VLM-only experiments find image-side ignition and a sensory-block that stays object-free until the motor regime
+
+Paper: Gurnee et al. 2026, "Verbalizable Representations Form a Global Workspace in Language
+Models" (transformer-circuits.pub/2026/workspace); the upstream repo vendors its experiment
+data (third_party/jacobian-lens/data/{experiments,evaluations}). Ten new scripts results/
+validation_2026-10-01/code/x20-x23 (+ launchers phase23-27); all results in step12 (box
+/home/nvidia/vlm-lens-out), copies raw/step12. Box-only fixes (committed 0f78b11): jlens-
+anchored vendored-data resolution, readout-layer derivation, one cpu/cuda mix, a numeric-
+tokenization guard, final-layer-from-logits in the structure arm. LLaVA-7B = 32 layers; the
+paper's 0-100 band [38,92] maps to ~[12,29].
+
+REPLICATION VERDICTS (paper property -> our result):
+1. Layer-band structure (x22-structure, 200 prompts): top1 next-token acc onset L20/argmax 29;
+   readout kurtosis onset L28 (max 3.72); top-1 autocorrelation onset L12/argmax 24; effdim
+   onset L17, 0.33->0.70. The four metrics bracket a band ~L17-29 - the paper's sensory/
+   workspace/motor trichotomy replicates.
+2. J-lens beats logit lens at workspace mid (x20, six vendored eval suites): multihop 0.312 vs
+   0.054 pass@10 at L20 (best 0.484 L28 vs 0.366 L29), multilingual 0.265 vs 0.058, typo 0.125
+   vs 0.010, order-ops and poetry marginal-positive; association = NULL on both variants (gold
+   mean rank ~20k of 32k - that suite's associations are not lens-readable on this model).
+   The paper's methodological claim holds on 5/6 suites.
+3. Verbal report (x21-report, 14 vendored categories): Spearman(lens order, output order) at
+   the colon rises 0.475 (L12) -> 0.865 (L20) -> 0.958 (L29) - the paper's rise replicates;
+   lens-coordinate swaps flip 9/42 answers (21%; paper: 59-88% on frontier models) and never
+   reach top-5 of the immediate next-token distribution (flips act through generation).
+4. Injected-thought introspection (x21-introspect): user-turn injection reports the concept
+   0.65 at alpha=1.0 (0.6 at 0.5, dose-responsive) while the assistant-span control is 0.00 at
+   every strength - the position selectivity replicates sharply.
+5. Directed modulation (x21-modulation): concept-in-lens focus 1.00 > ignore 0.60 > baseline
+   0.20 - including the white-bear effect (ignore primes above baseline). Math intermediates
+   (nine->seven) NEVER surface (0.0 all conditions) - a real capability difference from the
+   paper's models. Line-count focus 0.40 > 0/0.
+6. Internal reasoning (x22-multihop, 93 vendored two-hop items): intermediates surface in the
+   lens (probe pass@1 0.269); intermediate-swap vs answer-swap effective-onset gap = -0.176 vs
+   the paper's ~-0.17 - the depth precedence REPLICATES almost exactly (intermediates are
+   computed and causally used before answers). Absolute swap success is low (late-band 9.3%
+   vs the paper's 54-70%).
+7. Flexible generalization (x22-flexgen, the vendored 192 trials): success 5% at alpha=1 AND
+   alpha=2 (paper: 40/53%); loading-success Pearson +0.256 (right sign, weak). Broadcast via
+   J-lens vectors is much weaker on this model.
+
+VLM-ONLY RESULTS (x23; the novel deliverable):
+A. IMAGE-MIXING IGNITION: blending two images' projected features f=(1-a)f_A+a f_B and
+   sweeping alpha (20 pair-trials x 41 steps): the J-space component's 10-90% transition width
+   is SHARPER than the full activation's at every layer (0.42 vs 0.63 at L12 -> 0.28 vs 0.38 at
+   L31) and sharpens with depth; at L28 the caption's committed class flips at the SAME alpha
+   as the lens transition (Pearson 0.9887). The VLM's visual workspace commits all-or-none and
+   the caption follows the lens threshold - ignition, with a behaviorally aligned readout.
+B. MODALITY-SPLIT BANDS: the paper's band statistics split image- vs text-position readouts:
+   image positions carry HIGHLY persistent top-1 lens content at every layer (stickiness z
+   9.2 at L12, 18.6 at L31) yet objects appear there only in the motor regime (object-in-top10:
+   0.000 band-wide, 0.006 L20, 0.022 L24, 0.047 L28, 0.069 L31) while text positions stay
+   token-local through the band (z 0.2-2.0). The sensory block's workspace content is stable
+   but NON-VERBAL until commitment; the object workspace is text-side - quantifying and
+   confirming D44's text-mediated handoff at the band level.
+C. Cross-modal report swap (image-sourced concepts): scope ordering TEXT 1.7% / ALL 2.1% /
+   IMAGE 0.0% flip rates - the predicted ordering holds (image-position swaps do nothing) but
+   absolute rates are tiny, consistent with finding 3/7 (weak swap leverage on this model).
+D. Modulation-during-captioning: behavioral concept-mention 0.37 under instruction; the
+   concept-vs-visual co-occupancy analysis ran (590 instructed runs) - see step12 JSON for the
+   occupancy table; the paper's task-exclusion pattern did not clearly replicate at this n.
+
+SYNTHESIS: LLaVA-1.5-7B possesses the J-space's STRUCTURAL workspace properties (band, lens>
+logit at mid, report correlation rise, depth precedence, white-bear modulation, introspection
+selectivity, image-side ignition with caption alignment) while its causal leverage is far
+weaker than frontier models' - swap-based control transfers poorly at 7B scale. The VLM
+extension adds a genuine structural novelty: a persistent, non-verbal sensory workspace block
+whose contents verbalize only at the motor regime, with the object-level workspace living at
+text positions throughout. Artifacts: step12 (11 JSONs); commits f9e2d96, 0f78b11 (+ this).
+

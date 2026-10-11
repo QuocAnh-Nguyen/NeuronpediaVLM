@@ -1,0 +1,1571 @@
+{
+  "meta": {
+    "experiment": "x21_verbal_report",
+    "arm": "report",
+    "created_utc": "2026-10-11T08:32:17.835638+00:00",
+    "backend": "hf-llava",
+    "n_layers": 32,
+    "d_model": 4096,
+    "lens": {
+      "loaded": true,
+      "dir": "/data/anhnq/vlm-lens-out/validation/s2-merged/artifacts",
+      "mask": "text",
+      "n_prompts": 100
+    },
+    "calibrated": false,
+    "calibrated_note": "readout = the paper's raw J-lens readout unembed(J_l h); lens vectors are always the raw rows of W_U @ J_l",
+    "layers": [
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29
+    ],
+    "band_note": "workspace band = layers [layer-lo, layer-hi] (0-indexed) intersected with the lens's fitted layers; if the intersection is empty (tiny fixture) ALL fitted layers are used and noted",
+    "max_new_tokens": 6,
+    "max_seq_len": 1536,
+    "experiments_dir": "/data/anhnq/NeuronpediaVLM/third_party/jacobian-lens/data/experiments"
+  },
+  "notes": {
+    "colon": "the chat-wrapped prompt ends 'ASSISTANT:', so the colon token immediately before the answer is the LAST PROMPT position; with KV caching its prefill record is step_records[0] (x14's handoff convention) and generated.scores[0] is the model's next-token distribution there",
+    "candidates": "candidates are the vendored per-category lists, truncated to --n-candidates (the paper's 10); a candidate's readout token is its leading-space form's LAST token id (x13's 'token strings keep the caption's leading space' + the edit path's _token_id convention), the token that would be emitted at that position",
+    "rank_rule": "1-based rank, ties count as better ranks (s2_eval._rank_of_row semantics)",
+    "swap": "the paper's coordinate swap: V=[v_s v_t] with v = rows of W_U @ J_l (the raw J-lens vectors), c = pinv(V) @ h, h' = h + V @ (sigma(c) - c), sigma swapping the two coordinates; applied at ALL token positions of ALL workspace-band layers simultaneously (prefill rows AND every decode step) by reusing interventions.apply_edit's 'swap' mode per band layer",
+    "source": "the source s is the model's spontaneously chosen item = its FIRST GENERATED TOKEN (the answer word's first emitted subword); its id cannot round-trip through the tokenizer as a string, so vectors are resolved by token id in this script (vectors_for_ids = interventions.lens_vectors' exact math keyed by id)",
+    "target_selection": "targets are same-category candidates whose surface is not the model's answer and whose token is not among the model's top-10 next-token outputs at the colon (top-10 ids or their decoded surfaces), first --n-swaps in vendored order",
+    "success": "success = the first generated word equals the target (case-insensitive; multiword targets count when the completion starts with them); target_in_top5 = the target's first subword id ranks <= 5 (RANK_RULE) in the swapped run's step-0 distribution",
+    "decomposition_arm": "protocol part (c), the J-space vs non-J-space decomposition arm (k=16), is SKIPPED: the vendored jlens exposes no sparse nonnegative gradient-pursuit decomposition (jlens/lens.py provides transport/apply only) - recorded as a deviation"
+  },
+  "per_layer": {
+    "12": {
+      "mean_spearman_per_category": 0.22817,
+      "pooled_spearman": 0.47513643732810584,
+      "n_points": 140
+    },
+    "13": {
+      "mean_spearman_per_category": 0.47243,
+      "pooled_spearman": 0.6651835767541349,
+      "n_points": 140
+    },
+    "14": {
+      "mean_spearman_per_category": 0.48274,
+      "pooled_spearman": 0.7048533407331087,
+      "n_points": 140
+    },
+    "15": {
+      "mean_spearman_per_category": 0.46865,
+      "pooled_spearman": 0.7048579451510066,
+      "n_points": 140
+    },
+    "16": {
+      "mean_spearman_per_category": 0.55983,
+      "pooled_spearman": 0.777945079347068,
+      "n_points": 140
+    },
+    "17": {
+      "mean_spearman_per_category": 0.62764,
+      "pooled_spearman": 0.8154202304950497,
+      "n_points": 140
+    },
+    "18": {
+      "mean_spearman_per_category": 0.7048,
+      "pooled_spearman": 0.836367534609174,
+      "n_points": 140
+    },
+    "19": {
+      "mean_spearman_per_category": 0.76477,
+      "pooled_spearman": 0.8547036318763234,
+      "n_points": 140
+    },
+    "20": {
+      "mean_spearman_per_category": 0.77221,
+      "pooled_spearman": 0.8644678487815901,
+      "n_points": 140
+    },
+    "21": {
+      "mean_spearman_per_category": 0.76642,
+      "pooled_spearman": 0.869485539395514,
+      "n_points": 140
+    },
+    "22": {
+      "mean_spearman_per_category": 0.75685,
+      "pooled_spearman": 0.8813781556975445,
+      "n_points": 140
+    },
+    "23": {
+      "mean_spearman_per_category": 0.74814,
+      "pooled_spearman": 0.8777958702353528,
+      "n_points": 140
+    },
+    "24": {
+      "mean_spearman_per_category": 0.7484,
+      "pooled_spearman": 0.8892260437438569,
+      "n_points": 140
+    },
+    "25": {
+      "mean_spearman_per_category": 0.81475,
+      "pooled_spearman": 0.912327876145659,
+      "n_points": 140
+    },
+    "26": {
+      "mean_spearman_per_category": 0.84353,
+      "pooled_spearman": 0.926679009720442,
+      "n_points": 140
+    },
+    "27": {
+      "mean_spearman_per_category": 0.84752,
+      "pooled_spearman": 0.9411133061961698,
+      "n_points": 140
+    },
+    "28": {
+      "mean_spearman_per_category": 0.82851,
+      "pooled_spearman": 0.9538556773421994,
+      "n_points": 140
+    },
+    "29": {
+      "mean_spearman_per_category": 0.83326,
+      "pooled_spearman": 0.9577732011856885,
+      "n_points": 140
+    }
+  },
+  "summary": {
+    "n_categories": 14,
+    "n_candidates_per_category": 10,
+    "n_swap_trials": 42,
+    "n_swap_success": 9,
+    "swap_success_rate": 0.2143,
+    "n_target_top5": 0,
+    "target_top5_rate": 0.0,
+    "swap_alpha": 1.0,
+    "n_argmax_mismatch": 0
+  },
+  "categories": [
+    {
+      "category": "country",
+      "prompt": "USER: Think of a country, and name it in a single word:\nASSISTANT:",
+      "baseline_text": "France",
+      "baseline_first_word": "france",
+      "chosen_in_candidates": true,
+      "source_token_id": 3444,
+      "model_top10": [
+        "France",
+        "United",
+        "Russia",
+        "China",
+        "Japan",
+        "Canada",
+        "Mexico",
+        "Country",
+        "Germany",
+        "Ireland"
+      ],
+      "candidates": [
+        {
+          "name": "Japan",
+          "token_id": 5546,
+          "model_logit_rank": 4
+        },
+        {
+          "name": "France",
+          "token_id": 3444,
+          "model_logit_rank": 1
+        },
+        {
+          "name": "Brazil",
+          "token_id": 16078,
+          "model_logit_rank": 11
+        },
+        {
+          "name": "China",
+          "token_id": 7551,
+          "model_logit_rank": 4
+        },
+        {
+          "name": "India",
+          "token_id": 7513,
+          "model_logit_rank": 11
+        },
+        {
+          "name": "Spain",
+          "token_id": 13616,
+          "model_logit_rank": 15
+        },
+        {
+          "name": "Italy",
+          "token_id": 12730,
+          "model_logit_rank": 14
+        },
+        {
+          "name": "Germany",
+          "token_id": 9556,
+          "model_logit_rank": 8
+        },
+        {
+          "name": "Canada",
+          "token_id": 7400,
+          "model_logit_rank": 4
+        },
+        {
+          "name": "Mexico",
+          "token_id": 12568,
+          "model_logit_rank": 7
+        }
+      ],
+      "swaps": [
+        {
+          "target": "Brazil",
+          "target_id": 16078,
+          "success": true,
+          "first_word": "brazil",
+          "completion": "Brazil",
+          "target_step0_rank": 61,
+          "target_in_top5": false
+        },
+        {
+          "target": "India",
+          "target_id": 7513,
+          "success": true,
+          "first_word": "india",
+          "completion": "India",
+          "target_step0_rank": 63,
+          "target_in_top5": false
+        },
+        {
+          "target": "Spain",
+          "target_id": 13616,
+          "success": false,
+          "first_word": "united",
+          "completion": "United States",
+          "target_step0_rank": 73,
+          "target_in_top5": false
+        }
+      ]
+    },
+    {
+      "category": "color",
+      "prompt": "USER: Think of a color, and name it in a single word:\nASSISTANT:",
+      "baseline_text": "Blue",
+      "baseline_first_word": "blue",
+      "chosen_in_candidates": true,
+      "source_token_id": 10924,
+      "model_top10": [
+        "Blue",
+        "Green",
+        "Y",
+        "Pur",
+        "Red",
+        "Orange",
+        "P",
+        "White",
+        "Te",
+        "Brown"
+      ],
+      "candidates": [
+        {
+          "name": "Blue",
+          "token_id": 10924,
+          "model_logit_rank": 1
+        },
+        {
+          "name": "Red",
+          "token_id": 4367,
+          "model_logit_rank": 5
+        },
+        {
+          "name": "Green",
+          "token_id": 7646,
+          "model_logit_rank": 2
+        },
+        {
+          "name": "Yellow",
+          "token_id": 4743,
+          "model_logit_rank": 2073
+        },
+        {
+          "name": "Black",
+          "token_id": 6054,
+          "model_logit_rank": 11
+        },
+        {
+          "name": "White",
+          "token_id": 8037,
+          "model_logit_rank": 8
+        },
+        {
+          "name": "Orange",
+          "token_id": 26048,
+          "model_logit_rank": 6
+        },
+        {
+          "name": "Purple",
+          "token_id": 552,
+          "model_logit_rank": 6898
+        },
+        {
+          "name": "Pink",
+          "token_id": 682,
+          "model_logit_rank": 2861
+        },
+        {
+          "name": "Brown",
+          "token_id": 9817,
+          "model_logit_rank": 10
+        }
+      ],
+      "swaps": [
+        {
+          "target": "Yellow",
+          "target_id": 4743,
+          "success": false,
+          "first_word": "green",
+          "completion": "Green",
+          "target_step0_rank": 58,
+          "target_in_top5": false
+        },
+        {
+          "target": "Black",
+          "target_id": 6054,
+          "success": false,
+          "first_word": "blue",
+          "completion": "Blue",
+          "target_step0_rank": 49,
+          "target_in_top5": false
+        },
+        {
+          "target": "Purple",
+          "target_id": 552,
+          "success": false,
+          "first_word": "green",
+          "completion": "Green",
+          "target_step0_rank": 44,
+          "target_in_top5": false
+        }
+      ]
+    },
+    {
+      "category": "fruit",
+      "prompt": "USER: Think of a fruit, and name it in a single word:\nASSISTANT:",
+      "baseline_text": "Apple",
+      "baseline_first_word": "apple",
+      "chosen_in_candidates": true,
+      "source_token_id": 12113,
+      "model_top10": [
+        "Apple",
+        "Orange",
+        "Gra",
+        "Ban",
+        "St",
+        "M",
+        "Wat",
+        "Cher",
+        "Pom",
+        "Blue"
+      ],
+      "candidates": [
+        {
+          "name": "Apple",
+          "token_id": 12113,
+          "model_logit_rank": 1
+        },
+        {
+          "name": "Orange",
+          "token_id": 26048,
+          "model_logit_rank": 2
+        },
+        {
+          "name": "Banana",
+          "token_id": 1648,
+          "model_logit_rank": 6259
+        },
+        {
+          "name": "Grape",
+          "token_id": 412,
+          "model_logit_rank": 937
+        },
+        {
+          "name": "Mango",
+          "token_id": 4524,
+          "model_logit_rank": 3885
+        },
+        {
+          "name": "Cherry",
+          "token_id": 719,
+          "model_logit_rank": 6994
+        },
+        {
+          "name": "Peach",
+          "token_id": 496,
+          "model_logit_rank": 3265
+        },
+        {
+          "name": "Lemon",
+          "token_id": 265,
+          "model_logit_rank": 6420
+        },
+        {
+          "name": "Lime",
+          "token_id": 603,
+          "model_logit_rank": 4043
+        },
+        {
+          "name": "Plum",
+          "token_id": 398,
+          "model_logit_rank": 5371
+        }
+      ],
+      "swaps": [
+        {
+          "target": "Banana",
+          "target_id": 1648,
+          "success": false,
+          "first_word": "orange",
+          "completion": "Orange",
+          "target_step0_rank": 35,
+          "target_in_top5": false
+        },
+        {
+          "target": "Grape",
+          "target_id": 412,
+          "success": false,
+          "first_word": "orange",
+          "completion": "Orange",
+          "target_step0_rank": 30,
+          "target_in_top5": false
+        },
+        {
+          "target": "Mango",
+          "target_id": 4524,
+          "success": false,
+          "first_word": "orange",
+          "completion": "Orange",
+          "target_step0_rank": 33,
+          "target_in_top5": false
+        }
+      ]
+    },
+    {
+      "category": "sport",
+      "prompt": "USER: Think of a sport, and name it in a single word:\nASSISTANT:",
+      "baseline_text": "Tennis",
+      "baseline_first_word": "tennis",
+      "chosen_in_candidates": true,
+      "source_token_id": 29010,
+      "model_top10": [
+        "Tennis",
+        "Baseball",
+        "Basketball",
+        "G",
+        "Soccer",
+        "Cr",
+        "Football",
+        "Vol",
+        "Box",
+        "Sw"
+      ],
+      "candidates": [
+        {
+          "name": "Basketball",
+          "token_id": 21850,
+          "model_logit_rank": 2
+        },
+        {
+          "name": "Soccer",
+          "token_id": 18993,
+          "model_logit_rank": 5
+        },
+        {
+          "name": "Tennis",
+          "token_id": 29010,
+          "model_logit_rank": 1
+        },
+        {
+          "name": "Football",
+          "token_id": 8914,
+          "model_logit_rank": 7
+        },
+        {
+          "name": "Baseball",
+          "token_id": 23185,
+          "model_logit_rank": 2
+        },
+        {
+          "name": "Golf",
+          "token_id": 4369,
+          "model_logit_rank": 5998
+        },
+        {
+          "name": "Hockey",
+          "token_id": 19993,
+          "model_logit_rank": 20
+        },
+        {
+          "name": "Rugby",
+          "token_id": 22647,
+          "model_logit_rank": 11
+        },
+        {
+          "name": "Cricket",
+          "token_id": 8522,
+          "model_logit_rank": 3371
+        },
+        {
+          "name": "Chess",
+          "token_id": 404,
+          "model_logit_rank": 6806
+        }
+      ],
+      "swaps": [
+        {
+          "target": "Golf",
+          "target_id": 4369,
+          "success": true,
+          "first_word": "golf",
+          "completion": "Golf",
+          "target_step0_rank": 45,
+          "target_in_top5": false
+        },
+        {
+          "target": "Hockey",
+          "target_id": 19993,
+          "success": false,
+          "first_word": "baseball",
+          "completion": "Baseball",
+          "target_step0_rank": 55,
+          "target_in_top5": false
+        },
+        {
+          "target": "Rugby",
+          "target_id": 22647,
+          "success": false,
+          "first_word": "baseball",
+          "completion": "Baseball",
+          "target_step0_rank": 56,
+          "target_in_top5": false
+        }
+      ]
+    },
+    {
+      "category": "instrument",
+      "prompt": "USER: Think of a instrument, and name it in a single word:\nASSISTANT:",
+      "baseline_text": "Piano",
+      "baseline_first_word": "piano",
+      "chosen_in_candidates": true,
+      "source_token_id": 349,
+      "model_top10": [
+        "P",
+        "Trump",
+        "Vi",
+        "Gu",
+        "Fl",
+        "C",
+        "Dr",
+        "Clar",
+        "Sax",
+        "T"
+      ],
+      "candidates": [
+        {
+          "name": "Piano",
+          "token_id": 3328,
+          "model_logit_rank": 3195
+        },
+        {
+          "name": "Guitar",
+          "token_id": 3673,
+          "model_logit_rank": 1540
+        },
+        {
+          "name": "Violin",
+          "token_id": 22878,
+          "model_logit_rank": 3006
+        },
+        {
+          "name": "Drum",
+          "token_id": 398,
+          "model_logit_rank": 8909
+        },
+        {
+          "name": "Flute",
+          "token_id": 1082,
+          "model_logit_rank": 3726
+        },
+        {
+          "name": "Cello",
+          "token_id": 3156,
+          "model_logit_rank": 3628
+        },
+        {
+          "name": "Trumpet",
+          "token_id": 300,
+          "model_logit_rank": 3892
+        },
+        {
+          "name": "Bass",
+          "token_id": 17328,
+          "model_logit_rank": 26
+        },
+        {
+          "name": "Organ",
+          "token_id": 9205,
+          "model_logit_rank": 22
+        },
+        {
+          "name": "Banjo",
+          "token_id": 2212,
+          "model_logit_rank": 10751
+        }
+      ],
+      "swaps": [
+        {
+          "target": "Guitar",
+          "target_id": 3673,
+          "success": false,
+          "first_word": "trumpet",
+          "completion": "Trumpet",
+          "target_step0_rank": 44,
+          "target_in_top5": false
+        },
+        {
+          "target": "Violin",
+          "target_id": 22878,
+          "success": false,
+          "first_word": "trumpet",
+          "completion": "Trumpet",
+          "target_step0_rank": 35,
+          "target_in_top5": false
+        },
+        {
+          "target": "Drum",
+          "target_id": 398,
+          "success": false,
+          "first_word": "trumpet",
+          "completion": "Trumpet",
+          "target_step0_rank": 38,
+          "target_in_top5": false
+        }
+      ]
+    },
+    {
+      "category": "planet",
+      "prompt": "USER: Think of a planet, and name it in a single word:\nASSISTANT:",
+      "baseline_text": "Venus",
+      "baseline_first_word": "venus",
+      "chosen_in_candidates": true,
+      "source_token_id": 9548,
+      "model_top10": [
+        "Ven",
+        "Jup",
+        "Earth",
+        "Pl",
+        "Planet",
+        "Mars",
+        "Sat",
+        "Name",
+        "\"",
+        "Sol"
+      ],
+      "candidates": [
+        {
+          "name": "Neptune",
+          "token_id": 1540,
+          "model_logit_rank": 3872
+        },
+        {
+          "name": "Saturn",
+          "token_id": 595,
+          "model_logit_rank": 5802
+        },
+        {
+          "name": "Jupiter",
+          "token_id": 1524,
+          "model_logit_rank": 6927
+        },
+        {
+          "name": "Mars",
+          "token_id": 16852,
+          "model_logit_rank": 6
+        },
+        {
+          "name": "Venus",
+          "token_id": 375,
+          "model_logit_rank": 6759
+        },
+        {
+          "name": "Mercury",
+          "token_id": 29891,
+          "model_logit_rank": 4670
+        },
+        {
+          "name": "Earth",
+          "token_id": 11563,
+          "model_logit_rank": 3
+        },
+        {
+          "name": "Uranus",
+          "token_id": 375,
+          "model_logit_rank": 6759
+        },
+        {
+          "name": "Pluto",
+          "token_id": 3066,
+          "model_logit_rank": 6648
+        },
+        {
+          "name": "Moon",
+          "token_id": 17549,
+          "model_logit_rank": 51
+        }
+      ],
+      "swaps": [
+        {
+          "target": "Neptune",
+          "target_id": 1540,
+          "success": false,
+          "first_word": "earth",
+          "completion": "Earth",
+          "target_step0_rank": 43,
+          "target_in_top5": false
+        },
+        {
+          "target": "Saturn",
+          "target_id": 595,
+          "success": false,
+          "first_word": "earth",
+          "completion": "Earth",
+          "target_step0_rank": 35,
+          "target_in_top5": false
+        },
+        {
+          "target": "Jupiter",
+          "target_id": 1524,
+          "success": false,
+          "first_word": "earth",
+          "completion": "Earth",
+          "target_step0_rank": 36,
+          "target_in_top5": false
+        }
+      ]
+    },
+    {
+      "category": "tree",
+      "prompt": "USER: Think of a tree, and name it in a single word:\nASSISTANT:",
+      "baseline_text": "Oak",
+      "baseline_first_word": "oak",
+      "chosen_in_candidates": true,
+      "source_token_id": 24132,
+      "model_top10": [
+        "Oak",
+        "Tree",
+        "B",
+        "Apple",
+        "Will",
+        "Bir",
+        "El",
+        "Map",
+        "P",
+        "Ac"
+      ],
+      "candidates": [
+        {
+          "name": "Oak",
+          "token_id": 24132,
+          "model_logit_rank": 1
+        },
+        {
+          "name": "Pine",
+          "token_id": 457,
+          "model_logit_rank": 6449
+        },
+        {
+          "name": "Maple",
+          "token_id": 280,
+          "model_logit_rank": 4476
+        },
+        {
+          "name": "Birch",
+          "token_id": 305,
+          "model_logit_rank": 5624
+        },
+        {
+          "name": "Cedar",
+          "token_id": 279,
+          "model_logit_rank": 5181
+        },
+        {
+          "name": "Elm",
+          "token_id": 29885,
+          "model_logit_rank": 5498
+        },
+        {
+          "name": "Willow",
+          "token_id": 340,
+          "model_logit_rank": 8584
+        },
+        {
+          "name": "Cherry",
+          "token_id": 719,
+          "model_logit_rank": 12886
+        },
+        {
+          "name": "Palm",
+          "token_id": 29885,
+          "model_logit_rank": 5498
+        },
+        {
+          "name": "Ash",
+          "token_id": 12835,
+          "model_logit_rank": 45
+        }
+      ],
+      "swaps": [
+        {
+          "target": "Pine",
+          "target_id": 457,
+          "success": false,
+          "first_word": "tree",
+          "completion": "Tree",
+          "target_step0_rank": 33,
+          "target_in_top5": false
+        },
+        {
+          "target": "Maple",
+          "target_id": 280,
+          "success": false,
+          "first_word": "tree",
+          "completion": "Tree",
+          "target_step0_rank": 35,
+          "target_in_top5": false
+        },
+        {
+          "target": "Birch",
+          "target_id": 305,
+          "success": false,
+          "first_word": "banyan",
+          "completion": "Banyan",
+          "target_step0_rank": 34,
+          "target_in_top5": false
+        }
+      ]
+    },
+    {
+      "category": "bird",
+      "prompt": "USER: Think of a bird, and name it in a single word:\nASSISTANT:",
+      "baseline_text": "Pigeon",
+      "baseline_first_word": "pigeon",
+      "chosen_in_candidates": false,
+      "source_token_id": 349,
+      "model_top10": [
+        "P",
+        "E",
+        "O",
+        "Par",
+        "Bird",
+        "Robin",
+        "C",
+        "S",
+        "Can",
+        "Pe"
+      ],
+      "candidates": [
+        {
+          "name": "Robin",
+          "token_id": 13104,
+          "model_logit_rank": 5
+        },
+        {
+          "name": "Eagle",
+          "token_id": 20860,
+          "model_logit_rank": 4696
+        },
+        {
+          "name": "Crow",
+          "token_id": 29445,
+          "model_logit_rank": 13
+        },
+        {
+          "name": "Owl",
+          "token_id": 29880,
+          "model_logit_rank": 4906
+        },
+        {
+          "name": "Hawk",
+          "token_id": 29895,
+          "model_logit_rank": 8542
+        },
+        {
+          "name": "Dove",
+          "token_id": 994,
+          "model_logit_rank": 12650
+        },
+        {
+          "name": "Sparrow",
+          "token_id": 798,
+          "model_logit_rank": 5968
+        },
+        {
+          "name": "Cardinal",
+          "token_id": 979,
+          "model_logit_rank": 9809
+        },
+        {
+          "name": "Falcon",
+          "token_id": 535,
+          "model_logit_rank": 4742
+        },
+        {
+          "name": "Swan",
+          "token_id": 273,
+          "model_logit_rank": 7096
+        }
+      ],
+      "swaps": [
+        {
+          "target": "Eagle",
+          "target_id": 20860,
+          "success": true,
+          "first_word": "eagle",
+          "completion": "Eagle",
+          "target_step0_rank": 28,
+          "target_in_top5": false
+        },
+        {
+          "target": "Crow",
+          "target_id": 29445,
+          "success": true,
+          "first_word": "crow",
+          "completion": "Crow",
+          "target_step0_rank": 30,
+          "target_in_top5": false
+        },
+        {
+          "target": "Owl",
+          "target_id": 29880,
+          "success": false,
+          "first_word": "eagle",
+          "completion": "Eagle",
+          "target_step0_rank": 25,
+          "target_in_top5": false
+        }
+      ]
+    },
+    {
+      "category": "language",
+      "prompt": "USER: Think of a language, and name it in a single word:\nASSISTANT:",
+      "baseline_text": "Esperanto",
+      "baseline_first_word": "esperanto",
+      "chosen_in_candidates": false,
+      "source_token_id": 3423,
+      "model_top10": [
+        "Es",
+        "Spanish",
+        "German",
+        "English",
+        "French",
+        "Chinese",
+        "Arab",
+        "Japanese",
+        "Python",
+        "C"
+      ],
+      "candidates": [
+        {
+          "name": "Japanese",
+          "token_id": 10369,
+          "model_logit_rank": 8
+        },
+        {
+          "name": "Spanish",
+          "token_id": 10432,
+          "model_logit_rank": 2
+        },
+        {
+          "name": "French",
+          "token_id": 5176,
+          "model_logit_rank": 5
+        },
+        {
+          "name": "English",
+          "token_id": 4223,
+          "model_logit_rank": 4
+        },
+        {
+          "name": "German",
+          "token_id": 5332,
+          "model_logit_rank": 3
+        },
+        {
+          "name": "Chinese",
+          "token_id": 10013,
+          "model_logit_rank": 6
+        },
+        {
+          "name": "Russian",
+          "token_id": 10637,
+          "model_logit_rank": 10
+        },
+        {
+          "name": "Arabic",
+          "token_id": 293,
+          "model_logit_rank": 18811
+        },
+        {
+          "name": "Korean",
+          "token_id": 22467,
+          "model_logit_rank": 37
+        },
+        {
+          "name": "Italian",
+          "token_id": 10545,
+          "model_logit_rank": 14
+        }
+      ],
+      "swaps": [
+        {
+          "target": "Russian",
+          "target_id": 10637,
+          "success": false,
+          "first_word": "spanish",
+          "completion": "Spanish",
+          "target_step0_rank": 48,
+          "target_in_top5": false
+        },
+        {
+          "target": "Arabic",
+          "target_id": 293,
+          "success": false,
+          "first_word": "spanish",
+          "completion": "Spanish",
+          "target_step0_rank": 45,
+          "target_in_top5": false
+        },
+        {
+          "target": "Korean",
+          "target_id": 22467,
+          "success": false,
+          "first_word": "spanish",
+          "completion": "Spanish",
+          "target_step0_rank": 46,
+          "target_in_top5": false
+        }
+      ]
+    },
+    {
+      "category": "profession",
+      "prompt": "USER: Think of a profession, and name it in a single word:\nASSISTANT:",
+      "baseline_text": "Teacher",
+      "baseline_first_word": "teacher",
+      "chosen_in_candidates": true,
+      "source_token_id": 1920,
+      "model_top10": [
+        "Te",
+        "Law",
+        "Doctor",
+        "Sur",
+        "Engine",
+        "V",
+        "Arch",
+        "Phys",
+        "Account",
+        "D"
+      ],
+      "candidates": [
+        {
+          "name": "Teacher",
+          "token_id": 11665,
+          "model_logit_rank": 2332
+        },
+        {
+          "name": "Doctor",
+          "token_id": 15460,
+          "model_logit_rank": 3
+        },
+        {
+          "name": "Engineer",
+          "token_id": 261,
+          "model_logit_rank": 5136
+        },
+        {
+          "name": "Lawyer",
+          "token_id": 7598,
+          "model_logit_rank": 10063
+        },
+        {
+          "name": "Nurse",
+          "token_id": 344,
+          "model_logit_rank": 11197
+        },
+        {
+          "name": "Chef",
+          "token_id": 29888,
+          "model_logit_rank": 12639
+        },
+        {
+          "name": "Pilot",
+          "token_id": 327,
+          "model_logit_rank": 10639
+        },
+        {
+          "name": "Artist",
+          "token_id": 391,
+          "model_logit_rank": 4171
+        },
+        {
+          "name": "Writer",
+          "token_id": 5385,
+          "model_logit_rank": 2320
+        },
+        {
+          "name": "Farmer",
+          "token_id": 1050,
+          "model_logit_rank": 5204
+        }
+      ],
+      "swaps": [
+        {
+          "target": "Engineer",
+          "target_id": 261,
+          "success": false,
+          "first_word": "lawyer",
+          "completion": "Lawyer",
+          "target_step0_rank": 52,
+          "target_in_top5": false
+        },
+        {
+          "target": "Lawyer",
+          "target_id": 7598,
+          "success": false,
+          "first_word": "law",
+          "completion": "Law",
+          "target_step0_rank": 46,
+          "target_in_top5": false
+        },
+        {
+          "target": "Nurse",
+          "target_id": 344,
+          "success": false,
+          "first_word": "lawyer",
+          "completion": "Lawyer",
+          "target_step0_rank": 54,
+          "target_in_top5": false
+        }
+      ]
+    },
+    {
+      "category": "beverage",
+      "prompt": "USER: Think of a beverage, and name it in a single word:\nASSISTANT:",
+      "baseline_text": "Coffee",
+      "baseline_first_word": "coffee",
+      "chosen_in_candidates": true,
+      "source_token_id": 315,
+      "model_top10": [
+        "C",
+        "Te",
+        "Be",
+        "Co",
+        "Ju",
+        "S",
+        "B",
+        "Orange",
+        "G",
+        "Lem"
+      ],
+      "candidates": [
+        {
+          "name": "Coffee",
+          "token_id": 3905,
+          "model_logit_rank": 3976
+        },
+        {
+          "name": "Tea",
+          "token_id": 29874,
+          "model_logit_rank": 3493
+        },
+        {
+          "name": "Water",
+          "token_id": 13062,
+          "model_logit_rank": 11
+        },
+        {
+          "name": "Wine",
+          "token_id": 457,
+          "model_logit_rank": 4926
+        },
+        {
+          "name": "Beer",
+          "token_id": 261,
+          "model_logit_rank": 7422
+        },
+        {
+          "name": "Juice",
+          "token_id": 625,
+          "model_logit_rank": 2727
+        },
+        {
+          "name": "Milk",
+          "token_id": 29895,
+          "model_logit_rank": 10556
+        },
+        {
+          "name": "Soda",
+          "token_id": 8887,
+          "model_logit_rank": 2630
+        },
+        {
+          "name": "Whiskey",
+          "token_id": 1989,
+          "model_logit_rank": 14258
+        },
+        {
+          "name": "Vodka",
+          "token_id": 1335,
+          "model_logit_rank": 8447
+        }
+      ],
+      "swaps": [
+        {
+          "target": "Tea",
+          "target_id": 29874,
+          "success": true,
+          "first_word": "tea",
+          "completion": "Tea",
+          "target_step0_rank": 34,
+          "target_in_top5": false
+        },
+        {
+          "target": "Water",
+          "target_id": 13062,
+          "success": false,
+          "first_word": "coffee",
+          "completion": "Coffee",
+          "target_step0_rank": 40,
+          "target_in_top5": false
+        },
+        {
+          "target": "Wine",
+          "target_id": 457,
+          "success": false,
+          "first_word": "tea",
+          "completion": "Tea",
+          "target_step0_rank": 35,
+          "target_in_top5": false
+        }
+      ]
+    },
+    {
+      "category": "organ",
+      "prompt": "USER: Think of a organ, and name it in a single word:\nASSISTANT:",
+      "baseline_text": "Lung",
+      "baseline_first_word": "lung",
+      "chosen_in_candidates": true,
+      "source_token_id": 365,
+      "model_top10": [
+        "L",
+        "Heart",
+        "Bra",
+        "Kid",
+        "St",
+        "Organ",
+        "Pan",
+        "Liver",
+        "The",
+        ""
+      ],
+      "candidates": [
+        {
+          "name": "Heart",
+          "token_id": 17778,
+          "model_logit_rank": 2
+        },
+        {
+          "name": "Brain",
+          "token_id": 262,
+          "model_logit_rank": 7389
+        },
+        {
+          "name": "Liver",
+          "token_id": 22469,
+          "model_logit_rank": 8
+        },
+        {
+          "name": "Lung",
+          "token_id": 686,
+          "model_logit_rank": 4093
+        },
+        {
+          "name": "Kidney",
+          "token_id": 3801,
+          "model_logit_rank": 5513
+        },
+        {
+          "name": "Stomach",
+          "token_id": 496,
+          "model_logit_rank": 9106
+        },
+        {
+          "name": "Skin",
+          "token_id": 262,
+          "model_logit_rank": 7389
+        },
+        {
+          "name": "Eye",
+          "token_id": 4099,
+          "model_logit_rank": 3602
+        },
+        {
+          "name": "Ear",
+          "token_id": 5290,
+          "model_logit_rank": 32
+        },
+        {
+          "name": "Spleen",
+          "token_id": 264,
+          "model_logit_rank": 7966
+        }
+      ],
+      "swaps": [
+        {
+          "target": "Brain",
+          "target_id": 262,
+          "success": false,
+          "first_word": "heart",
+          "completion": "Heart",
+          "target_step0_rank": 10,
+          "target_in_top5": false
+        },
+        {
+          "target": "Kidney",
+          "target_id": 3801,
+          "success": false,
+          "first_word": "heart",
+          "completion": "Heart",
+          "target_step0_rank": 10,
+          "target_in_top5": false
+        },
+        {
+          "target": "Stomach",
+          "target_id": 496,
+          "success": false,
+          "first_word": "heart",
+          "completion": "Heart",
+          "target_step0_rank": 14,
+          "target_in_top5": false
+        }
+      ]
+    },
+    {
+      "category": "city",
+      "prompt": "USER: Think of a city, and name it in a single word:\nASSISTANT:",
+      "baseline_text": "New York",
+      "baseline_first_word": "new",
+      "chosen_in_candidates": false,
+      "source_token_id": 1570,
+      "model_top10": [
+        "New",
+        "London",
+        "Paris",
+        "San",
+        "Tokyo",
+        "Los",
+        "Chicago",
+        "Berlin",
+        "City",
+        "Boston"
+      ],
+      "candidates": [
+        {
+          "name": "Tokyo",
+          "token_id": 20377,
+          "model_logit_rank": 5
+        },
+        {
+          "name": "Paris",
+          "token_id": 3681,
+          "model_logit_rank": 3
+        },
+        {
+          "name": "London",
+          "token_id": 4517,
+          "model_logit_rank": 2
+        },
+        {
+          "name": "Rome",
+          "token_id": 9184,
+          "model_logit_rank": 11
+        },
+        {
+          "name": "Berlin",
+          "token_id": 5115,
+          "model_logit_rank": 8
+        },
+        {
+          "name": "Madrid",
+          "token_id": 9669,
+          "model_logit_rank": 14
+        },
+        {
+          "name": "Moscow",
+          "token_id": 25820,
+          "model_logit_rank": 20
+        },
+        {
+          "name": "Beijing",
+          "token_id": 292,
+          "model_logit_rank": 6218
+        },
+        {
+          "name": "Cairo",
+          "token_id": 26025,
+          "model_logit_rank": 2504
+        },
+        {
+          "name": "Sydney",
+          "token_id": 16198,
+          "model_logit_rank": 30
+        }
+      ],
+      "swaps": [
+        {
+          "target": "Rome",
+          "target_id": 9184,
+          "success": true,
+          "first_word": "rome",
+          "completion": "Rome",
+          "target_step0_rank": 78,
+          "target_in_top5": false
+        },
+        {
+          "target": "Madrid",
+          "target_id": 9669,
+          "success": true,
+          "first_word": "madrid",
+          "completion": "Madrid",
+          "target_step0_rank": 86,
+          "target_in_top5": false
+        },
+        {
+          "target": "Moscow",
+          "target_id": 25820,
+          "success": true,
+          "first_word": "moscow",
+          "completion": "Moscow",
+          "target_step0_rank": 85,
+          "target_in_top5": false
+        }
+      ]
+    },
+    {
+      "category": "river",
+      "prompt": "USER: Think of a river, and name it in a single word:\nASSISTANT:",
+      "baseline_text": "Nile",
+      "baseline_first_word": "nile",
+      "chosen_in_candidates": true,
+      "source_token_id": 405,
+      "model_top10": [
+        "N",
+        "Mississippi",
+        "Amazon",
+        "The",
+        "River",
+        "Rh",
+        "G",
+        "Colorado",
+        "Th",
+        "Sure"
+      ],
+      "candidates": [
+        {
+          "name": "Amazon",
+          "token_id": 16631,
+          "model_logit_rank": 3
+        },
+        {
+          "name": "Nile",
+          "token_id": 488,
+          "model_logit_rank": 6875
+        },
+        {
+          "name": "Thames",
+          "token_id": 1280,
+          "model_logit_rank": 3354
+        },
+        {
+          "name": "Seine",
+          "token_id": 16104,
+          "model_logit_rank": 54
+        },
+        {
+          "name": "Congo",
+          "token_id": 29723,
+          "model_logit_rank": 25
+        },
+        {
+          "name": "Rhine",
+          "token_id": 457,
+          "model_logit_rank": 5229
+        },
+        {
+          "name": "Jordan",
+          "token_id": 18284,
+          "model_logit_rank": 43
+        },
+        {
+          "name": "Ohio",
+          "token_id": 15821,
+          "model_logit_rank": 20
+        },
+        {
+          "name": "Mississippi",
+          "token_id": 24743,
+          "model_logit_rank": 2
+        },
+        {
+          "name": "Ganges",
+          "token_id": 6916,
+          "model_logit_rank": 3474
+        }
+      ],
+      "swaps": [
+        {
+          "target": "Thames",
+          "target_id": 1280,
+          "success": false,
+          "first_word": "mississippi",
+          "completion": "Mississippi",
+          "target_step0_rank": 66,
+          "target_in_top5": false
+        },
+        {
+          "target": "Seine",
+          "target_id": 16104,
+          "success": false,
+          "first_word": "nile",
+          "completion": "Nile",
+          "target_step0_rank": 39,
+          "target_in_top5": false
+        },
+        {
+          "target": "Congo",
+          "target_id": 29723,
+          "success": false,
+          "first_word": "mississippi",
+          "completion": "Mississippi",
+          "target_step0_rank": 58,
+          "target_in_top5": false
+        }
+      ]
+    }
+  ]
+}

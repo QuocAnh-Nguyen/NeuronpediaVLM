@@ -1,0 +1,585 @@
+{
+  "meta": {
+    "experiment": "x21_verbal_report",
+    "arm": "modulation",
+    "created_utc": "2026-10-11T09:19:11.406664+00:00",
+    "backend": "hf-llava",
+    "n_layers": 32,
+    "d_model": 4096,
+    "lens": {
+      "loaded": true,
+      "dir": "/data/anhnq/vlm-lens-out/validation/s2-merged/artifacts",
+      "mask": "text",
+      "n_prompts": 100
+    },
+    "calibrated": false,
+    "calibrated_note": "readout = the paper's raw J-lens readout unembed(J_l h); lens vectors are always the raw rows of W_U @ J_l",
+    "layers": [
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29
+    ],
+    "band_note": "workspace band = layers [layer-lo, layer-hi] (0-indexed) intersected with the lens's fitted layers; if the intersection is empty (tiny fixture) ALL fitted layers are used and noted",
+    "max_new_tokens": 64,
+    "max_seq_len": 1536,
+    "experiments_dir": "/data/anhnq/NeuronpediaVLM/third_party/jacobian-lens/data/experiments"
+  },
+  "notes": {
+    "template": "introspection/modulation prompts wrap the vendored contents in the repo's chat convention (USER:/ASSISTANT:, x13's PROMPT_TEMPLATE family); assistant turns are separated by the eos token (the literal '</s>' piece becomes tokenizer.eos_token_id when the tokenizer has one); vendored content strings are used verbatim",
+    "carrier": "The old painting hung crookedly on the wall.",
+    "phrasing_index": 0,
+    "count_focus": "While you copy, count the number of characters in each line.",
+    "count_ignore": "While you copy, ignore the number of characters in each line.",
+    "numeric": "numeric readout: the top-1 token among single-token leading-space forms of 0..--numeric-max (first value wins on id collisions); error = |value - first line's actual character count|",
+    "wrap": "line-count passages are re-wrapped greedily at the vendored width (greedy word wrap, single spaces); the numeric ground truth is the FIRST line's actual length",
+    "match": "concept-reported = word-boundary regex match of the concept's surface form in the generated completion (the fixed prefill is part of the prompt, not the response)",
+    "numeric_readout": "skipped: this tokenizer yields no single-token numeric forms of 0..99; numeric_mae / numeric_exact_rate are null"
+  },
+  "digest": {
+    "concept": {
+      "focus": {
+        "n": 5,
+        "hit_rate": 1.0
+      },
+      "ignore": {
+        "n": 5,
+        "hit_rate": 0.6
+      },
+      "baseline": {
+        "n": 5,
+        "hit_rate": 0.2
+      }
+    },
+    "math": {
+      "focus": {
+        "n": 5,
+        "hit_rate": 0.0
+      },
+      "ignore": {
+        "n": 5,
+        "hit_rate": 0.0
+      },
+      "baseline": {
+        "n": 5,
+        "hit_rate": 0.0
+      }
+    },
+    "linecount": {
+      "focus": {
+        "n": 5,
+        "hit_rate": 0.4,
+        "numeric_mae": null,
+        "numeric_exact_rate": null
+      },
+      "ignore": {
+        "n": 5,
+        "hit_rate": 0.0,
+        "numeric_mae": null,
+        "numeric_exact_rate": null
+      },
+      "baseline": {
+        "n": 5,
+        "hit_rate": 0.0,
+        "numeric_mae": null,
+        "numeric_exact_rate": null
+      }
+    }
+  },
+  "trials": [
+    {
+      "family": "concept",
+      "item": "citrus fruits",
+      "condition": "focus",
+      "prompt": "USER: Copy this sentence exactly:\n\"The old painting hung crookedly on the wall.\"\nThink about citrus fruits while you write.\nASSISTANT:",
+      "completion": "\"The orangish painting hung crookedly on the wall.\"",
+      "n_steps": 15,
+      "hit": true,
+      "n_hit_positions": 86
+    },
+    {
+      "family": "concept",
+      "item": "citrus fruits",
+      "condition": "ignore",
+      "prompt": "USER: Copy this sentence exactly:\n\"The old painting hung crookedly on the wall.\"\ncitrus fruits is irrelevant \u2014 ignore it.\nASSISTANT:",
+      "completion": "\"The old painting hung crookedly on the wall.\"",
+      "n_steps": 13,
+      "hit": true,
+      "n_hit_positions": 13
+    },
+    {
+      "family": "concept",
+      "item": "citrus fruits",
+      "condition": "baseline",
+      "prompt": "USER: Copy this sentence exactly:\n\"The old painting hung crookedly on the wall.\"\n\nASSISTANT:",
+      "completion": "\"The old painting hung crookedly on the wall.\"",
+      "n_steps": 13,
+      "hit": false,
+      "n_hit_positions": 0
+    },
+    {
+      "family": "concept",
+      "item": "months of the year",
+      "condition": "focus",
+      "prompt": "USER: Copy this sentence exactly:\n\"The old painting hung crookedly on the wall.\"\nThink about months of the year while you write.\nASSISTANT:",
+      "completion": "\"The painting of the old woman hung crookedly on the wall, as if it had been there for months.\"",
+      "n_steps": 25,
+      "hit": true,
+      "n_hit_positions": 90
+    },
+    {
+      "family": "concept",
+      "item": "months of the year",
+      "condition": "ignore",
+      "prompt": "USER: Copy this sentence exactly:\n\"The old painting hung crookedly on the wall.\"\nmonths of the year is irrelevant \u2014 ignore it.\nASSISTANT:",
+      "completion": "\"The old painting hung crookedly on the wall.\"",
+      "n_steps": 13,
+      "hit": false,
+      "n_hit_positions": 0
+    },
+    {
+      "family": "concept",
+      "item": "months of the year",
+      "condition": "baseline",
+      "prompt": "USER: Copy this sentence exactly:\n\"The old painting hung crookedly on the wall.\"\n\nASSISTANT:",
+      "completion": "\"The old painting hung crookedly on the wall.\"",
+      "n_steps": 13,
+      "hit": false,
+      "n_hit_positions": 0
+    },
+    {
+      "family": "concept",
+      "item": "days of the week",
+      "condition": "focus",
+      "prompt": "USER: Copy this sentence exactly:\n\"The old painting hung crookedly on the wall.\"\nThink about days of the week while you write.\nASSISTANT:",
+      "completion": "\"The painting on the wall was crooked, as if it had been hung in a hurry on a Monday morning.\"",
+      "n_steps": 26,
+      "hit": true,
+      "n_hit_positions": 60
+    },
+    {
+      "family": "concept",
+      "item": "days of the week",
+      "condition": "ignore",
+      "prompt": "USER: Copy this sentence exactly:\n\"The old painting hung crookedly on the wall.\"\ndays of the week is irrelevant \u2014 ignore it.\nASSISTANT:",
+      "completion": "\"The old painting hung crookedly on the wall.\"",
+      "n_steps": 13,
+      "hit": true,
+      "n_hit_positions": 1
+    },
+    {
+      "family": "concept",
+      "item": "days of the week",
+      "condition": "baseline",
+      "prompt": "USER: Copy this sentence exactly:\n\"The old painting hung crookedly on the wall.\"\n\nASSISTANT:",
+      "completion": "\"The old painting hung crookedly on the wall.\"",
+      "n_steps": 13,
+      "hit": false,
+      "n_hit_positions": 0
+    },
+    {
+      "family": "concept",
+      "item": "planets",
+      "condition": "focus",
+      "prompt": "USER: Copy this sentence exactly:\n\"The old painting hung crookedly on the wall.\"\nThink about planets while you write.\nASSISTANT:",
+      "completion": "\"The painting of the old planet hung crookedly on the wall.\"",
+      "n_steps": 16,
+      "hit": true,
+      "n_hit_positions": 93
+    },
+    {
+      "family": "concept",
+      "item": "planets",
+      "condition": "ignore",
+      "prompt": "USER: Copy this sentence exactly:\n\"The old painting hung crookedly on the wall.\"\nplanets is irrelevant \u2014 ignore it.\nASSISTANT:",
+      "completion": "\"The old painting hung crookedly on the wall.\"",
+      "n_steps": 13,
+      "hit": true,
+      "n_hit_positions": 11
+    },
+    {
+      "family": "concept",
+      "item": "planets",
+      "condition": "baseline",
+      "prompt": "USER: Copy this sentence exactly:\n\"The old painting hung crookedly on the wall.\"\n\nASSISTANT:",
+      "completion": "\"The old painting hung crookedly on the wall.\"",
+      "n_steps": 13,
+      "hit": true,
+      "n_hit_positions": 6
+    },
+    {
+      "family": "concept",
+      "item": "chess pieces",
+      "condition": "focus",
+      "prompt": "USER: Copy this sentence exactly:\n\"The old painting hung crookedly on the wall.\"\nThink about chess pieces while you write.\nASSISTANT:",
+      "completion": "\"The old painting, a knight in shining armor, hung crookedly on the wall.\"",
+      "n_steps": 23,
+      "hit": true,
+      "n_hit_positions": 30
+    },
+    {
+      "family": "concept",
+      "item": "chess pieces",
+      "condition": "ignore",
+      "prompt": "USER: Copy this sentence exactly:\n\"The old painting hung crookedly on the wall.\"\nchess pieces is irrelevant \u2014 ignore it.\nASSISTANT:",
+      "completion": "\"The old painting hung crookedly on the wall.\"",
+      "n_steps": 13,
+      "hit": false,
+      "n_hit_positions": 0
+    },
+    {
+      "family": "concept",
+      "item": "chess pieces",
+      "condition": "baseline",
+      "prompt": "USER: Copy this sentence exactly:\n\"The old painting hung crookedly on the wall.\"\n\nASSISTANT:",
+      "completion": "\"The old painting hung crookedly on the wall.\"",
+      "n_steps": 13,
+      "hit": false,
+      "n_hit_positions": 0
+    },
+    {
+      "family": "math",
+      "item": "4 * 2=8",
+      "condition": "focus",
+      "prompt": "USER: Copy this sentence exactly:\n\"The old painting hung crookedly on the wall.\"\nThink about 4 * 2 while you write.\nASSISTANT:",
+      "completion": "\"The old painting hung crookedly on the wall.\"",
+      "n_steps": 13,
+      "hit": false,
+      "n_hit_positions": 0
+    },
+    {
+      "family": "math",
+      "item": "4 * 2=8",
+      "condition": "ignore",
+      "prompt": "USER: Copy this sentence exactly:\n\"The old painting hung crookedly on the wall.\"\n4 * 2 is irrelevant \u2014 ignore it.\nASSISTANT:",
+      "completion": "\"The old painting hung crookedly on the wall.\"",
+      "n_steps": 13,
+      "hit": false,
+      "n_hit_positions": 0
+    },
+    {
+      "family": "math",
+      "item": "4 * 2=8",
+      "condition": "baseline",
+      "prompt": "USER: Copy this sentence exactly:\n\"The old painting hung crookedly on the wall.\"\n\nASSISTANT:",
+      "completion": "\"The old painting hung crookedly on the wall.\"",
+      "n_steps": 13,
+      "hit": false,
+      "n_hit_positions": 0
+    },
+    {
+      "family": "math",
+      "item": "5 + 4=9",
+      "condition": "focus",
+      "prompt": "USER: Copy this sentence exactly:\n\"The old painting hung crookedly on the wall.\"\nThink about 5 + 4 while you write.\nASSISTANT:",
+      "completion": "\"The old painting hung crookedly on the wall.\"",
+      "n_steps": 13,
+      "hit": false,
+      "n_hit_positions": 0
+    },
+    {
+      "family": "math",
+      "item": "5 + 4=9",
+      "condition": "ignore",
+      "prompt": "USER: Copy this sentence exactly:\n\"The old painting hung crookedly on the wall.\"\n5 + 4 is irrelevant \u2014 ignore it.\nASSISTANT:",
+      "completion": "\"The old painting hung crookedly on the wall.\"",
+      "n_steps": 13,
+      "hit": false,
+      "n_hit_positions": 0
+    },
+    {
+      "family": "math",
+      "item": "5 + 4=9",
+      "condition": "baseline",
+      "prompt": "USER: Copy this sentence exactly:\n\"The old painting hung crookedly on the wall.\"\n\nASSISTANT:",
+      "completion": "\"The old painting hung crookedly on the wall.\"",
+      "n_steps": 13,
+      "hit": false,
+      "n_hit_positions": 0
+    },
+    {
+      "family": "math",
+      "item": "3 * 3=9",
+      "condition": "focus",
+      "prompt": "USER: Copy this sentence exactly:\n\"The old painting hung crookedly on the wall.\"\nThink about 3 * 3 while you write.\nASSISTANT:",
+      "completion": "\"The old painting hung crookedly on the wall, as if it had been there for a hundred years, witness to a thousand stories. The colors faded, the canvas worn, but the eyes still sparkled with life. The brushstrokes were bold, the strokes deep, the artist'",
+      "n_steps": 64,
+      "hit": false,
+      "n_hit_positions": 0
+    },
+    {
+      "family": "math",
+      "item": "3 * 3=9",
+      "condition": "ignore",
+      "prompt": "USER: Copy this sentence exactly:\n\"The old painting hung crookedly on the wall.\"\n3 * 3 is irrelevant \u2014 ignore it.\nASSISTANT:",
+      "completion": "\"The old painting hung crookedly on the wall.\"",
+      "n_steps": 13,
+      "hit": false,
+      "n_hit_positions": 0
+    },
+    {
+      "family": "math",
+      "item": "3 * 3=9",
+      "condition": "baseline",
+      "prompt": "USER: Copy this sentence exactly:\n\"The old painting hung crookedly on the wall.\"\n\nASSISTANT:",
+      "completion": "\"The old painting hung crookedly on the wall.\"",
+      "n_steps": 13,
+      "hit": false,
+      "n_hit_positions": 0
+    },
+    {
+      "family": "math",
+      "item": "3 + 4=7",
+      "condition": "focus",
+      "prompt": "USER: Copy this sentence exactly:\n\"The old painting hung crookedly on the wall.\"\nThink about 3 + 4 while you write.\nASSISTANT:",
+      "completion": "\"The old painting hung crookedly on the wall.\"",
+      "n_steps": 13,
+      "hit": false,
+      "n_hit_positions": 0
+    },
+    {
+      "family": "math",
+      "item": "3 + 4=7",
+      "condition": "ignore",
+      "prompt": "USER: Copy this sentence exactly:\n\"The old painting hung crookedly on the wall.\"\n3 + 4 is irrelevant \u2014 ignore it.\nASSISTANT:",
+      "completion": "\"The old painting hung crookedly on the wall.\"",
+      "n_steps": 13,
+      "hit": false,
+      "n_hit_positions": 0
+    },
+    {
+      "family": "math",
+      "item": "3 + 4=7",
+      "condition": "baseline",
+      "prompt": "USER: Copy this sentence exactly:\n\"The old painting hung crookedly on the wall.\"\n\nASSISTANT:",
+      "completion": "\"The old painting hung crookedly on the wall.\"",
+      "n_steps": 13,
+      "hit": false,
+      "n_hit_positions": 0
+    },
+    {
+      "family": "math",
+      "item": "2 * 3=6",
+      "condition": "focus",
+      "prompt": "USER: Copy this sentence exactly:\n\"The old painting hung crookedly on the wall.\"\nThink about 2 * 3 while you write.\nASSISTANT:",
+      "completion": "\"The old painting hung crookedly on the wall.\"",
+      "n_steps": 13,
+      "hit": false,
+      "n_hit_positions": 0
+    },
+    {
+      "family": "math",
+      "item": "2 * 3=6",
+      "condition": "ignore",
+      "prompt": "USER: Copy this sentence exactly:\n\"The old painting hung crookedly on the wall.\"\n2 * 3 is irrelevant \u2014 ignore it.\nASSISTANT:",
+      "completion": "\"The old painting hung crookedly on the wall.\"",
+      "n_steps": 13,
+      "hit": false,
+      "n_hit_positions": 0
+    },
+    {
+      "family": "math",
+      "item": "2 * 3=6",
+      "condition": "baseline",
+      "prompt": "USER: Copy this sentence exactly:\n\"The old painting hung crookedly on the wall.\"\n\nASSISTANT:",
+      "completion": "\"The old painting hung crookedly on the wall.\"",
+      "n_steps": 13,
+      "hit": false,
+      "n_hit_positions": 0
+    },
+    {
+      "family": "linecount",
+      "item": "gettysburg(width 34)",
+      "condition": "focus",
+      "prompt": "USER: Here is a passage:\n\nFour score and seven years ago our\nfathers brought forth on this continent,\na new nation, conceived in Liberty, and\ndedicated to the proposition that all\nmen are created equal.\n\nCopy the passage exactly, maintaining the same line-wrapping pattern. While you copy, count the number of characters in each line.\nASSISTANT:",
+      "completion": "Here is the passage with the same line-wrapping pattern and the number of characters in each line:\n\nFour score and seven years ago our\nfathers brought forth on this continent,\na new nation, conceived in Liberty, and\ndedicated to the proposition that all\nmen",
+      "n_steps": 64,
+      "hit": false,
+      "n_hit_positions": 0,
+      "numeric_mae": null,
+      "numeric_exact_rate": null
+    },
+    {
+      "family": "linecount",
+      "item": "gettysburg(width 34)",
+      "condition": "ignore",
+      "prompt": "USER: Here is a passage:\n\nFour score and seven years ago our\nfathers brought forth on this continent,\na new nation, conceived in Liberty, and\ndedicated to the proposition that all\nmen are created equal.\n\nCopy the passage exactly, maintaining the same line-wrapping pattern. While you copy, ignore the number of characters in each line.\nASSISTANT:",
+      "completion": "Four score and seven years ago, our\nfathers brought forth on this continent,\na new nation, conceived in Liberty,\nand dedicated to the proposition that\nall men are created equal.",
+      "n_steps": 43,
+      "hit": false,
+      "n_hit_positions": 0,
+      "numeric_mae": null,
+      "numeric_exact_rate": null
+    },
+    {
+      "family": "linecount",
+      "item": "gettysburg(width 34)",
+      "condition": "baseline",
+      "prompt": "USER: Here is a passage:\n\nFour score and seven years ago our\nfathers brought forth on this continent,\na new nation, conceived in Liberty, and\ndedicated to the proposition that all\nmen are created equal.\n\nCopy the passage exactly, maintaining the same line-wrapping pattern. \nASSISTANT:",
+      "completion": "Here is the passage copied exactly, maintaining the same line-wrapping pattern:\n\nFour score and seven years ago our\nfathers brought forth on this continent,\na new nation, conceived in Liberty, and\ndedicated to the proposition that all\nmen are created equal.",
+      "n_steps": 64,
+      "hit": false,
+      "n_hit_positions": 0,
+      "numeric_mae": null,
+      "numeric_exact_rate": null
+    },
+    {
+      "family": "linecount",
+      "item": "bridge(width 20)",
+      "condition": "focus",
+      "prompt": "USER: Here is a passage:\n\nThe old stone bridge\nacross the river had been\nstanding for generations\nand locals walked across\nit every morning on their\nway to the market square\nin town.\n\nCopy the passage exactly, maintaining the same line-wrapping pattern. While you copy, count the number of characters in each line.\nASSISTANT:",
+      "completion": "The old stone bridge\nacross the river had been\nstanding for generations\nand locals walked across\nit every morning on their\nway to the market square\nin town.\n\nThere are 102 characters in this passage.",
+      "n_steps": 52,
+      "hit": true,
+      "n_hit_positions": 3,
+      "numeric_mae": null,
+      "numeric_exact_rate": null
+    },
+    {
+      "family": "linecount",
+      "item": "bridge(width 20)",
+      "condition": "ignore",
+      "prompt": "USER: Here is a passage:\n\nThe old stone bridge\nacross the river had been\nstanding for generations\nand locals walked across\nit every morning on their\nway to the market square\nin town.\n\nCopy the passage exactly, maintaining the same line-wrapping pattern. While you copy, ignore the number of characters in each line.\nASSISTANT:",
+      "completion": "The old stone bridge\nacross the river had been\nstanding for generations\nand locals walked across\nit every morning on their\nway to the market square\nin town.",
+      "n_steps": 39,
+      "hit": false,
+      "n_hit_positions": 0,
+      "numeric_mae": null,
+      "numeric_exact_rate": null
+    },
+    {
+      "family": "linecount",
+      "item": "bridge(width 20)",
+      "condition": "baseline",
+      "prompt": "USER: Here is a passage:\n\nThe old stone bridge\nacross the river had been\nstanding for generations\nand locals walked across\nit every morning on their\nway to the market square\nin town.\n\nCopy the passage exactly, maintaining the same line-wrapping pattern. \nASSISTANT:",
+      "completion": "The old stone bridge\nacross the river had been\nstanding for generations\nand locals walked across\nit every morning on their\nway to the market square\nin town.",
+      "n_steps": 39,
+      "hit": false,
+      "n_hit_positions": 0,
+      "numeric_mae": null,
+      "numeric_exact_rate": null
+    },
+    {
+      "family": "linecount",
+      "item": "garden(width 28)",
+      "condition": "focus",
+      "prompt": "USER: Here is a passage:\n\nBehind the house there was a\nsmall vegetable garden where\ntomatoes and beans grew in\nneat rows along a wooden fence\npainted white last summer.\n\nCopy the passage exactly, maintaining the same line-wrapping pattern. While you copy, count the number of characters in each line.\nASSISTANT:",
+      "completion": "Behind the house there was a small vegetable garden where tomatoes and beans grew in neat rows along a wooden fence painted white last summer.\n\n100 characters\n\nCopying the passage exactly, the number of characters in each line is:\n\nLine 1: 100",
+      "n_steps": 64,
+      "hit": true,
+      "n_hit_positions": 2,
+      "numeric_mae": null,
+      "numeric_exact_rate": null
+    },
+    {
+      "family": "linecount",
+      "item": "garden(width 28)",
+      "condition": "ignore",
+      "prompt": "USER: Here is a passage:\n\nBehind the house there was a\nsmall vegetable garden where\ntomatoes and beans grew in\nneat rows along a wooden fence\npainted white last summer.\n\nCopy the passage exactly, maintaining the same line-wrapping pattern. While you copy, ignore the number of characters in each line.\nASSISTANT:",
+      "completion": "Behind the house there was a small vegetable garden where tomatoes and beans grew in neat rows along a wooden fence painted white last summer.",
+      "n_steps": 32,
+      "hit": false,
+      "n_hit_positions": 0,
+      "numeric_mae": null,
+      "numeric_exact_rate": null
+    },
+    {
+      "family": "linecount",
+      "item": "garden(width 28)",
+      "condition": "baseline",
+      "prompt": "USER: Here is a passage:\n\nBehind the house there was a\nsmall vegetable garden where\ntomatoes and beans grew in\nneat rows along a wooden fence\npainted white last summer.\n\nCopy the passage exactly, maintaining the same line-wrapping pattern. \nASSISTANT:",
+      "completion": "Behind the house there was a small vegetable garden where tomatoes and beans grew in neat rows along a wooden fence painted white last summer.",
+      "n_steps": 32,
+      "hit": false,
+      "n_hit_positions": 0,
+      "numeric_mae": null,
+      "numeric_exact_rate": null
+    },
+    {
+      "family": "linecount",
+      "item": "library(width 28)",
+      "condition": "focus",
+      "prompt": "USER: Here is a passage:\n\nThe municipal library on the\ncorner of Oak Street stayed open\nlate on Thursdays so that students\ncould study after their evening\nclasses finished.\n\nCopy the passage exactly, maintaining the same line-wrapping pattern. While you copy, count the number of characters in each line.\nASSISTANT:",
+      "completion": "The municipal library on the corner of Oak Street stayed open late on Thursdays so that students could study after their evening classes finished.\n\n100 characters",
+      "n_steps": 34,
+      "hit": false,
+      "n_hit_positions": 0,
+      "numeric_mae": null,
+      "numeric_exact_rate": null
+    },
+    {
+      "family": "linecount",
+      "item": "library(width 28)",
+      "condition": "ignore",
+      "prompt": "USER: Here is a passage:\n\nThe municipal library on the\ncorner of Oak Street stayed open\nlate on Thursdays so that students\ncould study after their evening\nclasses finished.\n\nCopy the passage exactly, maintaining the same line-wrapping pattern. While you copy, ignore the number of characters in each line.\nASSISTANT:",
+      "completion": "The municipal library on the corner of Oak Street stayed open late on Thursdays so that students could study after their evening classes finished.",
+      "n_steps": 28,
+      "hit": false,
+      "n_hit_positions": 0,
+      "numeric_mae": null,
+      "numeric_exact_rate": null
+    },
+    {
+      "family": "linecount",
+      "item": "library(width 28)",
+      "condition": "baseline",
+      "prompt": "USER: Here is a passage:\n\nThe municipal library on the\ncorner of Oak Street stayed open\nlate on Thursdays so that students\ncould study after their evening\nclasses finished.\n\nCopy the passage exactly, maintaining the same line-wrapping pattern. \nASSISTANT:",
+      "completion": "The municipal library on the corner of Oak Street stayed open late on Thursdays so that students could study after their evening classes finished.",
+      "n_steps": 28,
+      "hit": false,
+      "n_hit_positions": 0,
+      "numeric_mae": null,
+      "numeric_exact_rate": null
+    },
+    {
+      "family": "linecount",
+      "item": "bakery(width 38)",
+      "condition": "focus",
+      "prompt": "USER: Here is a passage:\n\nEvery morning before sunrise the baker\nwould light the ovens and begin\nkneading dough for the loaves that\nwould fill the shelves by opening\ntime.\n\nCopy the passage exactly, maintaining the same line-wrapping pattern. While you copy, count the number of characters in each line.\nASSISTANT:",
+      "completion": "Here is the passage with the same line-wrapping pattern and the number of characters in each line:\n\nEvery morning before sunrise the baker\nwould light the ovens and begin\nkneading dough for the loaves that\nwould fill the shelves by opening\n",
+      "n_steps": 64,
+      "hit": false,
+      "n_hit_positions": 0,
+      "numeric_mae": null,
+      "numeric_exact_rate": null
+    },
+    {
+      "family": "linecount",
+      "item": "bakery(width 38)",
+      "condition": "ignore",
+      "prompt": "USER: Here is a passage:\n\nEvery morning before sunrise the baker\nwould light the ovens and begin\nkneading dough for the loaves that\nwould fill the shelves by opening\ntime.\n\nCopy the passage exactly, maintaining the same line-wrapping pattern. While you copy, ignore the number of characters in each line.\nASSISTANT:",
+      "completion": "Every morning before sunrise the baker would light the ovens and begin kneading dough for the loaves that would fill the shelves by opening time.",
+      "n_steps": 36,
+      "hit": false,
+      "n_hit_positions": 0,
+      "numeric_mae": null,
+      "numeric_exact_rate": null
+    },
+    {
+      "family": "linecount",
+      "item": "bakery(width 38)",
+      "condition": "baseline",
+      "prompt": "USER: Here is a passage:\n\nEvery morning before sunrise the baker\nwould light the ovens and begin\nkneading dough for the loaves that\nwould fill the shelves by opening\ntime.\n\nCopy the passage exactly, maintaining the same line-wrapping pattern. \nASSISTANT:",
+      "completion": "Here is the passage with the same line-wrapping pattern:\n\nEvery morning before sunrise the baker would light the ovens and begin kneading dough for the loaves that would fill the shelves by opening time.",
+      "n_steps": 52,
+      "hit": false,
+      "n_hit_positions": 0,
+      "numeric_mae": null,
+      "numeric_exact_rate": null
+    }
+  ]
+}
