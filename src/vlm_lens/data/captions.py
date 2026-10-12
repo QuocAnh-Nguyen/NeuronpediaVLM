@@ -136,6 +136,31 @@ def generate_captions(
         # PIL, not paths: HF decodes str/bytes through torchvision's jpeg decoder.
         chunk = [_open_image(path) for path in image_paths[start : start + batch_size]]
         texts = [prompt_text(question) for _ in chunk]
+        encode_batch = getattr(model, "encode_generate_batch", None)
+        if encode_batch is not None:
+            # Chat-templated models (Qwen2-VL): a raw prompt string never becomes
+            # image tokens, so the encoding must go through the model's chat path.
+            # One image per generate call — image expansions differ per image, and a
+            # padded batch would mis-align the continuation slice below.
+            for text, image in zip(texts, chunk, strict=True):
+                inputs = encode_batch([text], [image])[0]
+                inputs = {
+                    key: value.to(
+                        model.input_device if key != "pixel_values" else model.vision_device
+                    )
+                    for key, value in inputs.items()
+                }
+                if "pixel_values" in inputs:
+                    inputs["pixel_values"] = inputs["pixel_values"].to(model.vision_dtype)
+                prompt_len = int(inputs["input_ids"].shape[1])
+                generated = model.hf_model.generate(
+                    **inputs,
+                    max_new_tokens=max_new_tokens,
+                    do_sample=False,
+                    use_cache=True,
+                )
+                captions.append(model._decode(generated[:, prompt_len:][0]).strip())
+            continue
         inputs = model.processor(images=chunk, text=texts, return_tensors="pt", padding=True)
         inputs = {
             key: value.to(model.input_device if key != "pixel_values" else model.vision_device)

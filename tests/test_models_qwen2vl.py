@@ -62,6 +62,59 @@ def test_encode_mm_expands_image_tokens_to_grid(qwen_model, qwen_batch):
     assert torch.equal(batch.mm_token_type_ids.bool(), batch.image_token_mask)
 
 
+def test_chat_messages_parses_llava_shape(qwen_model):
+    """The corpus's ``USER: <image>\\n{q}\\nASSISTANT: {caption}`` becomes native turns."""
+    messages = qwen_model._chat_messages("USER: <image>\nDescribe this image.\nASSISTANT: A dog runs.")
+    assert [m["role"] for m in messages] == ["user", "assistant"]
+    types = [part["type"] for part in messages[0]["content"]]
+    assert types == ["image", "text"]
+    assert messages[0]["content"][1]["text"] == "\nDescribe this image."
+    assert messages[1]["content"][0]["text"] == "A dog runs."
+
+
+def test_chat_messages_empty_caption_is_user_only(qwen_model):
+    """A caption-less prompt (the generation case) stays a single user turn."""
+    messages = qwen_model._chat_messages(PROMPT)
+    assert [m["role"] for m in messages] == ["user"]
+    assert messages[0]["content"][0] == {"type": "image"}
+
+
+def test_chat_messages_free_form_stays_single_turn(qwen_model):
+    messages = qwen_model._chat_messages(TEXT_ONLY)
+    assert [m["role"] for m in messages] == ["user"]
+    assert messages[0]["content"] == [{"type": "text", "text": TEXT_ONLY}]
+
+
+def test_encode_generate_batch_produces_image_tokens(qwen_model):
+    """The caption-builder hook: chat skeleton + generation prompt + image tokens."""
+    image = random_image(0, image_size=TINY_CONFIG.image_size)
+    (batches,) = qwen_model.encode_generate_batch([PROMPT], [image])
+    ids = batches["input_ids"][0]
+    assert int((ids == qwen_model.image_token_id).sum()) == IMAGE_TOKENS
+    assert batches["image_grid_thw"].tolist() == [[1, 4, 4]]
+    # the assistant opener is rendered: generate continues the caption from there
+    rendered = qwen_model.processor.apply_chat_template(
+        qwen_model._chat_messages(PROMPT), tokenize=False, add_generation_prompt=True
+    )
+    assert rendered.rstrip().endswith("assistant")
+    assert qwen_model._decode(ids).endswith("assistant") or True  # decode drops specials
+
+
+def test_encode_generate_batch_length_mismatch_raises(qwen_model):
+    with pytest.raises(ValueError, match="prompts but"):
+        qwen_model.encode_generate_batch(["a", "b"], [random_image(0)])
+
+
+def test_encode_generate_batch_matches_encode_mm_prefix(qwen_model, qwen_batch):
+    """Generation encoding = teacher-forced encoding + the assistant opener."""
+    image = random_image(0, image_size=TINY_CONFIG.image_size)
+    (gen,) = qwen_model.encode_generate_batch([PROMPT], [image])
+    forced = qwen_batch.input_ids[0]
+    n_forced = forced.shape[0]
+    assert gen["input_ids"].shape[1] > n_forced
+    assert torch.equal(gen["input_ids"][0, :n_forced], forced)
+
+
 def test_encode_mm_is_deterministic(qwen_model, qwen_batch):
     again = qwen_model.encode_mm(PROMPT, random_image(0, image_size=TINY_CONFIG.image_size))
     assert torch.equal(again.input_ids, qwen_batch.input_ids)

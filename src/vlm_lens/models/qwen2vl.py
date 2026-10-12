@@ -40,6 +40,8 @@ Where Qwen2-VL genuinely differs from LLaVA, and how it is absorbed:
 
 from __future__ import annotations
 
+import re
+from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -307,13 +309,37 @@ class Qwen2VLLensModel(HFLensModel):
             total += (t * h * w) // merge
         return total
 
-    def _chat_messages(self, text: str) -> list[dict[str, Any]]:
-        """User message whose content parts interleave text segments and image parts.
+    _CHAT_SHAPE = re.compile(r"^\s*USER:\s*(.*?)\s*ASSISTANT:\s*(.*)$", re.DOTALL)
 
-        ``<image>`` in the prompt marks where an image part goes, so the placeholder
-        spelling is shared with the LLaVA adapter and the caller's prompt strings stay
-        adapter-agnostic.
+    def _chat_messages(self, text: str) -> list[dict[str, Any]]:
+        """Chat messages for a corpus prompt, Qwen2-VL native.
+
+        The shared corpus spells prompts in the LLaVA shape,
+        ``USER: <image>\\n{question}\\nASSISTANT: {caption}``; rendering that literally
+        would make the caption part of the *user* turn. When the shape matches, the
+        question (with its ``<image>`` placeholders) becomes the user turn and a
+        non-empty caption becomes the assistant turn (teacher-forced fits); an empty
+        caption is a generation prompt and stays user-only (the caller appends the
+        assistant opener via ``add_generation_prompt``). Anything else — text-only
+        corpora, free-form prompts — renders as a single user message exactly as
+        before.
         """
+        match = self._CHAT_SHAPE.match(text)
+        if match is None:
+            return [{"role": "user", "content": self._content_parts(text)}]
+        messages = [
+            {"role": "user", "content": self._content_parts(match.group(1))}
+        ]
+        caption = match.group(2).strip()
+        if caption:
+            messages.append(
+                {"role": "assistant", "content": [{"type": "text", "text": caption}]}
+            )
+        return messages
+
+    @staticmethod
+    def _content_parts(text: str) -> list[dict[str, Any]]:
+        """Content parts interleaving text segments and ``{"type": "image"}`` parts."""
         content: list[dict[str, Any]] = []
         for index, segment in enumerate(text.split(IMAGE_PLACEHOLDER)):
             if index:
@@ -322,7 +348,7 @@ class Qwen2VLLensModel(HFLensModel):
                 content.append({"type": "text", "text": segment})
         if not content:  # empty prompt
             content = [{"type": "text", "text": text}]
-        return [{"role": "user", "content": content}]
+        return content
 
     def encode_mm(
         self,
@@ -517,6 +543,41 @@ class Qwen2VLLensModel(HFLensModel):
             )
         new_tokens = ids[0, batch.seq_len :]
         return self._decode(new_tokens)
+
+    def encode_generate_batch(
+        self,
+        texts: Sequence[str],
+        images: Sequence[Any],
+    ) -> list[dict[str, Any]]:
+        """Per-sample processor inputs for the shared caption builder's ``generate``.
+
+        The builder hands raw prompt strings to the processor directly; Qwen2-VL needs
+        its chat skeleton — a bare ``<image>`` never becomes ``<|image_pad|>``, so
+        ``input_ids`` would carry zero image tokens while the features still compute,
+        and HF's forward rejects the mismatch. Each (text, image) pair is rendered
+        through :meth:`_chat_messages` (which parses the corpus's LLaVA shape into
+        native turns) with ``add_generation_prompt=True``. One image per call, no
+        padding: image expansions differ per image, so a padded batch would mis-align
+        the continuation slice the builder takes.
+
+        Returns:
+            One plain kwargs dict per pair, values still on the processor's device —
+            the caller moves them (see ``data.captions.generate_captions``).
+        """
+        if len(texts) != len(images):
+            raise ValueError(
+                f"{len(texts)} prompts but {len(images)} images for generate encoding"
+            )
+        batches: list[dict[str, Any]] = []
+        for text, image in zip(texts, images, strict=True):
+            prompt = self.processor.apply_chat_template(
+                self._chat_messages(text),
+                tokenize=False,
+                add_generation_prompt=True,
+            )
+            inputs = self.processor(text=[prompt], images=[image], return_tensors="pt")
+            batches.append(dict(inputs))
+        return batches
 
     def _decode(self, token_ids: torch.Tensor) -> str:
         tokenizer = getattr(self, "tokenizer", None)

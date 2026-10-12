@@ -12,14 +12,17 @@ strict shim below pins the contract on the tiny fixture.
 from __future__ import annotations
 
 import hashlib
+import types
 from pathlib import Path
 from typing import Any
 
 import pytest
+import torch
 from PIL import Image
 
 from vlm_lens.data.captions import (
     build_coco_caption_manifest,
+    generate_captions,
     prompt_template_hash,
     prompt_text,
 )
@@ -60,6 +63,46 @@ def coco_dir(tmp_path: Path) -> Path:
         image = random_image(index, image_size=TINY_CONFIG.image_size)
         Image.fromarray(image).save(images_dir / f"COCO_val2014_{index:012d}.jpg")
     return images_dir
+
+
+def test_generate_captions_routes_chat_models_through_their_hook(coco_dir: Path) -> None:
+    """A model exposing ``encode_generate_batch`` (Qwen2-VL) must be used per image.
+
+    The raw-processor fallback would feed the LLaVA-shaped prompt string to a chat
+    processor that never turns ``<image>`` into image tokens — the exact failure the
+    first qwen2vl corpus build died on. The stub records the routing and returns a
+    minimal generate-ready dict; decode comes from the model.
+    """
+
+    class _ChatModel:
+        input_device = torch.device("cpu")
+        vision_device = torch.device("cpu")
+        vision_dtype = torch.float32
+
+        def __init__(self) -> None:
+            self.calls: list[tuple[list[str], list[Any]]] = []
+
+        def encode_generate_batch(self, texts: list[str], images: list[Any]) -> list[dict]:
+            self.calls.append((list(texts), list(images)))
+            ids = torch.tensor([[1, 2, 3]])
+            return [{"input_ids": ids, "attention_mask": torch.ones_like(ids)}]
+
+        @staticmethod
+        def _decode(token_ids: torch.Tensor) -> str:
+            return "caption " + " ".join(str(int(t)) for t in token_ids.tolist())
+
+    model = _ChatModel()
+    model.hf_model = types.SimpleNamespace(
+        generate=lambda **kwargs: torch.tensor([[9, 8, 7, 6]])
+    )
+    paths = sorted(coco_dir.glob("*.jpg"))[:2]
+    captions = generate_captions(model, paths, "Describe this image.", batch_size=2)
+    assert captions == ["caption 6", "caption 6"]  # only the continuation is decoded
+    assert len(model.calls) == 2  # one image per generate call, not a padded batch
+    for (texts, images), path in zip(model.calls, paths, strict=True):
+        assert texts == [prompt_text("Describe this image.")]
+        assert len(images) == 1 and images[0].mode == "RGB"
+        assert Path(path).is_file()
 
 
 def test_caption_manifest_round_trip_and_processor_contract(
