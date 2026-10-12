@@ -17,27 +17,27 @@ wait_gpu() { local need=$1 label=$2 waited=0 g; while :; do g=$(pick_gpu "$need"
 run_step() { local label=$1 need=$2 g; shift 2; g=$(wait_gpu "$need" "$label") || return 1; CUDA_VISIBLE_DEVICES=$g "$@"; }
 
 for kind in llava-13b qwen2vl; do
-    LENS=$V/fits/$( [ $kind = llava-13b ] && echo llava-1.5-13b-hf || echo qwen2-vl-7b-instruct )/merged
+    LENS=$V/fits/$( [ $kind = llava-13b ] && echo llava-1.5-13b-hf || echo qwen2-vl-7b-instruct )/merged/artifacts
     if [ ! -f "$OUT/x20_lens_evals_$kind.json" ]; then
-        run_step x20-$kind 26000 $P $C/x20_lens_evals.py --model $kind --lens-dir $LENS \
+        run_step x20-$kind 40000 $P $C/x20_lens_evals.py --model $kind --lens-dir $LENS \
             --variants j-lens,identity-uncal --json $OUT/x20_lens_evals_$kind.json || echo "X20_${kind}_FAILED"
     else echo "[x20-$kind] present - skip"; fi
     if [ ! -f "$OUT/x21_report_$kind.json" ]; then
-        run_step x21-$kind 26000 $P $C/x21_verbal_report.py --model $kind --arm report --lens-dir $LENS \
+        run_step x21-$kind 40000 $P $C/x21_verbal_report.py --model $kind --arm report --lens-dir $LENS \
             --json $OUT/x21_report_$kind.json || echo "X21_${kind}_FAILED"
     else echo "[x21-$kind] present - skip"; fi
     if [ ! -f "$OUT/x22_structure_$kind.json" ]; then
-        run_step x22-$kind 26000 $P $C/x22_reasoning_structure.py --model $kind --arm structure --lens-dir $LENS \
+        run_step x22-$kind 40000 $P $C/x22_reasoning_structure.py --model $kind --arm structure --lens-dir $LENS \
             --json $OUT/x22_structure_$kind.json || echo "X22_${kind}_FAILED"
     else echo "[x22-$kind] present - skip"; fi
     if [ ! -f "$OUT/x23_ignition_$kind.json" ]; then
-        run_step x23i-$kind 26000 $P $C/x23_vlm_workspace.py --model $kind --arm ignition --lens-dir $LENS \
+        run_step x23i-$kind 44000 $P $C/x23_vlm_workspace.py --model $kind --arm ignition --lens-dir $LENS \
             --images-dir /data/baodq/coco2014/val2014 \
             --annotations /data/baodq/coco2014/annotations/instances_val2014.json \
             --json $OUT/x23_ignition_$kind.json || echo "X23I_${kind}_FAILED"
     else echo "[x23i-$kind] present - skip"; fi
     if [ ! -f "$OUT/x23_band_$kind.json" ]; then
-        run_step x23b-$kind 26000 $P $C/x23_vlm_workspace.py --model $kind --arm band --lens-dir $LENS \
+        run_step x23b-$kind 44000 $P $C/x23_vlm_workspace.py --model $kind --arm band --lens-dir $LENS \
             --images-dir /data/baodq/coco2014/val2014 \
             --annotations /data/baodq/coco2014/annotations/instances_val2014.json \
             --json $OUT/x23_band_$kind.json || echo "X23B_${kind}_FAILED"
