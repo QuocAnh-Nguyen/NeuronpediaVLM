@@ -81,6 +81,7 @@ Local dev environment: conda env `vlm-lens` (Python 3.12, `torch 2.14.0+cpu`, `t
 - All readout/intervention paths run under `torch.no_grad()`; fitting enables grad and retains only the fitted span (`start_graph_at=min(source_layers)`).
 - J-lens-vector directions are rows of `W_U J_l` (`unembed_weight()[t] @ J`); the transpose is a different vector of the same scale and silently misdirects every add/ablate/swap (`test_lens_vectors_are_readout_gradients` guards it).
 - Images reach the HF processor as **PIL objects**, never paths: `pathlib.Path` is rejected by transformers 5.x, and str/bytes go through `torchvision.io.decode_image`, which dies on a torchvision built without libjpeg (the cluster env's `torchvision` is an editable install of another project without it). `LlavaLensModel.load_image` and `data/captions._open_image` both open with PIL for this reason; `test_data_captions.py` pins it.
+- Caption generation for the corpus must go through the model's **chat-templated encoding** (`Qwen2VLLensModel.encode_generate_batch`, routed by `data/captions.generate_captions`), never the raw processor with the LLaVA-shaped prompt string: a bare `<image>` never becomes `<|image_pad|>` for Qwen2-VL, so `input_ids` carries zero image tokens while the features still compute and HF's forward rejects the mismatch. `test_generate_captions_routes_chat_models_through_their_hook` pins the routing.
 
 ## Important Files
 
