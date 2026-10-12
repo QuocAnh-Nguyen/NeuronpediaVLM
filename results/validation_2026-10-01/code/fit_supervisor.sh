@@ -31,8 +31,10 @@ while :; do
         try=$((try + 1)); [ $try -gt $MAXTRIES ] && break
         echo "[sup $SHARD] try $try: GPU $g (need ${NEED}MiB) $(date -Is)"
         rm -f "$LOG"
+        CORPUS_ARGS="--corpus coco --images-dir /data/baodq/coco2014/val2014 --n-images 100"
+        case "$FIT_EXTRA" in *--manifest*) CORPUS_ARGS="";; esac
         CUDA_VISIBLE_DEVICES=$g setsid $P $R/scripts/fit_llava.py --model $MODEL --backend hf-llava \
-            --corpus coco --images-dir /data/baodq/coco2014/val2014 --n-images 100 --dtype bfloat16 \
+            $CORPUS_ARGS --dtype bfloat16 \
             ${FIT_EXTRA:-} \
             --shard $SHARD --out "$OUT" > "$LOG" 2>&1 &
         pid=$!
