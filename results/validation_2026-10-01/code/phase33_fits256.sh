@@ -19,8 +19,10 @@ fit_model() {  # kind fits_subdir need
     local kind=$1 sub=$2 need=$3
     local F=$V/fits/$sub
     mkdir -p $F
+    local bneed=$need
+    [ "$kind" = llava-13b ] && bneed=30000   # the builder holds only weights + generation, not the fit graph
     if [ ! -f "$F/manifest256.jsonl" ]; then
-        g=$(wait_gpu $need "build-$kind") || return 1
+        g=$(wait_gpu $bneed "build-$kind") || return 1
         CUDA_VISIBLE_DEVICES=$g $P $C/build_manifest.py --model $kind --max-new-tokens 256 \
             --out $F/manifest256.jsonl || { echo "BUILD_${kind}_FAILED"; return 1; }
     else echo "[$kind manifest] present - skip"; fi
