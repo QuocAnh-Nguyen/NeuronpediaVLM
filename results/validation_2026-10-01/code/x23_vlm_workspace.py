@@ -1348,6 +1348,19 @@ def run_modulation(args: argparse.Namespace, ws: Workspace) -> dict[str, Any]:
 # ------------------------------------------------------------- arm c: ignition
 
 
+def _projector_features(output: Any) -> torch.Tensor:
+    """The projected-features tensor a hooked registry vision module returns.
+
+    llava's ``multi_modal_projector`` returns the tensor directly. qwen2vl's
+    vision tower (transformers 5.x) returns a ``BaseModelOutputWithPooling`` whose
+    ``pooler_output`` is the merged embeds -- the exact tensor the LM scatters into
+    the input embeddings (``last_hidden_state`` is the pre-merge patch states).
+    """
+    if isinstance(output, torch.Tensor):
+        return output
+    return output.pooler_output
+
+
 def capture_projector_output(model: LensModel, kind: str, batch: MultimodalBatch) -> torch.Tensor:
     """The projected visual features for one image (no LM forward needed).
 
@@ -1361,7 +1374,7 @@ def capture_projector_output(model: LensModel, kind: str, batch: MultimodalBatch
     box: dict[str, torch.Tensor] = {}
 
     def hook(_module: Any, _inputs: Any, output: Any) -> Any:
-        box["out"] = output.detach().clone()
+        box["out"] = _projector_features(output).detach().clone()
         return output
 
     handle = module.register_forward_hook(hook)
@@ -1391,15 +1404,20 @@ class ProjectorMixer:
         self._handle: Any = None
 
     def _hook(self, _module: Any, _inputs: Any, output: Any) -> Any:
-        if tuple(output.shape) != tuple(self._donor.shape):
+        features = _projector_features(output)
+        if tuple(features.shape) != tuple(self._donor.shape):
             raise RuntimeError(
-                f"projector output {tuple(output.shape)} != donor "
+                f"projector output {tuple(features.shape)} != donor "
                 f"{tuple(self._donor.shape)}; both images must expand to the same "
                 "number of placeholder tokens"
             )
-        blended = (1.0 - self.alpha) * output.float() + self.alpha * self._donor.float()
+        blended = (1.0 - self.alpha) * features.float() + self.alpha * self._donor.float()
         self.n_fires += 1
-        return blended.to(output.dtype)
+        blended = blended.to(features.dtype)
+        if isinstance(output, torch.Tensor):
+            return blended
+        output.pooler_output = blended  # qwen2vl tower: the merged embeds live here
+        return output
 
     def __enter__(self) -> ProjectorMixer:
         self._handle = self._module.register_forward_hook(self._hook)

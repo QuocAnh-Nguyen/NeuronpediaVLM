@@ -274,15 +274,25 @@ class Qwen2VLLensModel(HFLensModel):
 
     # ------------------------------------------------------------------ encoding
     @property
+    def vision_tower(self) -> torch.nn.Module:
+        """The vision tower module.
+
+        In transformers 5.x the tower lives inside the inner ``Qwen2VLModel``
+        (``hf_model.model.visual``), not on the ``ForConditionalGeneration``
+        wrapper itself -- this property is the one seam that knows the path.
+        """
+        return self.hf_model.model.visual
+
+    @property
     def vision_device(self) -> torch.device:
-        return self.hf_model.model.visual.device
+        return self.vision_tower.device
 
     @property
     def vision_dtype(self) -> torch.dtype:
         try:
-            return self.hf_model.model.visual.dtype
+            return self.vision_tower.dtype
         except AttributeError:  # pragma: no cover - defensive for exotic towers
-            return next(self.hf_model.model.visual.parameters()).dtype
+            return next(self.vision_tower.parameters()).dtype
 
     def load_image(self, image: Any) -> Any:
         """Pass through PIL images / arrays; resolve strings as file paths.

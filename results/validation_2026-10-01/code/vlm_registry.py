@@ -293,18 +293,24 @@ def _with_generation_prompt(model: Any, batch: Any) -> Any:
     the caller's choice, as the llava prompt string carries ``ASSISTANT:`` itself),
     so generation-capable callers append ``QWEN_GENERATION_SUFFIX`` here: the exact
     tokens the template's generation prompt would add, resolved through the
-    wrapper's own tokenizer, spliced onto ``input_ids``/``attention_mask`` (and
-    ``mm_token_type_ids`` as text labels) via a frozen-dataclass copy. Text-only
-    batches carry no ``mm_token_type_ids`` and stay None. The 3-token suffix is
-    added after ``encode_mm``'s length guard, so ``--max-seq-len`` effectively has
-    a 3-token slack on qwen2vl.
+    wrapper's own tokenizer (ids come back as a flat list from the real tokenizer
+    and a ``[1, k]`` tensor from the tiny fixture's; both normalize to one
+    ``[1, k]`` row), spliced onto EVERY id-shaped tensor in lockstep via a
+    frozen-dataclass copy: ``input_ids``/``attention_mask``, the ``[1, seq]``
+    ``mm_token_type_ids`` (text labels -- the header is text-only), and the
+    ``[1, seq]`` ``image_token_mask`` (extended with False; x23's band arm indexes
+    its residuals with it, so a stale short mask breaks the readout). Text-only
+    batches without ``mm_token_type_ids`` stay None. The 3-token suffix is added
+    after ``encode_mm``'s length guard, so ``--max-seq-len`` effectively has a
+    3-token slack on qwen2vl.
     """
-    suffix_ids = model.tokenizer(
-        QWEN_GENERATION_SUFFIX, add_special_tokens=False, return_tensors=None
-    )["input_ids"]
-    suffix = torch.tensor(
-        [suffix_ids], dtype=batch.input_ids.dtype, device=batch.input_ids.device
-    )
+    suffix_ids = torch.as_tensor(
+        model.tokenizer(
+            QWEN_GENERATION_SUFFIX, add_special_tokens=False, return_tensors=None
+        )["input_ids"],
+        dtype=batch.input_ids.dtype,
+    ).reshape(1, -1)
+    suffix = suffix_ids.to(batch.input_ids.device)
     fields: dict[str, Any] = {
         "input_ids": torch.cat([batch.input_ids, suffix], dim=1),
         "attention_mask": torch.cat(
@@ -320,6 +326,14 @@ def _with_generation_prompt(model: Any, batch: Any) -> Any:
             device=labels.device,
         )
         fields["mm_token_type_ids"] = torch.cat([labels, zeros], dim=1)
+    image_mask = getattr(batch, "image_token_mask", None)
+    if image_mask is not None:
+        zeros = torch.zeros(
+            (image_mask.shape[0], suffix.shape[1]),
+            dtype=image_mask.dtype,
+            device=image_mask.device,
+        )
+        fields["image_token_mask"] = torch.cat([image_mask, zeros], dim=1)
     return dataclasses.replace(batch, **fields)
 
 
@@ -330,13 +344,15 @@ def vision_projector(model: Any, kind: str) -> torch.nn.Module:
     """The module whose OUTPUT is the projected visual features merged into the LM.
 
     llava: ``hf_model.model.multi_modal_projector`` (its output is scattered into
-    the input embeddings by ``LlavaModel.forward``). qwen2vl: ``hf_model.visual``,
-    the vision tower whose output (the merged embeds) is the same-role tensor.
-    Hooks on the returned module therefore capture/blend the identical injection
-    point for both kinds (x23's projector capture and mixer).
+    the input embeddings by ``LlavaModel.forward``). qwen2vl: the wrapper's vision
+    tower -- ``Qwen2VLLensModel.vision_tower``, i.e. ``hf_model.model.visual`` in
+    transformers 5.x (the tower lives inside the inner ``Qwen2VLModel``, NOT on the
+    ``ForConditionalGeneration`` wrapper) -- whose output (the merged embeds) is
+    the same-role tensor. Hooks on the returned module therefore capture/blend the
+    identical injection point for both kinds (x23's projector capture and mixer).
     """
     if kind == "qwen2vl":
-        return model.hf_model.visual
+        return model.vision_tower
     return model.hf_model.model.multi_modal_projector
 
 
