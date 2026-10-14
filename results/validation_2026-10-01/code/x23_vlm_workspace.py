@@ -370,6 +370,60 @@ def load_bias_optional(
     return bias, scale, temp, logit_bias, {"loaded": True, "dir": str(args.bias_dir)}
 
 
+
+def drop_mismatched_bias(
+    model: LensModel,
+    kind: str,
+    args: argparse.Namespace,
+    bias: dict[int, torch.Tensor] | None,
+    scale: dict[int, float] | None,
+    temp: dict[int, float] | None,
+    logit_bias: dict[int, torch.Tensor] | None,
+    bias_meta: dict[str, Any],
+) -> tuple[dict[int, torch.Tensor] | None, dict[int, float] | None,
+           dict[int, float] | None, dict[int, torch.Tensor] | None, dict[str, Any]]:
+    """Fail closed on a bias payload saved for a DIFFERENT model (x16 fallback style).
+
+    The step5e payload is per-model: each layer's ``bias`` row is added to the
+    d_model residual and each ``logit_bias`` row to the vocab-dim logits, so a
+    payload saved for another checkpoint (e.g. the 7B moment census run against
+    llava-13b or qwen2vl) crashes the calibrated readout's residual add instead of
+    merely misreading. Every tensor is validated against the dimension it is
+    applied at (bias -> model.d_model, logit_bias -> vocab); on any mismatch the
+    WHOLE payload is dropped (bias/scale/temp/logit_bias are one per-model
+    artifact) and the arm runs uncalibrated with the drop recorded in ``bias_meta``.
+    """
+    if bias is None and logit_bias is None:
+        return bias, scale, temp, logit_bias, bias_meta
+    vocab = int(model.unembed_weight().shape[0])
+    mismatches = []
+    for name, expected, tensors in (
+        ("bias", model.d_model, (bias or {}).values()),
+        ("logit_bias", vocab, (logit_bias or {}).values()),
+    ):
+        wrong = sorted({int(t.shape[-1]) for t in tensors if int(t.shape[-1]) != expected})
+        if wrong:
+            mismatches.append(f"{name} last dim {wrong} != {expected}")
+    if not mismatches:
+        return bias, scale, temp, logit_bias, bias_meta
+    detail = "; ".join(mismatches)
+    print(
+        f"note: dropping bias payload at {args.bias_dir} for model {kind!r} "
+        f"(d_model {model.d_model}, vocab {vocab}): {detail}; the calibrated "
+        "readout runs without bias/scale/temp/logit_bias"
+    )
+    return None, None, None, None, {
+        **bias_meta,
+        "loaded": False,
+        "dropped": "dim_mismatch",
+        "model_kind": kind,
+        "model_d_model": int(model.d_model),
+        "model_vocab": vocab,
+        "note": f"payload dims do not match this model; dropped, arm runs "
+                f"uncalibrated: {detail}",
+    }
+
+
 def synthetic_samples(n: int) -> list[Sample]:
     """Deterministic random images + synthetic annotations (see SYNTH_NOTE)."""
     from PIL import Image
@@ -433,6 +487,26 @@ def build_workspace(args: argparse.Namespace) -> Workspace:
     source_lens, lens_meta = load_lens_optional(args)
     bias, scale, temp, logit_bias, bias_meta = load_bias_optional(args)
     device = model.unembed_weight().device
+    bias, scale, temp, logit_bias, bias_meta = drop_mismatched_bias(
+        model, kind, args, bias, scale, temp, logit_bias, bias_meta
+    )
+    # Same fail-closed class for the lens: an identity-transport lens fitted on
+    # another checkpoint would crash transport's residual @ J.T the same way, so a
+    # d_model mismatch takes the documented no-lens fallback (identity over ALL
+    # layers, raw final-layer readout) with the drop recorded.
+    if source_lens is not None and source_lens.d_model != model.d_model:
+        print(
+            f"note: dropping lens at {args.lens_dir} for model {kind!r}: source "
+            f"d_model {source_lens.d_model} != model d_model {model.d_model}; "
+            "identity lens over ALL layers, raw final-layer readout"
+        )
+        lens_meta = {
+            **lens_meta, "loaded": False, "dropped": "dim_mismatch",
+            "model_d_model": int(model.d_model),
+            "note": f"lens d_model {source_lens.d_model} != model d_model "
+                    f"{model.d_model}; dropped, identity fallback",
+        }
+        source_lens = None
     if source_lens is not None:
         lens = identity_lens(source_lens, device)
         readout_layer = max(lens.source_layers)
