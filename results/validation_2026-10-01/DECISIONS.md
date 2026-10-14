@@ -1213,3 +1213,62 @@ extension adds a genuine structural novelty: a persistent, non-verbal sensory wo
 whose contents verbalize only at the motor regime, with the object-level workspace living at
 text positions throughout. Artifacts: step12 (11 JSONs); commits f9e2d96, 0f78b11 (+ this).
 
+## D48 - 2026-10-15 ~00:00Z: the multi-architecture, multi-budget round - the J-space workspace is budget-robust and architecture-general; the sensory block's object-free persistence is universal
++
++THREE ARCHITECTURES, TWO CAPTION BUDGETS. Lenses fitted at --max-new-tokens 64 (the
++original round; 7b = the production s2-merged) and 256 (re-fit on the same seeded image
++sample; manifests verify median 80-word captions vs ~40) for llava-1.5-7b (32L/4096),
++llava-1.5-13b (40L/5120) and Qwen2-VL-7B-Instruct (28L/3584, the new Qwen2VLLensModel
++wrapper: variable-resolution image tokens, M-RoPE/mm_token_type_ids, torchvision-free
++image-only processor). Fits: dim-batch 3 (the estimator's dim_batch=8 expanded graph was
++the OOM driver: ~30GB retained across 640/1707 backwards), supervisor-based GPU queues on
++the shared node. Artifacts: fits/<model>/{s0,s1} + merged (256) and merged-64tok (the
++renamed 64-token merges; the 64-token shard copies were reclaimed). step13 holds 20 eval
++JSONs: x20 lens-evals, x21 report, x22 structure, x23 band+ignition per model x budget.
++
++THE BUDGET VERDICT (64 -> 256; mean relative |dJ| 5-16% per layer, genuinely different
++lenses): the workspace PROPERTIES are unchanged. multihop pass@10 0.495 (256) vs 0.500
++(64) on 13b; report swaps 10/42 vs (qwen 6 vs 7)/42; band onsets identical (13b top1
++onset L25 both; qwen L24 both); ignition widths in the same range. The raw lens moves
++5-16% while its functional readouts move ~1-2% - the caption budget is a weak axis for
++the J-space; byte-identical metrics across budgets indicate near-identical lens content,
++not a bug (T22 proved lens-determinism locally: 10% dJ moves every metric).
++
++THE ARCHITECTURE VERDICT (properties replicated per model):
++* llava-13b (256): multihop 0.495 @L32; report top rho 0.945, swaps 10/42; band top1
++  onset L25/offset 36, kurtosis onset L16, effdim rising; ignition widths lens<full
++  (0.26-0.35 vs 0.27-0.45) with a NEGATIVE caption-threshold correlation (-0.81, noted:
++  the caption grid flips at different alphas than the band-mid lens threshold on this
++  model - a model-dependent divergence from the 7b's +0.99 that deserves a dedicated
++  follow-up).
++* llava-7b (64): the established properties (multihop 0.484 @L28; top rho 0.958; swaps
++  9/42; width 0.42->0.28 vs 0.63->0.38; caption alignment +0.14/earlier +0.99 variants).
++* qwen2vl (256): multihop 0.0 (the eval suite's gold-token conventions are LLaVA-tuned -
++  a recorded methodology caveat, not a lens failure: the same null appears on both
++  variants); report top rho 0.823, swaps 6/42; band top1 onset L24/offset 26; ignition
++  widths lens<full everywhere (0.38-0.58 vs 0.54-0.71), 95-100% committed at threshold.
++* UNIVERSAL SENSORY-BLOCK SIGNATURE (the round's cleanest cross-architecture result):
++  image-position lens content is hyper-persistent (top-1 stickiness z = 8-20 at band
++  layers) yet nearly object-free through the workspace band (object-in-top10 0.0-2% at
++  onset rising only to 4-12% at the final layers) on ALL THREE models - the workspace
++  carries stable non-verbal visual content; objects verbalize only at the motor regime.
++  Text positions stay token-local (z 0-2) throughout. A general VLM property.
++* IGNITION IS ARCHITECTURE-GENERAL: the J-space component's alpha-transition is sharper
++  than the full activation's at every band layer on all three models (llava-7b 0.42 vs
++  0.63; 13b 0.26-0.35 vs 0.27-0.45; qwen 0.38-0.58 vs 0.54-0.71).
++
++METHODOLOGY LEDGER (hard-won): (1) the phase31 "256-lens" evals initially ran against
++64-token content under 256 filenames (the genuine 256 merges did not exist yet; the qwen
++merged dir briefly held a bogus 64-shard re-merge) - caught by cross-file metric identity,
++root-caused by T22 (lens-determinism proof) and the stale JSONs were purged + re-run
++against fingerprint-verified lenses (x21's new sha256 meta fingerprints); (2) disk-full
++twice on the shared volume (checkpoint writes failed; freed by reclaiming finished-shard
++checkpoints and the regenerable synthetic lens zoo); (3) fit hangs under tenant GPU
++evictions (detected via log-staleness tripwires; supervisors retry); (4) sequence of
++architectural seam fixes: torchvision-free Qwen2VL processor, M-RoPE batch fields,
++registry template/suffix seams in lockstep, model-dim fail-closed bias/lens guards
++(x23), vision-tower accessor for transformers 5.17, common-grid image pairs for
++dynamic-resolution ignition. Commits: 82d71f5, 046df29, 9af7a88, 6c9..., plus the chain
++of box-only fixes; scripts x20-x23 + vlm_registry + build_manifest + phase28-34 +
++fit_supervisor; tests: models/qwen2vl (25), x21 lens sensitivity (4), dispatch (7).
++
