@@ -36,9 +36,14 @@ modulation  MODULATION DURING CAPTIONING (dual-task). Prompt ``Concentrate on
             content behave like a CONCURRENT TASK (exclusion) or like passive context?
 
 ignition    IMAGE-MIXING IGNITION (the ambiguous-input experiment). Blend two images'
-            projected visual features ``f_mix = (1 - alpha) f_A + alpha f_B`` at the 576
-            placeholder positions (hook on the multi-modal projector output; pixel
+            projected visual features ``f_mix = (1 - alpha) f_A + alpha f_B`` at the
+            image placeholder positions (hook on the multi-modal projector output; pixel
             values enter only at prefill, so the blend persists through the KV cache).
+            qwen2vl's dynamic-resolution processor expands differently-sized images to
+            different placeholder counts, so the arm resizes BOTH images of each pair to
+            one common 336x336 square before encode (llava's processor already resizes
+            every image to 336x336 -- a fixed 576-token path -- so its pixel path is
+            unchanged).
             alpha sweep 0..1 (41 steps at the default 0.025). Per layer at the handoff
             position (last prompt token): the J-lens rank of each category, and the
             projection share along the pure-A -> pure-B activation line — for the FULL
@@ -231,6 +236,18 @@ SYNTH_NOTE = (
     "ignition arm and the other-images target pool for the report arm both work; no "
     "COCO files are touched"
 )
+
+#: Side of the common square the ignition arm resizes BOTH images of a pair to before
+#: encode (qwen2vl only -- see ``pair_images_for_blend``). Qwen2-VL's processor is
+#: dynamic-resolution: each image's ``image_grid_thw`` (hence its placeholder-token
+#: count) is derived from the pixel size, so two differently-sized COCO images expand
+#: to different placeholder counts and a patch-aligned blend of their projector
+#: outputs is impossible (the ProjectorMixer shape guard raises). Resizing both to
+#: ONE square makes the processor yield identical grids. 336 = 12 x (patch 14 x merge
+#: 2), a no-op for the processor's factor-28 smart_resize, and the same pixel size
+#: llava's CLIP processor feeds its fixed 576-token path -- every qwen2vl trial then
+#: carries 144 placeholder tokens per image, constant across pairs.
+IGNITION_PAIR_SIDE = 336
 
 
 @dataclass(frozen=True)
@@ -1567,8 +1584,48 @@ def _representative_categories(
     return best(names_a, handoff_a), best(names_b, handoff_b)
 
 
+def _pair_blend_image(image: Any) -> Any:
+    """One ignition-pair image as PIL RGB at the common ``IGNITION_PAIR_SIDE`` square.
+
+    Mirrors the wrapper's own ``load_image`` (str/Path -> ``Image.open``; PIL passes
+    through), then resizes -- the resize runs for BOTH images of every qwen2vl pair
+    regardless of their original sizes, so grids (and placeholder counts) are constant
+    across trials, not only equalized where they clashed.
+    """
+    from PIL import Image
+
+    pil = image if isinstance(image, Image.Image) else Image.open(image)
+    return pil.convert("RGB").resize(
+        (IGNITION_PAIR_SIDE, IGNITION_PAIR_SIDE), Image.Resampling.BICUBIC
+    )
+
+
+def pair_images_for_blend(kind: str, image_a: Any, image_b: Any) -> tuple[Any, Any]:
+    """The ignition pair's images as handed to ``registry.image_encode``.
+
+    The patch-aligned blend needs both images to expand to the SAME number of
+    placeholder tokens. llava's processor resizes every image to one fixed 336x336
+    input (fixed 576 placeholder positions), so the images pass through UNCHANGED and
+    the llava pixel path stays byte-identical. qwen2vl's processor is
+    dynamic-resolution (per-image ``image_grid_thw`` from the pixel size), so both
+    images are PIL-resized to the common ``IGNITION_PAIR_SIDE`` square first; with
+    identical pixel sizes the processor yields identical grids and the mixer's shape
+    guard holds. Returns new PIL objects on the qwen2vl path: the corpus samples are
+    shared across arms and must not be mutated.
+    """
+    if kind != "qwen2vl":
+        return image_a, image_b
+    return _pair_blend_image(image_a), _pair_blend_image(image_b)
+
+
 def run_ignition(args: argparse.Namespace, ws: Workspace) -> dict[str, Any]:
-    """Arm (c): image-mixing ignition — alpha sweep, shares, sharpness, commitment."""
+    """Arm (c): image-mixing ignition — alpha sweep, shares, sharpness, commitment.
+
+    The pair's images go through :func:`pair_images_for_blend` first: on qwen2vl both
+    are resized to the common ``IGNITION_PAIR_SIDE`` square so the dynamic-resolution
+    processor yields identical grids (equal placeholder counts) for the blend; llava
+    passes through unchanged.
+    """
     model = ws.model
     layers = ws.layers
     # The readout layer this arm reads out at: the lens's own readout layer when the
@@ -1600,8 +1657,9 @@ def run_ignition(args: argparse.Namespace, ws: Workspace) -> dict[str, Any]:
     for trial_index, (sample_a, sample_b) in enumerate(pairs):
         names_a = gt_name_set(sample_a, ws.name_by_id)
         names_b = gt_name_set(sample_b, ws.name_by_id)
-        batch_a = registry.image_encode(model, ws.kind, prompt, sample_a.image, max_length=args.max_seq_len)
-        batch_b = registry.image_encode(model, ws.kind, prompt, sample_b.image, max_length=args.max_seq_len)
+        image_a, image_b = pair_images_for_blend(ws.kind, sample_a.image, sample_b.image)
+        batch_a = registry.image_encode(model, ws.kind, prompt, image_a, max_length=args.max_seq_len)
+        batch_b = registry.image_encode(model, ws.kind, prompt, image_b, max_length=args.max_seq_len)
         donor = capture_projector_output(model, ws.kind, batch_b)
 
         # ---- alpha sweep: one recorded prefill per alpha (the blend fires once)
@@ -1787,9 +1845,18 @@ def run_ignition(args: argparse.Namespace, ws: Workspace) -> dict[str, Any]:
             "handoff": HANDOFF_NOTE,
             "mixing": (
                 "f_mix = (1 - alpha) f_A + alpha f_B replaces the projected visual "
-                "features at the 576 placeholder positions (hook on the multi-modal "
+                "features at the image placeholder positions (hook on the multi-modal "
                 "projector output, the masked_scatter input); pixel values enter only "
                 "at prefill, so the blend persists through decode via the KV cache"
+            ),
+            "pair_resize": (
+                "qwen2vl's dynamic-resolution processor derives each image's "
+                "placeholder count from its pixel size, so both images of every pair "
+                "are PIL-resized to one common 336x336 square (IGNITION_PAIR_SIDE = "
+                "12 x [14x2] patch-merge factor: a smart_resize no-op) before encode, "
+                "giving both images the same grid and placeholder count (144 per "
+                "image); llava's processor already resizes every image to 336x336 "
+                "(fixed 576 placeholders), so its pixel path is unchanged"
             ),
             "matcher": MATCHER_NOTE,
         },
