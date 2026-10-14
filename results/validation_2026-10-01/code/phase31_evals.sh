@@ -36,12 +36,14 @@ for kind in qwen2vl llava-13b; do
     else echo "[x22-$kind] present - skip"; fi
     if [ ! -f "$OUT/x23_ignition_$kind.json" ]; then
         run_step x23i-$kind $((NEED + 4000)) $P $C/x23_vlm_workspace.py --model $kind --arm ignition --lens-dir $LENS \
+            --max-new-tokens 128 \
             --images-dir /data/baodq/coco2014/val2014 \
             --annotations /data/baodq/coco2014/annotations/instances_val2014.json \
             --json $OUT/x23_ignition_$kind.json || echo "X23I_${kind}_FAILED"
     else echo "[x23i-$kind] present - skip"; fi
     if [ ! -f "$OUT/x23_band_$kind.json" ]; then
         run_step x23b-$kind $((NEED + 4000)) $P $C/x23_vlm_workspace.py --model $kind --arm band --lens-dir $LENS \
+            --max-new-tokens 128 \
             --images-dir /data/baodq/coco2014/val2014 \
             --annotations /data/baodq/coco2014/annotations/instances_val2014.json \
             --json $OUT/x23_band_$kind.json || echo "X23B_${kind}_FAILED"

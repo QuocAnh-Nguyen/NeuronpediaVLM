@@ -53,16 +53,22 @@ Readout: the raw J-lens readout ``unembed(J_l h)`` (the paper's), or the repo's
 calibrated chain (``bias`` inside the fitted branch, then ``scale``/``temp``/
 ``logit_bias`` from ``bias-<mask>.pt``) with ``--calibrated``. Lens vectors are ALWAYS
 the raw rows of ``W_U @ J_l`` (the paper's ``v_t``; the convention pinned by
-``test_lens_vectors_are_readout_gradients``).
+``test_lens_vectors_are_readout_gradients``). Both the readout and the vectors refuse
+any layer the loaded lens did not fit (no identity/logit-lens fallback, see
+``require_fitted_layer``), and ``meta.lens`` records the fitted layer list plus a
+``fingerprint`` of the loaded J values (``lens_fingerprint``), so "same metrics" can
+be attributed to "same fitted lens content" instead of the ``--lens-dir`` string.
 
 Backends: ``--backend hf-llava`` (default, CUDA, fitted lens from ``--lens-dir``) or
-``--backend tiny`` (the tiny random-weight CPU fixture; the lens falls back to an
-in-script identity over the model's own layers so the smoke runs without /data).
+``--backend tiny`` (the tiny random-weight CPU fixture: it reads a ``--lens-dir`` lens
+whose d_model matches the tiny geometry, else falls back to an in-script identity over
+the model's own layers so the smoke runs without /data, recording the reason).
 """
 
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
 import sys
@@ -321,19 +327,92 @@ def load_model(args: argparse.Namespace) -> LensModel:
     return registry.load_lens_model(args)
 
 
+def lens_fingerprint(lens: JacobianLens) -> str:
+    """SHA-256 over the fitted ``J_l`` values: the loaded lens's *content* identity.
+
+    Each layer's J is hashed as raw float32 bytes tagged with its layer index, in
+    ``source_layers`` order, so two reports can be told apart into "same fitted lens
+    content" vs "same ``--lens-dir`` string over a re-pointed/overwritten file". That
+    is the distinction deciding whether equal report metrics mean reproducibility or
+    a lens-blind readout (the x21_report_qwen2vl.json / _64tok.json investigation:
+    equal metrics + equal fingerprints = the same J was read; equal metrics +
+    different fingerprints would mean the readout aliased the model's logits).
+    """
+    digest = hashlib.sha256()
+    for layer in lens.source_layers:
+        J = lens.jacobians[layer].detach().to(device="cpu", dtype=torch.float32).contiguous()
+        digest.update(f"L{layer}:".encode("ascii"))
+        digest.update(J.numpy().tobytes())
+    return digest.hexdigest()
+
+
+#: ``meta.lens.fingerprint``'s meaning (see :func:`lens_fingerprint`).
+FINGERPRINT_NOTE = (
+    "sha256 over the loaded lens's fitted J_l values (layer tag + raw float32 bytes, "
+    "layer order): equal report metrics with equal fingerprints = the same fitted lens "
+    "was read; equal metrics with different fingerprints = a lens-blind readout"
+)
+
+
+def _tiny_lens_from_dir(
+    args: argparse.Namespace, model: LensModel
+) -> tuple[JacobianLens | None, str]:
+    """A geometry-compatible ``--lens-dir`` lens for the tiny fixture, or None + why.
+
+    The tiny smoke's default lens is the in-script identity, but when ``--lens-dir``
+    holds a lens whose ``d_model`` matches the tiny model the *fitted* path is exercised
+    end to end on CPU - which is what makes a --lens-dir sensitivity question
+    reproducible without the checkpoint (the x21 report-metrics investigation).
+    Anything unusable falls back to the identity with the reason recorded in
+    ``meta.lens.fallback``; an unreadable *file* (as opposed to a missing directory)
+    still raises.
+    """
+    try:
+        lenses, _ = load_lens_set(args.lens_dir)
+    except OSError as error:
+        return None, f"--lens-dir unreadable ({error.__class__.__name__}: {args.lens_dir})"
+    if args.mask not in lenses:
+        return None, f"mask {args.mask!r} not in {args.lens_dir} (found {sorted(lenses)})"
+    fitted = lenses[args.mask]
+    if not fitted.source_layers:
+        return None, f"lens {args.mask!r} in {args.lens_dir} has no fitted layers"
+    if fitted.d_model != model.d_model:
+        return None, f"lens d_model {fitted.d_model} != tiny model d_model {model.d_model}"
+    return fitted, ""
+
+
 def load_lens(args: argparse.Namespace, model: LensModel) -> tuple[JacobianLens, dict[str, Any]]:
-    """The fitted J-lens on the model's device; the tiny fixture gets an identity lens.
+    """The fitted J-lens on the model's device; the tiny fixture prefers one too.
 
     The paper's protocol reads out (and swaps coordinates in) the *J-lens* basis, so
     the fitted ``J_l`` matrices from ``--lens-dir`` are used directly - unlike x14/x15,
-    whose calibrated probe deliberately replaces the transport with the identity. With
-    no fitted lens available (tiny smoke), the identity transport over the model's own
-    layers keeps every code path live; lens vectors then reduce to the unembed rows.
-    Matrices are re-homed once on the model device so the per-step readouts do not pay
-    a host->device copy per call (x15's identity-lens reasoning).
+    whose calibrated probe deliberately replaces the transport with the identity.
+    ``--backend tiny`` loads the ``--lens-dir`` lens when its geometry matches the tiny
+    model, so the fitted path is smoke-testable end to end; otherwise it falls back to
+    an in-script identity over the model's own layers (``meta.lens.fallback`` records
+    why), which keeps every code path live and reduces lens vectors to the unembed
+    rows. Matrices are re-homed once on the model device so the per-step readouts do
+    not pay a host->device copy per call (x15's identity-lens reasoning).
+
+    The returned meta carries the fitted layer list and a content ``fingerprint`` of
+    the loaded J values (:func:`lens_fingerprint`), so the report's lens provenance
+    survives the directory string being re-pointed between runs.
     """
     device = model.unembed_weight().device
+    fallback = ""
     if args.backend == "tiny":
+        source, fallback = _tiny_lens_from_dir(args, model)
+    else:
+        lenses, _ = load_lens_set(args.lens_dir)
+        if args.mask not in lenses:
+            raise ValueError(f"mask {args.mask!r} not in {args.lens_dir} (found {sorted(lenses)})")
+        source = lenses[args.mask]
+        if not source.source_layers:
+            raise ValueError(f"lens {args.mask!r} in {args.lens_dir} has no fitted layers")
+        if source.d_model != model.d_model:
+            raise ValueError(f"lens d_model {source.d_model} != model d_model {model.d_model}")
+
+    if source is None:
         lens = JacobianLens(
             jacobians={
                 layer: torch.eye(model.d_model, dtype=torch.float32, device=device)
@@ -345,16 +424,12 @@ def load_lens(args: argparse.Namespace, model: LensModel) -> tuple[JacobianLens,
         meta: dict[str, Any] = {
             "loaded": False,
             "note": "identity lens over the model's own layers (tiny backend)",
+            "fallback": fallback,
+            "source_layers": list(lens.source_layers),
+            "fingerprint": lens_fingerprint(lens),
+            "fingerprint_note": FINGERPRINT_NOTE,
         }
     else:
-        lenses, _ = load_lens_set(args.lens_dir)
-        if args.mask not in lenses:
-            raise ValueError(f"mask {args.mask!r} not in {args.lens_dir} (found {sorted(lenses)})")
-        source = lenses[args.mask]
-        if not source.source_layers:
-            raise ValueError(f"lens {args.mask!r} in {args.lens_dir} has no fitted layers")
-        if source.d_model != model.d_model:
-            raise ValueError(f"lens d_model {source.d_model} != model d_model {model.d_model}")
         lens = JacobianLens(
             jacobians={layer: J.to(device) for layer, J in source.jacobians.items()},
             n_prompts=source.n_prompts,
@@ -365,6 +440,9 @@ def load_lens(args: argparse.Namespace, model: LensModel) -> tuple[JacobianLens,
             "dir": str(args.lens_dir),
             "mask": args.mask,
             "n_prompts": int(source.n_prompts),
+            "source_layers": list(lens.source_layers),
+            "fingerprint": lens_fingerprint(lens),
+            "fingerprint_note": FINGERPRINT_NOTE,
         }
     return lens, meta
 
@@ -441,6 +519,23 @@ def token_last_id(model: LensModel, token: str) -> int:
     return ids[-1]
 
 
+def require_fitted_layer(lens: JacobianLens, layer: int) -> None:
+    """Refuse a layer the loaded lens did not fit: no identity/logit-lens fallback.
+
+    ``unembed(h_l)`` is a *lens-independent* readout, so letting a missing layer fall
+    through would silently make the reported metrics stop depending on the lens - the
+    exact failure mode the reports must not have. Callers pass ``resolve_layers``
+    output, which is fitted by construction; this is the fail-closed backstop.
+    """
+    if layer not in lens.jacobians:
+        raise ValueError(
+            f"layer {layer} is not among the loaded lens's fitted layers "
+            f"{lens.source_layers}: the report's readouts and swap vectors live in the "
+            "J-lens basis (unembed(J_l h) / rows of W_U @ J_l), so there is no "
+            "identity fallback to read out"
+        )
+
+
 def vectors_for_ids(
     model: LensModel,
     lens: JacobianLens,
@@ -452,11 +547,13 @@ def vectors_for_ids(
     ``interventions.lens_vectors``' exact math (rows of ``W_U @ J_l``; the orientation
     pinned by ``test_lens_vectors_are_readout_gradients``) keyed by token id instead of
     string, so a model-chosen token never has to round-trip through the tokenizer.
+    Every layer must be one the loaded lens fitted (:func:`require_fitted_layer`).
     """
     weight = model.unembed_weight().detach().float()  # [vocab, d] on the model device
     ids = torch.as_tensor(list(token_ids), dtype=torch.long, device=weight.device)
     out: dict[int, torch.Tensor] = {}
     for layer in layers:
+        require_fitted_layer(lens, layer)
         J = lens.jacobians[layer].to(weight.device).float()
         vectors = weight[ids] @ J  # [n_ids, d]
         out[layer] = vectors
@@ -474,13 +571,15 @@ def lens_logits(
 
     transport (+ bias inside the fitted branch) -> scale -> unembed -> temp ->
     logit_bias; raw (no corrections) unless ``--calibrated``. ``hidden`` may carry any
-    number of leading rows; the result is ``[..., vocab]`` fp32.
+    number of leading rows; the result is ``[..., vocab]`` fp32. ``layer`` must be one
+    the loaded lens fitted: the readout is ``unembed(J_l h)`` and there is no identity
+    fallback (a missing J would otherwise quietly return the *lens-independent*
+    logit-lens readout, see :func:`require_fitted_layer`).
     """
-    residual = hidden
-    if layer in lens.jacobians:
-        residual = lens.transport(residual, layer)
-        if calib is not None and layer in calib.bias:
-            residual = residual + calib.bias[layer].to(residual.device)
+    require_fitted_layer(lens, layer)
+    residual = lens.transport(hidden, layer)
+    if calib is not None and layer in calib.bias:
+        residual = residual + calib.bias[layer].to(residual.device)
     if calib is not None and layer in calib.scale:
         residual = residual * calib.scale[layer]
     logits = model.unembed(residual).float()
