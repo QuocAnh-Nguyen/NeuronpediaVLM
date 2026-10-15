@@ -29,6 +29,10 @@ degenerates to the model's own logits — a free sanity row (agreement 1.0, KL 0
 scored too, which turns the ``image`` row into a whole-block model-matching number
 (descriptive only, V4). :func:`frequency_control` adds the unigram-prior controls used by
 the S1 gate, so rank metrics cannot be carried by a handful of frequent tokens.
+``score_lens(..., bias=..., scale=...)`` scores a per-layer affine-*calibrated* lens: the
+logit-space corrections fitted by :mod:`vlm_lens.calibrate` (a ``bias-<mask>.pt``
+payload's ``logit_bias``/``logit_scale``) are applied to the lens logits before the
+metrics, which turns the gain table into a pre/post comparison on the same positions.
 
 Example::
 
@@ -92,6 +96,8 @@ def _iter_scored_batches(
     use_jacobian: bool,
     include_placeholders: bool,
     chunk_size: int,
+    bias: dict[int, torch.Tensor] | None = None,
+    scale: dict[int, float] | None = None,
 ) -> Iterator[tuple[str, torch.Tensor, dict[int, torch.Tensor], torch.Tensor]]:
     """Yield ``(tag, model_logits, {layer: lens_logits}, targets)`` per scored chunk.
 
@@ -122,6 +128,8 @@ def _iter_scored_batches(
             positions=index_list,
             use_jacobian=use_jacobian,
             max_seq_len=max_seq_len,
+            logit_bias=bias,
+            logit_scale=scale,
         )
         row_of = {position: row for row, position in enumerate(readout.positions)}
         input_ids = readout.input_ids
@@ -166,6 +174,8 @@ def score_lens(
     use_jacobian: bool = True,
     chunk_size: int = 256,
     include_placeholders: bool = False,
+    bias: dict[int, torch.Tensor] | None = None,
+    scale: dict[int, float] | None = None,
 ) -> list[LensScore]:
     """Score ``lens`` on ``samples``; returns one :class:`LensScore` per (layer, tag).
 
@@ -178,6 +188,12 @@ def score_lens(
         include_placeholders: Score positions whose next token is an image placeholder too
             (V5). The default exclusion reduces the ``image`` tag to the last patch of each
             sample; including them measures whole-block model matching (descriptive only).
+        bias: Per-layer additive corrections in logit (vocab) space - the fitted
+            calibration from :mod:`vlm_lens.calibrate` (the payload's ``logit_bias``).
+            Applied to the lens logits before the metrics; under the default Jacobian
+            readout the final layer (the model's own logits) is never corrected.
+        scale: Per-layer scalar multipliers on the lens logits (the payload's
+            ``logit_scale``). Only layers present in the dicts are corrected.
 
     Samples whose requested tags have no valid positions (e.g. a text-only sample with
     ``tags=("image",)``) contribute nothing.
@@ -199,6 +215,8 @@ def score_lens(
         use_jacobian=use_jacobian,
         include_placeholders=include_placeholders,
         chunk_size=chunk_size,
+        bias=bias,
+        scale=scale,
     ):
         model_rank = _rank_of_row(model_chunk, chunk_targets).float()
         model_top1 = model_chunk.argmax(dim=1)

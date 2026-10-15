@@ -15,7 +15,11 @@ same tensor the lens reads):
     replacement ``h' = h + P_v(m - h)``: the residual's ``v̂_t``-component is swapped for
     the mean residual's, so at ``alpha=1`` the ``(h - m)`` projection along ``v̂_t`` is
     exactly zero. ``m`` is a per-layer tensor on the edit spec (excluded from
-    ``to_json``).
+    ``to_json``). With ``position_ids=(...)`` set, ``ablate`` is instead a WHOLE-ROW
+    replacement at those absolute sequence positions — ``mean=m`` fills the rows with
+    ``m``, ``mean=None`` zeroes them — aimed at image-token positions (which live only
+    in the prefill forward; later single-token decode forwards cannot contain them, so
+    the edit is a no-op there). This vector-free form needs no lens.
 ``swap``
     replace the coordinates of ``h`` in the subspace spanned by ``[v_s, v_t]`` with their
     swapped values, using the pseudoinverse basis — the paper's "coordinate swap", the
@@ -141,6 +145,10 @@ class ResidualEdit:
     mean replacement (see module docstring). It is a tensor, so it opts out of equality
     and hash (``compare=False``) and is excluded from :meth:`to_json` — a tensor field
     would otherwise break both frozen-dataclass comparison and JSON spec reporting.
+
+    ``position_ids`` (``ablate`` only) switches the edit to the vector-free whole-row
+    replacement of the module docstring; the ``positions`` string scope is then not
+    consulted (``position_ids`` IS the scope).
     """
 
     layer: int
@@ -149,17 +157,39 @@ class ResidualEdit:
     token: str | None = None  # target token (all modes)
     source_token: str | None = None  # source token for "swap"
     positions: str = "last"  # "last" (current token) | "all"
+    #: Absolute prefill positions for the vector-free ``ablate`` row replacement (see
+    #: the module docstring). When set, the ``positions`` string scope is not
+    #: consulted — ``position_ids`` IS the scope — and the edit needs no vectors.
+    position_ids: tuple[int, ...] | None = None
     mean: torch.Tensor | None = field(default=None, compare=False, repr=False)
 
     def __post_init__(self) -> None:
         if self.mode not in EDIT_MODES:
             raise ValueError(f"mode must be one of {EDIT_MODES}, got {self.mode!r}")
-        if self.mode in {"add", "ablate"} and self.token is None:
-            raise ValueError(f"mode {self.mode!r} needs token=")
-        if self.mode == "swap" and (self.token is None or self.source_token is None):
-            raise ValueError("mode 'swap' needs token= (target) and source_token=")
-        if self.positions not in {"last", "all"}:
-            raise ValueError(f"positions must be 'last' or 'all', got {self.positions!r}")
+        if self.position_ids is not None:
+            # vector-free whole-row replacement: its own constraints, no token roles
+            if self.mode != "ablate":
+                raise ValueError(
+                    f"position_ids= is only used with mode 'ablate', got {self.mode!r}"
+                )
+            if self.token is not None or self.source_token is not None:
+                raise ValueError(
+                    "position_ids= edits replace whole residual rows and take no "
+                    "token=/source_token="
+                )
+            if any(int(p) < 0 for p in self.position_ids):
+                raise ValueError(
+                    f"position_ids must be non-negative, got {self.position_ids!r}"
+                )
+        else:
+            if self.mode in {"add", "ablate"} and self.token is None:
+                raise ValueError(f"mode {self.mode!r} needs token=")
+            if self.mode == "swap" and (self.token is None or self.source_token is None):
+                raise ValueError("mode 'swap' needs token= (target) and source_token=")
+            if self.positions not in {"last", "all"}:
+                raise ValueError(
+                    f"positions must be 'last' or 'all', got {self.positions!r}"
+                )
         if self.mean is not None and self.mode != "ablate":
             raise ValueError(f"mean= is only used with mode 'ablate', got {self.mode!r}")
 
@@ -179,14 +209,14 @@ def _vectors_for(
     grouped: dict[int, list[tuple[ResidualEdit, dict[str, torch.Tensor]]]] = {}
     for edit in edits:
         if edit.layer not in resolved:
-            tokens: list[str] = []
-            for role_token in (edit.source_token, edit.token):
-                if role_token is not None and role_token not in tokens:
-                    tokens.append(role_token)
-            rows = lens_vectors(model, lens, tokens, layers=[edit.layer])[edit.layer]
-            resolved[edit.layer] = {
-                token: rows[index] for index, token in enumerate(tokens)
-            }
+            tokens = [t for t in (edit.source_token, edit.token) if t is not None]
+            if tokens:
+                rows = lens_vectors(model, lens, tokens, layers=[edit.layer])[edit.layer]
+                resolved[edit.layer] = {
+                    token: rows[index] for index, token in enumerate(tokens)
+                }
+            else:  # position_ids row replacement: no vectors to resolve
+                resolved[edit.layer] = {}
         vectors: dict[str, torch.Tensor] = {}
         if edit.source_token is not None:
             vectors["source"] = resolved[edit.layer][edit.source_token]
@@ -194,6 +224,27 @@ def _vectors_for(
             vectors["target"] = resolved[edit.layer][edit.token]
         grouped.setdefault(edit.layer, []).append((edit, vectors))
     return grouped
+
+
+def _replace_position_rows(hidden: torch.Tensor, edit: ResidualEdit) -> torch.Tensor:
+    """The ``position_ids`` ablate branch: replace whole residual rows ``[batch, seq, d]``.
+
+    Rows outside the current forward's sequence are skipped, so a prefill-scoped
+    position edit is a no-op on the later single-token decode forwards (image-token
+    positions do not recur under KV caching). ``edit.mean`` (when given) fills the rows
+    with the mean residual; ``mean=None`` zeroes them.
+    """
+    seq = int(hidden.shape[1])
+    positions = [int(p) for p in edit.position_ids or () if 0 <= int(p) < seq]
+    if not positions:
+        return hidden
+    index = torch.tensor(positions, dtype=torch.long, device=hidden.device)
+    if edit.mean is not None:
+        row = _aligned(edit.mean, hidden).to(hidden.dtype)
+    else:
+        row = torch.zeros(int(hidden.shape[2]), dtype=hidden.dtype, device=hidden.device)
+    replacement = row.expand(len(positions), -1).unsqueeze(0).expand(hidden.shape[0], -1, -1)
+    return hidden.index_copy(1, index, replacement)
 
 
 class ResidualEditor:
@@ -229,7 +280,9 @@ class ResidualEditor:
             tensor = output if torch.is_tensor(output) else output[0]
             hidden = tensor
             for edit, vectors in entries:
-                if edit.positions == "last":
+                if edit.position_ids is not None:
+                    hidden = _replace_position_rows(hidden, edit)
+                elif edit.positions == "last":
                     hidden = torch.cat(
                         [hidden[:, :-1], apply_edit(hidden[:, -1:], edit, vectors)], dim=1
                     )
@@ -270,8 +323,9 @@ def generate_with_edits(
 
     Returns ``{"text", "token_ids", "prompt_len", "edits", "n_edit_forwards"}``.
     """
-    if edits and lens is None:
-        raise ValueError("edits require a fitted lens (for the J-lens vectors)")
+    if edits and lens is None and any(edit.position_ids is None for edit in edits):
+        raise ValueError("edits require a fitted lens (for the J-lens vectors); "
+                         "position_ids row-replacement edits are the exception")
     batch = as_batch(model, sample, max_seq_len)
     editor_ctx: Any = (
         ResidualEditor(model, lens, list(edits)) if edits else _NullEditor()  # type: ignore[arg-type]

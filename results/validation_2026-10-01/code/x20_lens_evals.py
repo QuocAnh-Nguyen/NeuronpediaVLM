@@ -45,6 +45,20 @@ Protocol (verbatim from the vendored ``data/evaluations/README.md``):
   synonyms into the min and falls back to the word form when none survives — both
   counted). The convention is dispatched per ``--model`` by
   ``vlm_registry.word_piece_ids``.
+* **Gold candidate sets (T29)** — the legacy convention above is llava-tuned and
+  misses qwen2vl surface forms: the multihop/multilingual prompts end with a
+  quote or apostrophe (``is "`` / ``es "`` / ``l'``), so the next emitted piece
+  is the *bare* word form, which the leading-space convention never scores
+  (qwen multihop read pass@10 = 0.0). Each suite is therefore scored twice per
+  (variant, layer): the **legacy** fields (``pass@k``, ``mean_rank`` — the
+  convention ids only, unchanged semantics/numbers) and the **``*_cand``**
+  fields, which score the candidate union built by ``x20_gold``: legacy ids ∪
+  all bare-form pieces (``tokenizer(gold, add_special_tokens=False)``) ∪
+  first-piece-of-each form ∪ decoded-match ids (vocab surfaces that strip to
+  the gold). Rank = min over candidates (ties better); pass@k = any candidate
+  in top-k, so the superset can only improve the *_cand numbers. Per-suite
+  candidate counts are recorded (``n_candidates_total``,
+  ``n_candidates_per_intermediate``) and summarized in the report ``notes``.
 * **Workspace band** — the paper's 0-100 percent-of-depth reindex places the workspace
   band at ~[38, 92] percent, i.e. layers [12, 29] of a 32-layer model; the digest
   reports the band midpoint (layer 20) against the final layer. ``--model`` selects
@@ -119,6 +133,7 @@ from vlm_lens.artifacts import load_bias, load_lens_set  # noqa: E402
 from vlm_lens.models.llava import MultimodalBatch  # noqa: E402
 
 import vlm_registry as registry  # noqa: E402
+import x20_gold as gold  # noqa: E402  (sibling helper: the T29 candidate-set resolver)
 
 #: Any registry-built lens model (``LlavaLensModel`` for the llava kinds,
 #: ``Qwen2VLLensModel`` for qwen2vl -- same public surface), so the annotations
@@ -388,6 +403,31 @@ def intermediate_ids(
     return candidates, n_multi, n_fallback
 
 
+def intermediate_ids_cand(
+    model: LensModel,
+    kind: str,
+    suite: str,
+    intermediates: list[str],
+    legacy_groups: list[list[int]],
+    gold_index: dict[str, list[int]] | None,
+) -> tuple[list[list[int]], int]:
+    """Per-intermediate candidate-set-resolver ids (``x20_gold.candidate_ids``).
+
+    The T29 union (see module docstring): the legacy convention ids passed in
+    plus, per surface form (order-ops synonym expansion included), the bare-form
+    pieces, the first-piece-of-each leading-space form, and the decoded-match
+    ids. Returns (candidate_groups, n_candidates_total).
+    """
+    groups: list[list[int]] = []
+    n_total = 0
+    for key, legacy in zip(intermediates, legacy_groups):
+        forms = expand_order_ops(key) if suite == "order-ops" else (key,)
+        group = gold.candidate_ids(model, kind, forms, legacy, gold_index)
+        n_total += len(group)
+        groups.append(group)
+    return groups, n_total
+
+
 def _per_intermediate_min_over_layers(record: dict[int, list[int]], layers: list[int]) -> list[int]:
     """Per intermediate: the min non-negative rank across the variant's layers (-1 if none)."""
     n_intermediates = len(next(iter(record.values())))
@@ -429,15 +469,18 @@ def item_ranks(
     batch: MultimodalBatch,
     position: int,
     candidates: list[list[int]],
+    candidates_cand: list[list[int]],
     final_layer: int,
-) -> dict[str, dict[int, list[int]]]:
+) -> tuple[dict[str, dict[int, list[int]]], dict[str, dict[int, list[int]]]]:
     """Per variant, per layer: the 1-based rank of each intermediate's best candidate.
 
     One forward pass feeds every variant: residuals are recorded at the union of the
     variants' layers, transported per variant (J_l @ h for the fitted J-lens layers,
     identity otherwise), corrected per the calibrated payload, unembedded, and ranked
     against each intermediate's candidate set (min over candidates, ties as better
-    rank). The final-layer row is shared by all variants (no corrections apply there).
+    rank) — twice per row: the legacy convention ids (``candidates``, the pre-T29
+    family) and the T29 candidate-set union (``candidates_cand``). The final-layer
+    row is shared by all variants (no corrections apply there).
     """
     wanted = sorted({layer for layers in coverage.values() for layer in layers})
     with ActivationRecorder(model.layers, at=wanted) as recorder:
@@ -445,8 +488,10 @@ def item_ranks(
 
     final_row = model.unembed(recorder.activations[final_layer][0, position].float()).float().cpu()
     out: dict[str, dict[int, list[int]]] = {}
+    out_cand: dict[str, dict[int, list[int]]] = {}
     for name, spec in variants.items():
         per_layer: dict[int, list[int]] = {}
+        per_layer_cand: dict[int, list[int]] = {}
         for layer in coverage[name]:
             if layer == final_layer:
                 row = final_row
@@ -469,8 +514,13 @@ def item_ranks(
                 min(rank_of_id(row, token_id) for token_id in group) if group else -1
                 for group in candidates
             ]
+            per_layer_cand[layer] = [
+                min(rank_of_id(row, token_id) for token_id in group) if group else -1
+                for group in candidates_cand
+            ]
         out[name] = per_layer
-    return out
+        out_cand[name] = per_layer_cand
+    return out, out_cand
 
 
 def aggregate_suite(
@@ -481,67 +531,88 @@ def aggregate_suite(
     n_layers: int,
     band: tuple[int, int, int],
 ) -> dict[str, Any]:
-    """Pass@k curves, headline min-over-layers pass@k, and the digest from item ranks."""
+    """Pass@k curves, headline min-over-layers pass@k, and the digest from item ranks.
+
+    Both rank families are aggregated: the legacy convention family (item
+    ``ranks``; unchanged pre-T29 semantics and keys) and the candidate-set
+    family (item ``ranks_cand``; every ``*_cand`` key). ``n_intermediates``
+    stays the legacy family's flat rank count.
+    """
     band_lo, band_hi, band_mid = band
     final_layer = n_layers - 1
     per_layer: dict[str, list[dict[str, Any]]] = {}
     headline: dict[str, dict[str, float]] = {}
     digest: dict[str, dict[str, Any]] = {}
     for name in coverage:
-        item_records = [item["ranks"][name] for item in suite_items]
+        families = {
+            "": [item["ranks"][name] for item in suite_items],
+            "_cand": [item["ranks_cand"][name] for item in suite_items],
+        }
         layers = coverage[name]
 
         curves: list[dict[str, Any]] = []
         for layer in layers:
-            per_item = [record[layer] for record in item_records]
-            flat = [rank for ranks in per_item for rank in ranks if rank >= 0]
             entry: dict[str, Any] = {
                 "layer": layer,
                 "pct_depth": round(100.0 * layer / (n_layers - 1), 2),
-                "n_intermediates": len(flat),
             }
-            for k in ks:
-                entry[f"pass@{k}"] = round(
-                    sum(
-                        sum(1 for rank in ranks if 0 <= rank <= k) / max(1, len(ranks))
-                        for ranks in per_item
-                    ) / len(per_item),
-                    4,
-                )
-            entry["mean_rank"] = round(sum(flat) / len(flat), 2) if flat else None
+            for suffix, item_records in families.items():
+                per_item = [record[layer] for record in item_records]
+                flat = [rank for ranks in per_item for rank in ranks if rank >= 0]
+                if not suffix:
+                    entry["n_intermediates"] = len(flat)
+                for k in ks:
+                    entry[f"pass@{k}{suffix}"] = round(
+                        sum(
+                            sum(1 for rank in ranks if 0 <= rank <= k) / max(1, len(ranks))
+                            for ranks in per_item
+                        ) / len(per_item),
+                        4,
+                    )
+                entry[f"mean_rank{suffix}"] = round(sum(flat) / len(flat), 2) if flat else None
             curves.append(entry)
         per_layer[name] = curves
 
         # README headline: pass@k = mean over items of the fraction of intermediates
         # whose min-over-layers lens rank <= k. The min is per intermediate across the
         # variant's scored layers; a candidate-less intermediate (rank -1) never
-        # passes but still counts in the fraction's denominator.
+        # passes but still counts in the fraction's denominator. Computed for both
+        # candidate families.
         headline[name] = {}
-        for k in ks:
-            headline[name][f"pass@{k}_min_over_layers"] = round(
-                sum(
-                    sum(1 for rank in mins if 0 <= rank <= k) / max(1, len(mins))
-                    for mins in (
-                        _per_intermediate_min_over_layers(record, layers)
-                        for record in item_records
-                    )
-                ) / len(item_records),
-                4,
-            )
+        for suffix, item_records in families.items():
+            for k in ks:
+                headline[name][f"pass@{k}_min_over_layers{suffix}"] = round(
+                    sum(
+                        sum(1 for rank in mins if 0 <= rank <= k) / max(1, len(mins))
+                        for mins in (
+                            _per_intermediate_min_over_layers(record, layers)
+                            for record in item_records
+                        )
+                    ) / len(item_records),
+                    4,
+                )
 
         by_layer = {entry["layer"]: entry for entry in curves}
         mid = by_layer.get(band_mid) or by_layer[max(by_layer, key=lambda layer: abs(layer - band_mid))]
         final = by_layer[final_layer]
         best = max(curves, key=lambda entry: (entry[f"pass@{ks[-1]}"], -entry["layer"]))
+        best_cand = max(curves, key=lambda entry: (entry[f"pass@{ks[-1]}_cand"], -entry["layer"]))
+        k = ks[-1]
         digest[name] = {
             "best_layer": best["layer"],
-            f"best_pass@{ks[-1]}": best[f"pass@{ks[-1]}"],
+            f"best_pass@{k}": best[f"pass@{k}"],
             "workspace_mid_layer": mid["layer"],
-            f"pass@{ks[-1]}_at_workspace_mid": mid[f"pass@{ks[-1]}"],
+            f"pass@{k}_at_workspace_mid": mid[f"pass@{k}"],
             "mean_rank_at_workspace_mid": mid["mean_rank"],
             "final_layer": final["layer"],
-            f"pass@{ks[-1]}_at_final_layer": final[f"pass@{ks[-1]}"],
+            f"pass@{k}_at_final_layer": final[f"pass@{k}"],
             "mean_rank_at_final_layer": final["mean_rank"],
+            "best_layer_cand": best_cand["layer"],
+            f"best_pass@{k}_cand": best_cand[f"pass@{k}_cand"],
+            f"pass@{k}_at_workspace_mid_cand": mid[f"pass@{k}_cand"],
+            "mean_rank_at_workspace_mid_cand": mid["mean_rank_cand"],
+            f"pass@{k}_at_final_layer_cand": final[f"pass@{k}_cand"],
+            "mean_rank_at_final_layer_cand": final["mean_rank_cand"],
         }
     return {"per_layer": per_layer, "headline": headline, "digest": digest}
 
@@ -556,13 +627,22 @@ def score_suite(
     ks: tuple[int, ...],
     band: tuple[int, int, int],
     max_seq_len: int,
+    gold_index: dict[str, list[int]] | None,
 ) -> dict[str, Any]:
-    """Run one vendored suite: position rule, ranks per (variant, layer), aggregates."""
+    """Run one vendored suite: position rule, ranks per (variant, layer), aggregates.
+
+    Ranks are computed for both candidate families (``item_ranks``: the legacy
+    convention and the T29 candidate-set union) and aggregated by
+    ``aggregate_suite``; the suite result records the candidate-set sizes as
+    ``n_candidates_total`` / ``n_candidates_per_intermediate`` (and per item as
+    ``n_candidates``).
+    """
     n_layers = model.n_layers
     scored: list[dict[str, Any]] = []
     n_skipped = 0
     n_multi_total = 0
     n_fallback_total = 0
+    n_candidate_counts: list[int] = []
     rules: dict[str, int] = {}
     for item in items:
         try:
@@ -573,15 +653,20 @@ def score_suite(
         position, rule = resolve_position(suite, batch, model)
         rules[rule] = rules.get(rule, 0) + 1
         candidates, n_multi, n_fallback = intermediate_ids(model, kind, suite, item["intermediates"])
+        candidates_cand, _ = intermediate_ids_cand(
+            model, kind, suite, item["intermediates"], candidates, gold_index
+        )
+        n_candidate_counts.extend(len(group) for group in candidates_cand)
         n_multi_total += n_multi
         n_fallback_total += n_fallback
-        ranks = item_ranks(
+        ranks, ranks_cand = item_ranks(
             model,
             variants,
             coverage,
             batch,
             position,
             candidates,
+            candidates_cand,
             n_layers - 1,
         )
         scored.append(
@@ -590,7 +675,9 @@ def score_suite(
                 "position": position,
                 "position_rule": rule,
                 "n_intermediates": len(item["intermediates"]),
+                "n_candidates": [len(group) for group in candidates_cand],
                 "ranks": ranks,
+                "ranks_cand": ranks_cand,
             }
         )
 
@@ -603,18 +690,30 @@ def score_suite(
         "n_multi_token_intermediates": n_multi_total,
         "n_synonym_fallbacks": n_fallback_total,
         "n_intermediates_total": sum(entry["n_intermediates"] for entry in scored),
+        "n_candidates_total": sum(n_candidate_counts),
+        "n_candidates_per_intermediate": (
+            {
+                "min": min(n_candidate_counts),
+                "mean": round(sum(n_candidate_counts) / len(n_candidate_counts), 2),
+                "max": max(n_candidate_counts),
+            }
+            if n_candidate_counts
+            else None
+        ),
         **aggregates,
     }
 
 
 def print_digest(suite: str, result: dict[str, Any], ks: tuple[int, ...]) -> None:
-    """One digest table per suite + the paper-claim gap line."""
+    """One digest table per suite + the paper-claim gap line (legacy and cand ids)."""
     k = ks[-1]
     print(f"\n== {suite}: n={result['n_items_scored']}/{result['n_items_loaded']}"
-          f" rules={result['position_rules']}")
+          f" rules={result['position_rules']}"
+          f" candidates={result['n_candidates_total']}")
     header = (
         f"{'variant':<16}{'best':>8}{f'p@{k}@best':>12}{f'p@{k}@mid':>12}"
         f"{f'rank@mid':>12}{f'p@{k}@final':>13}{f'rank@final':>13}"
+        f"{f'p@{k}@best_c':>12}{f'p@{k}@mid_c':>12}{f'p@{k}@final_c':>13}"
     )
     print(header)
     for name, cell in result["digest"].items():
@@ -626,14 +725,19 @@ def print_digest(suite: str, result: dict[str, Any], ks: tuple[int, ...]) -> Non
             f"{str(cell['mean_rank_at_workspace_mid']):>12}"
             f"{cell[f'pass@{k}_at_final_layer']:>13.4f}"
             f"{str(cell['mean_rank_at_final_layer']):>13}"
+            f"{cell[f'best_pass@{k}_cand']:>12.4f}"
+            f"{cell[f'pass@{k}_at_workspace_mid_cand']:>12.4f}"
+            f"{cell[f'pass@{k}_at_final_layer_cand']:>13.4f}"
         )
     if "j-lens" in result["digest"] and "logit-lens" in result["digest"]:
-        gap = (
-            result["digest"]["j-lens"][f"pass@{k}_at_workspace_mid"]
-            - result["digest"]["logit-lens"][f"pass@{k}_at_workspace_mid"]
-        )
-        verdict = "J-lens wins at mid-depth" if gap > 0 else "logit lens wins at mid-depth"
-        print(f"   paper claim (J-lens > logit lens at workspace mid): gap = {gap:+.4f} -> {verdict}")
+        for tag, label in (("", "paper claim (J-lens > logit lens at workspace mid)"),
+                           ("_cand", "paper claim [cand ids] (J-lens > logit lens at workspace mid)")):
+            gap = (
+                result["digest"]["j-lens"][f"pass@{k}_at_workspace_mid{tag}"]
+                - result["digest"]["logit-lens"][f"pass@{k}_at_workspace_mid{tag}"]
+            )
+            verdict = "J-lens wins at mid-depth" if gap > 0 else "logit lens wins at mid-depth"
+            print(f"   {label}: gap = {gap:+.4f} -> {verdict}")
 
 
 def main() -> int:
@@ -661,6 +765,15 @@ def main() -> int:
         f"workspace band layers [{band[0]}, {band[1]}] (mid L{band[2]}), "
         f"band frac [{fractions[0]}, {fractions[1]}]"
     )
+
+    gold_index = gold.build_decode_index(model.tokenizer)
+    if gold_index:
+        print(
+            f"gold candidates: decoded-match index over {len(gold_index)} surfaces "
+            f"({sum(len(ids) for ids in gold_index.values())} vocab ids)"
+        )
+    else:
+        print("gold candidates: no decoded-match index (tokenizer exposes no vocab size)")
 
     # Tiny synthesizes in-process unless an explicit --lens-dir was given (the default
     # dir exists on the GPU box but holds a 4096-wide lens the tiny model cannot use).
@@ -727,7 +840,8 @@ def main() -> int:
         data = json.loads(path.read_text(encoding="utf-8"))
         items = data["items"][: args.max_items] if args.max_items else data["items"]
         result = score_suite(
-            suite, items, model, kind, variants, coverage, ks, band, args.max_seq_len
+            suite, items, model, kind, variants, coverage, ks, band, args.max_seq_len,
+            gold_index,
         )
         suite_results[suite] = result
         print_digest(suite, result, ks)
@@ -759,6 +873,27 @@ def main() -> int:
             "d_model": lens.d_model,
         },
         "suites": suite_results,
+        "notes": {
+            "gold_resolution": (
+                "T29: gold ids are scored twice per (variant, layer). The legacy "
+                "fields keep the llava-tuned convention (first non-whitespace piece "
+                "of ' '+gold; order-ops single-token synonyms) with unchanged "
+                "semantics/numbers; the *_cand fields score the x20_gold candidate "
+                "union (legacy ids + bare-form pieces + first-piece-of-each + "
+                "decoded-match ids), min rank over candidates with ties better, "
+                "pass@k = any candidate in top-k. Candidate counts per suite: "
+                "n_candidates_total / n_candidates_per_intermediate."
+            ),
+            "n_candidates_by_suite": {
+                suite: result["n_candidates_total"] for suite, result in suite_results.items()
+            },
+            "decoded_match_index": (
+                f"{len(gold_index)} surfaces "
+                f"({sum(len(ids) for ids in gold_index.values())} vocab ids)"
+                if gold_index
+                else "unavailable (tokenizer exposes no vocab size)"
+            ),
+        },
         "runtime_seconds": round(time.time() - started, 1),
     }
     Path(args.json).write_text(json.dumps(report, indent=2), encoding="utf-8")

@@ -32,11 +32,13 @@ data/manifest.py  JSONL: header+FitSample -> artifacts.py          generate_with
 | `src/vlm_lens/artifacts.py` | `lens-{mask}.pt` I/O + `provenance.json`, shard merging |
 | `src/vlm_lens/readout.py`, `interventions.py` | Lens logits/`trace_generation`; J-lens-vector residual edits and edited generation |
 | `src/vlm_lens/positions.py` | Source-position masks and summaries |
-| `src/vlm_lens/evaluate.py` | Hold-out lens fidelity (`score_lens`: true-token rank, top-1 agreement, KL vs the model) per layer and modality tag |
+| `src/vlm_lens/evaluate.py` | Hold-out lens fidelity (`score_lens`: true-token rank, top-1 agreement, KL vs the model) per layer and modality tag; optional per-layer logit-space `bias`/`scale` corrections (the calibration) |
+| `src/vlm_lens/calibrate.py` | Per-layer affine calibration of the J lens (`fit_calibration`: distillation of `scale*x + bias` against the model's next-token distribution, sample-level hold-out, base-lens fingerprint provenance, `bias_payload`/`affine_readout_kwargs`) |
 | `src/vlm_lens/_batch.py` | Shared `as_batch` sample resolver (`FitSample`/`MultimodalBatch`/`str`) used by fit, readout, edits, scoring |
 | `tests/` | pytest suite on tiny CPU fixtures (no downloads, no GPU) |
 | `scripts/check_equivalence.py` | Equivalence gate: tiny CPU fixture or real checkpoint |
 | `scripts/fit_llava.py` | Fit CLI: corpus build/load → `fit_masked` → artifacts; supports `--model {llava-7b,llava-13b,qwen2vl}` (wrapper class + checkpoint + fits-root subdir come from `models/registry.py`), `--backend tiny|hf-llava`, `--shard I/N`, `--merge` |
+| `scripts/fit_calibration.py` | Calibration CLI: lens dir + manifest → `bias-<mask>.pt` via `fit_calibration` + `save_bias`; prints the per-layer rank/top1/KL pre→post gain table |
 | `scripts/dry_run.py` | CPU-only end-to-end pipeline check (tiny model, synthetic images, shape assertions); `--shape-check` verifies the real config offline |
 | `third_party/jacobian-lens/` | Vendored upstream (`jlens`); read-only |
 
@@ -102,7 +104,7 @@ Local dev environment: conda env `vlm-lens` (Python 3.12, `torch 2.14.0+cpu`, `t
 ## Testing & QA
 
 - pytest, configured in `pyproject.toml` (`testpaths = ["tests"]`, `addopts = "-q"`); the vendored upstream `tests/` is intentionally not collected.
-- Coverage intent: estimator correctness vs a brute-force reference in `test_fitting_masks.py`; mask semantics in `test_positions.py`; readout/intervention math in `test_readout_interventions.py`; artifact round-trip and upstream-key interop in `test_artifacts_interop.py`; hold-out scorer metrics vs a brute-force KL/rank reference in `test_evaluate.py`; synthetic corpus determinism in `test_data_dummy.py`; caption-builder manifest + processor argument contract in `test_data_captions.py`.
+- Coverage intent: estimator correctness vs a brute-force reference in `test_fitting_masks.py`; mask semantics in `test_positions.py`; readout/intervention math in `test_readout_interventions.py`; artifact round-trip and upstream-key interop in `test_artifacts_interop.py`; hold-out scorer metrics vs a brute-force KL/rank reference in `test_evaluate.py`; calibration recovery, payload round-trips and CLI in `test_calibrate.py`; synthetic corpus determinism in `test_data_dummy.py`; caption-builder manifest + processor argument contract in `test_data_captions.py`.
 - Fixtures are session-scoped and tiny so a full fit + readout runs in seconds; keep new tests on that path — do not require downloads, GPU, or real checkpoints.
 - Untested today: the `pope.py`/`text.py` builders, `_vendor.py` internals, and `models/llava.py` error paths (exercised only indirectly via fixtures). Manifest and caption builders are covered by `test_data_dummy.py`/`test_data_captions.py`. Add tests where you touch untested code.
 - Before any real fit, run the equivalence gate on the actual checkpoint; after changes to layers/hooks/unembed, re-run `--backend tiny` (it must stay bit-exact).

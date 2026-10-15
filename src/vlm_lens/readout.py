@@ -6,6 +6,11 @@ captured with the same forward hooks the fit used (pre-norm block outputs), tran
 into the final-layer basis with ``J_l``, and decoded with the model's own unembedding —
 ``unembed(J_l @ h_l)``, the lens readout. ``lens_readout`` is verified against HF's own
 logits by ``scripts/check_equivalence.py`` (the final-layer readout is exact).
+
+The lens logits accept a chain of affine corrections (``bias``/``scale`` in residual
+space, ``temp``/``logit_scale``/``logit_bias`` in logit space); the per-layer
+logit-space calibration fitted by :mod:`vlm_lens.calibrate` rides ``logit_scale`` +
+``logit_bias``. The model's own logits are never corrected.
 """
 
 from __future__ import annotations
@@ -95,6 +100,7 @@ def lens_readout(
     bias: dict[int, torch.Tensor] | None = None,
     scale: dict[int, float] | None = None,
     temp: dict[int, float] | None = None,
+    logit_scale: dict[int, float] | None = None,
     logit_bias: dict[int, torch.Tensor] | None = None,
 ) -> LensReadout:
     """Lens logits at ``positions`` for every requested layer, plus the model's logits.
@@ -114,10 +120,15 @@ def lens_readout(
             ``unembed``.
         temp: Per-layer output temperatures applied to the lens logits right after
             ``unembed`` - ``z / temp``. Only layers present in the dict are tempered.
+        logit_scale: Per-layer scalar multipliers on the lens logits, applied after the
+            temperature - ``z / temp * logit_scale``. This is where the fitted
+            calibration from :mod:`vlm_lens.calibrate` lands (a residual-space
+            multiplier would be a no-op under the final norm). Only layers present in
+            the dict are scaled.
         logit_bias: Per-layer additive corrections in logit (vocab) space, applied after
-            the temperature - ``z / temp + logit_bias``. Only layers present in the dict
-            are corrected. The final-layer readout (the model's own logits) gets none of
-            these corrections.
+            the temperature and scale - ``z / temp * logit_scale + logit_bias``. Only
+            layers present in the dict are corrected. The final-layer readout (the
+            model's own logits) gets none of these corrections.
     """
     batch = as_batch(model, sample, max_seq_len)
     fitted = set(lens.source_layers)
@@ -160,6 +171,8 @@ def lens_readout(
         logits = model.unembed(residual).float().cpu()
         if temp is not None and layer in temp:
             logits = logits / temp[layer]
+        if logit_scale is not None and layer in logit_scale:
+            logits = logits * logit_scale[layer]
         if logit_bias is not None and layer in logit_bias:
             logits = logits + logit_bias[layer].to(logits.device)
         lens_logits[layer] = logits

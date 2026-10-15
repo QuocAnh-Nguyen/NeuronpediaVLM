@@ -1,0 +1,32 @@
+n_results 2800 top_keys ['experiment', 'lens_dir', 'backend', 'n_prompts', 'n_samples', 'n_pairs', 'layers', 'add_ks', 'ablate_alphas', 'swap_alphas', 'max_new_tokens', 'residual_norms', 'fallback_norm', 'min_change_rate', 'baselines', 'results', 'summary', 'minimal_effective']
+edit_keys ['alpha', 'layer', 'mode', 'positions', 'source_token', 'token']
+== add@L16: n=600 alpha=(26.78..1035.51) first_changed=26.78
+   alpha=26.78    n=10   chg=0.80
+   alpha=27.07    n=10   chg=0.80
+   alpha=27.12    n=10   chg=0.80
+   alpha=27.6     n=10   chg=0.90
+   alpha=27.78    n=10   chg=0.80
+   alpha=28.6     n=10   chg=0.90
+   alpha=30.28    n=10   chg=0.80
+   alpha=30.55    n=10   chg=0.80
+   alpha=30.8     n=10   chg=0.80
+== add@L24: n=600 alpha=(57.83..2348.22) first_changed=57.83
+   alpha=57.83    n=10   chg=0.80
+   alpha=60.12    n=20   chg=0.90
+   alpha=60.92    n=10   chg=0.90
+   alpha=63.17    n=10   chg=1.00
+   alpha=64.0     n=10   chg=0.70
+   alpha=64.71    n=10   chg=1.00
+   alpha=67.14    n=10   chg=0.80
+   alpha=69.05    n=10   chg=0.90
+   alpha=73.38    n=10   chg=1.00
+== ablate@L16: n=400 alpha=(0.5..4.0) first_changed=0.5
+   alpha=0.5      n=100  chg=0.07
+   alpha=1.0      n=100  chg=0.16
+   alpha=2.0      n=100  chg=0.24
+   alpha=4.0      n=100  chg=0.34
+== swap@L16: n=400 alpha=(0.5..4.0) first_changed=0.5
+   alpha=0.5      n=100  chg=0.07
+   alpha=1.0      n=100  chg=0.12
+   alpha=2.0      n=100  chg=0.24
+   alpha=4.0      n=100  chg=0.39

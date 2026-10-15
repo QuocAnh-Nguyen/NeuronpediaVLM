@@ -35,6 +35,9 @@ python scripts/check_equivalence.py --backend hf-llava --model llava-7b \
 
 Fitting runs through `scripts/fit_llava.py` (corpus build/load -> `fit_masked` -> artifacts;
 `--model llava-7b|llava-13b|qwen2vl`, `--backend tiny|hf-llava`, `--shard I/N`, `--merge`).
+The per-layer logit-space calibration of a fitted lens (bias + scale, the tuned-lens
+completion) runs through `scripts/fit_calibration.py` (lens dir + manifest ->
+`bias-<mask>.pt` + a rank/top1/KL pre->post gain table).
 
 Architecture, invariants and conventions: `AGENTS.md`. Assumption register (VLM-vs-LLM
 differences, failure modes): `docs/jlens-vlm-assumptions.md`. Validation campaign results and
