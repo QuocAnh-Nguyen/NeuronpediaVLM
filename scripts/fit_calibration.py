@@ -63,6 +63,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--max-seq-len", type=int, default=1536)
     parser.add_argument("--limit", type=int, default=None, help="use only the first N samples")
     parser.add_argument("--seed", type=int, default=0)
+    parser.add_argument("--threads", type=int, default=8, help="torch CPU thread cap (shared-box OMP contention)")
     parser.add_argument("--notes", default=None, help="free-text note stored in the bias meta")
 
     model = parser.add_argument_group("model")
@@ -145,6 +146,8 @@ def format_gains(result: CalibrationResult, *, digits: int = 3) -> str:
 
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
+    if args.threads > 0:
+        torch.set_num_threads(args.threads)
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s %(levelname)s %(name)s: %(message)s",

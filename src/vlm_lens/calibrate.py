@@ -35,6 +35,7 @@ from __future__ import annotations
 
 import hashlib
 import logging
+import time
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -447,18 +448,27 @@ def fit_calibration(
         holdout_frac,
         device,
     )
-    captured = [
-        _capture_sample(
-            model,
-            sample,
-            layers=fitted_layers,
-            mask=mask,
-            skip_first=skip_first,
-            max_seq_len=max_seq_len,
-            residual_dtype=residual_dtype,
+    captured: list[_Captured] = []
+    capture_started = time.monotonic()
+    for index, sample in enumerate(samples):
+        captured.append(
+            _capture_sample(
+                model,
+                sample,
+                layers=fitted_layers,
+                mask=mask,
+                skip_first=skip_first,
+                max_seq_len=max_seq_len,
+                residual_dtype=residual_dtype,
+            )
         )
-        for sample in samples
-    ]
+        if (index + 1) % 10 == 0 or index + 1 == len(samples):
+            logger.info(
+                "calibrate: captured %d/%d samples (%.1fs elapsed)",
+                index + 1,
+                len(samples),
+                time.monotonic() - capture_started,
+            )
 
     sample_parts: list[torch.Tensor] = []
     position_parts: list[torch.Tensor] = []
