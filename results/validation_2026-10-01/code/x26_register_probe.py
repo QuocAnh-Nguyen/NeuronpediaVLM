@@ -58,6 +58,7 @@ from __future__ import annotations
 import argparse
 import json
 import math
+import os
 import random
 import re
 import sys
@@ -114,7 +115,6 @@ from x14_workspace_probe import (  # noqa: E402
     _category_token_ids,
     generate_with_residual_traces,
     identity_lens,
-    load_calibrated_params,
 )
 from x18_pope_handoff import select_yes_no_ids  # noqa: E402
 from x21_verbal_report import lens_fingerprint  # noqa: E402
@@ -802,7 +802,9 @@ def caption_source_positions(
     text_positions = text_mask.nonzero(as_tuple=True)[0]
     if not sample.caption:
         return text_positions.cpu(), {"mode": "all_text"}
-    prefix = model.encode_mm(sample.generation_body, None)
+    # the prefix batch needs the image slot filled (encode_mm refuses placeholder
+    # mismatches); only its token ids are used
+    prefix = model.encode_mm(sample.generation_body, sample.image)
     prefix_ids = prefix.input_ids[0]
     full_ids = batch.input_ids[0]
     if (
@@ -823,7 +825,7 @@ def caption_source_positions(
 def ridge_folds(
     feature_rows: list[torch.Tensor], lambda_rel: float
 ) -> list[
-    tuple[int, list[int], torch.Tensor, torch.Tensor, torch.Tensor, float]
+    tuple[int, list[int], list[int], torch.Tensor, torch.Tensor, torch.Tensor, float]
 ]:
     """Leave-one-image-out folds with train-standardized features and cached K.
 
@@ -832,30 +834,35 @@ def ridge_folds(
     ``lambda = lambda_rel * mean train row norm^2`` (after standardization this is
     ``lambda_rel * d`` up to sampling noise). K = X_tr X_tr^T is target-independent,
     so it is computed once per fold and reused across every probe target. Each tuple
-    carries its held-out image index (the fold IS that image's exclusion).
+    carries its held-out image index and the train rows' image indices (an image's
+    rows all share its label — the solve's right-hand side is per ROW, not per
+    image).
     """
     n = len(feature_rows)
     folds: list[
-        tuple[int, list[int], torch.Tensor, torch.Tensor, torch.Tensor, float]
+        tuple[int, list[int], list[int], torch.Tensor, torch.Tensor, torch.Tensor, float]
     ] = []
     for fold in range(n):
         train_idx = [i for i in range(n) if i != fold]
         if not train_idx:
             continue
         x_train = torch.cat([feature_rows[i] for i in train_idx], dim=0)
+        row_image_idx = [
+            image for image in train_idx for _ in range(int(feature_rows[image].shape[0]))
+        ]
         mu = x_train.mean(dim=0, keepdim=True)
         sd = x_train.std(dim=0, keepdim=True).clamp_min(1e-6)
         x_train = (x_train - mu) / sd
         x_test = (feature_rows[fold] - mu) / sd
         lam = lambda_rel * float(x_train.pow(2).sum(dim=1).mean())
         kernel = x_train @ x_train.T
-        folds.append((fold, train_idx, x_train, x_test, kernel, lam))
+        folds.append((fold, train_idx, row_image_idx, x_train, x_test, kernel, lam))
     return folds
 
 
 def ridge_auc_from_folds(
     folds: list[
-        tuple[int, list[int], torch.Tensor, torch.Tensor, torch.Tensor, float]
+        tuple[int, list[int], list[int], torch.Tensor, torch.Tensor, torch.Tensor, float]
     ],
     labels: list[int],
 ) -> tuple[float | None, dict[str, Any]]:
@@ -863,8 +870,8 @@ def ridge_auc_from_folds(
     scores: list[torch.Tensor] = []
     pooled_labels: list[int] = []
     n_folds_used = 0
-    for fold, train_idx, x_train, x_test, kernel, lam in folds:
-        y_train = [labels[i] for i in train_idx]
+    for fold, _train_idx, row_image_idx, x_train, x_test, kernel, lam in folds:
+        y_train = [labels[image] for image in row_image_idx]
         if len(set(y_train)) < 2:
             continue  # the fold's training pool must contain both classes
         y_tensor = torch.tensor(y_train, dtype=torch.float32)
@@ -954,13 +961,16 @@ def build_synthetic_captions(
 ) -> str:
     """A synthetic captions_val2014.json for the tiny smoke (color path exercise).
 
-    Deterministic: each image gets two captions, one cycling the color word list so
-    every color target has support across the corpus. Caller owns the temp file.
+    Deterministic: each image gets two captions; the color word cycles over
+    ``max(2, n_images // 3)`` colors so every cycled color reaches support >= 2
+    with BOTH classes present (a single-color corpus would be all-positive and the
+    probe AUC undefined). Caller owns the temp file.
     """
     color_names = [COLOR_CANONICAL.get(word, word) for word in COLOR_WORDS]
+    cycle = max(2, len(samples) // 3)
     annotations = []
     for index, sample in enumerate(samples):
-        color = color_names[index % len(color_names)]
+        color = color_names[index % cycle]
         object_name = (
             name_by_id.get(sorted(sample.gt_ids)[0], "object") if sample.gt_ids else "object"
         )
@@ -1285,9 +1295,11 @@ def run_registers(args: argparse.Namespace, ws: RegisterWorkspace) -> RegisterCo
             ],
         }
         if args.n_attention > 0 and len(ctx.attention_records) < args.n_attention:
-            record["attention"] = run_attention_for_sample(
+            attention = run_attention_for_sample(
                 ws, sample, batch, register_indices, obs_mean
             )
+            ctx.attention_records.append(attention)
+            record["attention"] = attention
         ctx.records.append(record)
         if (index + 1) % 5 == 0 or index + 1 == len(ws.samples):
             print(
@@ -1337,7 +1349,6 @@ def run_attention_for_sample(
         "sources": source_meta,
         "per_layer": per_layer_out,
     }
-
 
 
 def register_summary(args: argparse.Namespace, ws: RegisterWorkspace, ctx: RegisterContext) -> dict[str, Any]:
