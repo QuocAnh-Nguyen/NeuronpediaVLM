@@ -90,9 +90,46 @@ _CLASS_MODULES: dict[str, tuple[str, str]] = {
 QWEN_TEXT_TEMPLATE = "<|im_start|>user\n{body}<|im_end|>\n"
 
 #: The Qwen2 assistant header a generation prompt must end with (the template's
-#: ``add_generation_prompt=True`` tail); appended token-level by
-#: :func:`_with_generation_prompt`.
+#: ``add_generation_prompt=True`` tail); the fallback of :func:`generation_suffix`
+#: and the source :func:`with_generation_prompt` appends token-level.
 QWEN_GENERATION_SUFFIX = "<|im_start|>assistant\n"
+
+
+def generation_suffix(model: Any, kind: str) -> str:
+    """The assistant-header scaffold a generation-ready prompt must end with.
+
+    llava kinds: ``''`` -- the ``ASSISTANT:`` scaffold already lives in the prompt
+    string. qwen2vl: derived from the model's own chat template when one renders
+    (the ``add_generation_prompt=True`` tail on a probe user turn), falling back
+    to the ``QWEN_GENERATION_SUFFIX`` literal when no template is available or the
+    diff is not a clean suffix. :func:`with_generation_prompt` consumes this, so
+    the string-level and token-level paths cannot drift.
+
+    Args:
+        model: The lens model (its ``processor``/``tokenizer`` may carry
+            ``apply_chat_template``); unused for llava kinds.
+        kind: The dispatch kind (:func:`kind_for`).
+    """
+    if kind != "qwen2vl":
+        return ""
+    for attr in ("processor", "tokenizer"):
+        template = getattr(getattr(model, attr, None), "apply_chat_template", None)
+        if template is None:
+            continue
+        try:
+            probe = [{"role": "user", "content": "x"}]
+            without_gen = template(probe, tokenize=False, add_generation_prompt=False)
+            with_gen = template(probe, tokenize=False, add_generation_prompt=True)
+        except Exception:  # noqa: BLE001 -- any template failure falls back to the literal
+            continue
+        if (
+            isinstance(with_gen, str)
+            and isinstance(without_gen, str)
+            and with_gen.startswith(without_gen)
+            and len(with_gen) > len(without_gen)
+        ):
+            return with_gen[len(without_gen):]
+    return QWEN_GENERATION_SUFFIX
 
 
 # ------------------------------------------------------------------ dispatch
@@ -190,7 +227,7 @@ def chat_wrap(kind: str, body: str) -> str:
     ``encode_mm`` applies ``processor.apply_chat_template`` itself (rendering
     ``QWEN_TEXT_TEMPLATE``), and pre-wrapping here would double-template. The qwen2vl
     generation scaffold is appended token-level by :func:`chat_encode`, not in the
-    string (see :func:`_with_generation_prompt`).
+    string (see :func:`with_generation_prompt`).
     """
     if kind == "qwen2vl":
         return body
@@ -208,7 +245,7 @@ def chat_encode(
     """
     batch = model.encode_mm(chat_wrap(kind, body), None, max_length=max_length)
     if kind == "qwen2vl":
-        batch = _with_generation_prompt(model, batch)
+        batch = with_generation_prompt(model, batch)
     return batch
 
 
@@ -271,12 +308,12 @@ def image_encode(
 
     llava: ``encode_mm(prompt, images)`` verbatim (the string carries ``ASSISTANT:``).
     qwen2vl: the raw body through the wrapper, then the assistant header appended
-    token-level (:func:`_with_generation_prompt`) so the prefill's handoff position
+    token-level (:func:`with_generation_prompt`) so the prefill's handoff position
     is the about-to-answer state, like llava's.
     """
     batch = model.encode_mm(prompt, images, max_length=max_length)
     if kind == "qwen2vl":
-        batch = _with_generation_prompt(model, batch)
+        batch = with_generation_prompt(model, batch)
     return batch
 
 
@@ -285,28 +322,30 @@ def prompt_template_sha256(kind: str) -> str:
     return hashlib.sha256(image_prompt_template(kind).encode("utf-8")).hexdigest()
 
 
-def _with_generation_prompt(model: Any, batch: Any) -> Any:
+def with_generation_prompt(model: Any, batch: Any) -> Any:
     """Append the Qwen2 assistant-header tokens to an encoded qwen2vl batch.
 
     ``Qwen2VLLensModel.encode_mm`` renders the user turn only
     (``apply_chat_template(..., add_generation_prompt=False)`` -- the scaffold is
     the caller's choice, as the llava prompt string carries ``ASSISTANT:`` itself),
-    so generation-capable callers append ``QWEN_GENERATION_SUFFIX`` here: the exact
-    tokens the template's generation prompt would add, resolved through the
-    wrapper's own tokenizer (ids come back as a flat list from the real tokenizer
-    and a ``[1, k]`` tensor from the tiny fixture's; both normalize to one
+    so generation-capable callers append :func:`generation_suffix` here: the exact
+    tokens the template's generation prompt would add (derived from the wrapper's
+    own template, ``QWEN_GENERATION_SUFFIX`` literal as the fallback), resolved
+    through the wrapper's own tokenizer (ids come back as a flat list from the real
+    tokenizer and a ``[1, k]`` tensor from the tiny fixture's; both normalize to one
     ``[1, k]`` row), spliced onto EVERY id-shaped tensor in lockstep via a
     frozen-dataclass copy: ``input_ids``/``attention_mask``, the ``[1, seq]``
     ``mm_token_type_ids`` (text labels -- the header is text-only), and the
     ``[1, seq]`` ``image_token_mask`` (extended with False; x23's band arm indexes
     its residuals with it, so a stale short mask breaks the readout). Text-only
-    batches without ``mm_token_type_ids`` stay None. The 3-token suffix is added
-    after ``encode_mm``'s length guard, so ``--max-seq-len`` effectively has a
-    3-token slack on qwen2vl.
+    batches without ``mm_token_type_ids`` stay None. The suffix is added after
+    ``encode_mm``'s length guard, so ``--max-seq-len`` effectively has a
+    suffix-length slack on qwen2vl.
     """
+    suffix_text = generation_suffix(model, "qwen2vl")
     suffix_ids = torch.as_tensor(
         model.tokenizer(
-            QWEN_GENERATION_SUFFIX, add_special_tokens=False, return_tensors=None
+            suffix_text, add_special_tokens=False, return_tensors=None
         )["input_ids"],
         dtype=batch.input_ids.dtype,
     ).reshape(1, -1)
@@ -316,7 +355,7 @@ def _with_generation_prompt(model: Any, batch: Any) -> Any:
         "attention_mask": torch.cat(
             [batch.attention_mask, torch.ones_like(suffix)], dim=1
         ),
-        "text": batch.text + QWEN_GENERATION_SUFFIX,
+        "text": batch.text + suffix_text,
     }
     labels = getattr(batch, "mm_token_type_ids", None)
     if labels is not None:
@@ -464,6 +503,7 @@ __all__ = [
     "chat_encode",
     "chat_turn_frames",
     "chat_wrap",
+    "generation_suffix",
     "image_encode",
     "image_prompt",
     "image_prompt_template",
@@ -478,5 +518,6 @@ __all__ = [
     "sweep_layers",
     "vision_only",
     "vision_projector",
+    "with_generation_prompt",
     "word_piece_ids",
 ]

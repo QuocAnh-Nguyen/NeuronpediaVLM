@@ -23,6 +23,13 @@ Protocol (verbatim from the vendored ``data/evaluations/README.md``):
   - poetry: the last newline token (end of line 1 of the couplet). Tokens are inspected
     with ``tokenizer.decode([id])``; if the tokenizer emits no standalone newline token
     the position falls back to the last prompt token (counted per suite).
+  - qwen2vl frames: ``encode_mm`` renders the user turn only, so the prompt is
+    extended with the assistant-header generation scaffold
+    (``vlm_registry.generation_suffix`` via ``with_generation_prompt``, all
+    id-shaped tensors in lockstep) before the readout: the last-token rule reads
+    the scaffold's end (the about-to-answer state — without it the readout sits
+    after ``<|im_end|>`` where the model predicts ``<|im_start|>``, never the
+    answer), while the poetry newline search stays inside the user content.
 * **Metric** — ``pass@k`` = mean over items of the fraction of ``intermediates`` whose
   min-over-layers lens rank <= k. Reported per suite per lens variant (min over the
   variant's scored layers), plus the per-layer curves (same fraction computed per layer)
@@ -437,22 +444,35 @@ def _per_intermediate_min_over_layers(record: dict[int, list[int]], layers: list
     ]
 
 
-def last_newline_position(model: LensModel, input_ids: torch.Tensor) -> int:
-    """Index of the last token whose decoded form contains a newline, else -1."""
+def last_newline_position(model: LensModel, input_ids: torch.Tensor, limit: int | None = None) -> int:
+    """Index of the last token whose decoded form contains a newline, else -1.
+
+    ``limit`` bounds the scan (the search runs ``limit..0``), so an appended
+    generation scaffold can be excluded from the newline search.
+    """
     ids = input_ids.tolist()
-    for index in range(len(ids) - 1, -1, -1):
+    for index in range((len(ids) - 1) if limit is None else limit, -1, -1):
         if "\n" in model.tokenizer.decode([ids[index]]):
             return index
     return -1
 
 
-def resolve_position(suite: str, batch: MultimodalBatch, model: LensModel) -> tuple[int, str]:
-    """The suite's single readout position (see module docstring)."""
+def resolve_position(
+    suite: str, batch: MultimodalBatch, model: LensModel, scaffold_len: int = 0
+) -> tuple[int, str]:
+    """The suite's single readout position (see module docstring).
+
+    ``scaffold_len`` is the appended qwen2vl generation-scaffold length (0 for
+    llava): the last-token rule reads the scaffold's end -- the about-to-answer
+    state -- while the poetry newline search stays inside the user content, never
+    matching the scaffold's own trailing newline.
+    """
     if suite == "poetry":
-        position = last_newline_position(model, batch.input_ids[0])
+        limit = batch.seq_len - 1 - scaffold_len
+        position = last_newline_position(model, batch.input_ids[0], limit)
         if position >= 0:
             return position, "last-newline"
-        return batch.seq_len - 1, "last-token(fallback:no-newline-token)"
+        return limit, "last-token(fallback:no-newline-token)"
     return batch.seq_len - 1, "last-token"
 
 
@@ -631,8 +651,11 @@ def score_suite(
 ) -> dict[str, Any]:
     """Run one vendored suite: position rule, ranks per (variant, layer), aggregates.
 
-    Ranks are computed for both candidate families (``item_ranks``: the legacy
-    convention and the T29 candidate-set union) and aggregated by
+    qwen2vl batches are extended with the assistant-header generation scaffold
+    (``vlm_registry.with_generation_prompt``, every id-shaped tensor in lockstep)
+    so the last-token readout is the about-to-answer state; llava batches are
+    untouched. Ranks are computed for both candidate families (``item_ranks``:
+    the legacy convention and the T29 candidate-set union) and aggregated by
     ``aggregate_suite``; the suite result records the candidate-set sizes as
     ``n_candidates_total`` / ``n_candidates_per_intermediate`` (and per item as
     ``n_candidates``).
@@ -650,7 +673,12 @@ def score_suite(
         except ValueError:
             n_skipped += 1
             continue
-        position, rule = resolve_position(suite, batch, model)
+        scaffold_len = 0
+        if kind == "qwen2vl":
+            pre_len = batch.seq_len
+            batch = registry.with_generation_prompt(model, batch)
+            scaffold_len = batch.seq_len - pre_len
+        position, rule = resolve_position(suite, batch, model, scaffold_len)
         rules[rule] = rules.get(rule, 0) + 1
         candidates, n_multi, n_fallback = intermediate_ids(model, kind, suite, item["intermediates"])
         candidates_cand, _ = intermediate_ids_cand(
@@ -892,6 +920,15 @@ def main() -> int:
                 f"({sum(len(ids) for ids in gold_index.values())} vocab ids)"
                 if gold_index
                 else "unavailable (tokenizer exposes no vocab size)"
+            ),
+            "qwen_generation_scaffold": (
+                "qwen2vl frames are extended with the assistant-header generation "
+                "scaffold (vlm_registry.generation_suffix via with_generation_prompt, "
+                "all id-shaped tensors in lockstep) after encode_mm's length guard, so "
+                "the last-token readout is the about-to-answer state (without it the "
+                "readout sits after <|im_end|> where the template continues "
+                "<|im_start|>); poetry's newline search excludes the scaffold. llava "
+                "frames are untouched."
             ),
         },
         "runtime_seconds": round(time.time() - started, 1),
