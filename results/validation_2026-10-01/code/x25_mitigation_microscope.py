@@ -411,7 +411,9 @@ def parse_args() -> argparse.Namespace:
                         help="directory with the POPE release files "
                              "coco_pope_<split>.jsonl (random/popular/adversarial)")
     parser.add_argument("--pope-splits", default=",".join(POPE_SPLITS),
-                        help="comma-separated subset of: " + ",".join(POPE_SPLITS))
+                        help="comma-separated subset of: " + ", ".join(POPE_SPLITS))
+    parser.add_argument("--pope-limit", type=int, default=None,
+                        help="cap scored questions per split (default: all)")
     parser.add_argument("--n-images", type=int, default=60,
                         help="caption corpus size AND per-split POPE record cap")
     parser.add_argument("--seed", type=int, default=0)
@@ -739,6 +741,8 @@ def distort_image(
     """
     from PIL import Image, ImageFilter
 
+    if isinstance(image, (str, Path)):
+        image = Image.open(image)
     array = np.asarray(image.convert("RGB"), dtype=np.float32)
     noisy = array + rng.normal(0.0, noise_sigma, size=array.shape)
     uint8 = np.clip(noisy, 0, 255).astype(np.uint8)
@@ -1211,6 +1215,8 @@ def run_pope(
             items, n_missing = real_pope_items(
                 args.pope_dir, split, args.images_dir, n_images=args.n_images
             )
+            if args.pope_limit is not None:
+                items = items[: args.pope_limit]
         scored: dict[str, list[dict[str, str]]] = {arm.arm_id: [] for arm in arms}
         steps: dict[str, int] = {arm.arm_id: 0 for arm in arms}
         edits: dict[str, int] = {arm.arm_id: 0 for arm in arms}
