@@ -1272,3 +1272,85 @@ text positions throughout. Artifacts: step12 (11 JSONs); commits f9e2d96, 0f78b1
 +of box-only fixes; scripts x20-x23 + vlm_registry + build_manifest + phase28-34 +
 +fit_supervisor; tests: models/qwen2vl (25), x21 lens sensitivity (4), dispatch (7).
 +
+
+## D49 - 2026-10-17 ~19:30Z: J-lens v2 - the affine-calibrated lens, the POPE microscope, visual registers, and the mitigation decomposition
++
++THE PROGRAM (user goal): workspace-style mechanistic insights about how VLMs work, converted
++into hallucination mitigation validated on captioning (CHAIR) and yes/no (POPE). Model:
++llava-1.5-7b (the field's standard hallucination subject; our deepest result set), lens
++fits/llava-1.5-7b-hf/merged (256-budget captions), new code: calibrate.py (src),
++fit_calibration.py (scripts), build_pope.py + x24_pope_microscope.py + x25_mitigation_microscope.py
+++ x26_register_probe.py (results/code), registry generation_suffix + x20_gold (cross-arch eval).
++
++1. AFFINE CALIBRATION (the tuned-lens completion; Belrose+23): per-layer logit-space
++(scale, bias) fitted by distillation to the model's own next-token distribution on held-out
++caption positions (Adam, sample-level 80/20 split, early stop; bias sidecar via
++artifacts.save_bias bound to the lens sha256 fingerprint). GAINS ARE TRANSFORMATIVE:
++top1-agreement vs the model at L20 0.238->0.612, L24 0.350->0.677, L28 0.570->0.809,
++L12 0.108->0.333; mean-rank-true 2192->114 (L20); hold-out CE ~halves everywhere; fitted
++scale 0.62-0.94 (the raw J-lens is systematically OVER-scaled - the classic logit-lens
++pathology). Consequence: every ABSOLUTE raw-lens readout in D40-D48 (object rates, P_yes,
++mid-band confidence) was measured through a badly-scaled lens; relative/structural findings
++(band onsets, stickiness z, ignition width ordering) survive, absolute numbers do not.
++All mechanism claims below are calibrated-readout claims.
++
++2. POPE MICROSCOPE (x24; 3x2596 generated questions from COCO annotations per D-06; the
++model numbers land in the published LLaVA-1.5 band: acc random 0.937 / popular 0.919 /
++adversarial 0.852, yes-rate inflating 0.423->0.448->0.512 - the prior signature):
++* Calibration dissolves the raw lens's fake early commitment: raw P_yes crosses 0.5 at L5
++  for 31-39% of questions (a miscalibration artifact); calibrated commitment mass moves to
++  L0-3 + a genuine mid/late structure - the yes/no disposition forms EXTREMELY early for a
++  large question subset, then re-forms at the motor layers.
++* The prior-vs-evidence gap is only READABLE calibrated: the image-free path saturates at
++  prior-yes (0.999) through the mid band while the image path discriminates (0.48 @L18 on
++  random) - the image EVIDENCE pulls against the language prior exactly where D48's
++  sensory-block story says it should, and the gap MAGNITUDE is a moderate per-question
++  error predictor rising through the band (AUC ~0.71 @L21-25 on adversarial;
++  calibration-invariant, as a difference of two readouts should be).
++* Honest error-prediction verdict: mid-band lens CONFIDENCE anti-predicts errors (AUC
++  0.31-0.61, below chance at L17-25 - mid-band certainty is about the wrong thing); the
++  best lens-family predictor is the FINAL-layer image-free contrast (AUC 0.845 vs the
++  model's own margin 0.795 on adversarial): computing "what would the model say without
++  the image" from the lens framework predicts the model's hallucination errors better than
++  the model's own confidence, where priors bite.
++* Methodology: gold/answer resolution made tokenizer-agnostic (x20_gold candidate sets +
++  registry generation_suffix for qwen frames; llava numbers byte-identical), removing the
++  D48 qwen-multihop 0.0 artifact for future cross-arch runs.
++
++3. VISUAL REGISTERS (x26; 20 images, calibrated readout, band L12-31): the sticky
++image positions (z 3.5-17.7) are UNEMBED-BLIND but PROBE-DECODEABLE: ridge probes decode
++GT-object presence from register residuals at AUC 0.69-0.74 (as well as from ordinary
++patches 0.70-0.77 and text 0.72-0.79), while the lens/unembed readout at the same positions
++stays object-free (obj-in-top10 0.000-0.013 at every layer vs 0.064 from non-register
++patches and 0.069-0.081 from text by L31). The VLM carries visual state its output
++projection cannot verbalize - a non-verbal visual workspace. Attention ANTI-correlates with
++stickiness (r ~ -0.33): registers are not attention magnets during captioning. Zero-ablating
++the top-8 registers at L20 leaves CHAIR/length/P_yes unchanged (causally inert at this
++strength). Caveat: 20 images; scale-up queued.
++
++4. MITIGATION DECOMPOSITION (x25; 9 arms x POPE(random, n=60) x captions(60 images)):
++* Naive logit contrasts (m3id/vcd as constant final-position subtraction) are DESTRUCTIVE
++  at tau>=1 (40-60/60 unparsed; captions degenerate) and INCREASE CHAIR-s at tau=0.5
++  (0.44->0.63 m3id) - blunt output-space contrasts scrape the workspace: mid-band object
++  content drops 2-9 points under them.
++* The J-lens causal arm (prior-direction residual ablation at the commitment layer,
++  v = normalize(h(image) - h(image-free)) via ResidualEditor) is SURGICAL: POPE +1.7 acc
++  (0.950->0.967, alpha=1, zero unparsed), captions CHAIR-neutral (0.441 = baseline,
++  recall preserved), mid-band object content intact (-0.2 to -0.4 points). The lens's
++  readout-gradient geometry gives an intervention that moves the answer without damaging
++  the state - the property the logit contrasts lack. n=60 caveat; canonical per-step
++  normalized VCD/M3ID (not the constant approximation) is the fair next comparison.
++
++5. TASK-HONESTY FIT (POPE-answer lens, 200 samples): in flight (the shared box's tenant
++GPU pressure OOM-races the fit; the supervisor loop with dim-batch 2 + retries is armed;
++fits/llava-1.5-7b-hf-pope). The D48 budget result predicts a small delta; if the TASK
++changes J materially, task-lenses become the recommendation.
++
++OPS LEDGER: calibration fit hung on shared-box OMP thrash (51 cores then futex-idle;
++cured by --threads 8 + capture progress logging; capture itself is 3.4 s/20 samples); the
++root filesystem filled (1.7 MB free - tenants), migrating run workspace + logs to /data;
++phase44's malformed heredoc raced phase46 (killed); x25 needed --pope-dir + the
++coco_pope_<split>.jsonl naming + a PosixPath fix in distort_image + --pope-limit; the POPE
++fit OOM-races tenants (retry loop, dim-batch 2). Commits: 9683920 (wave 1), T29 extension,
++T30 registers, calibrate instrumentation, x25 fixes.
++
