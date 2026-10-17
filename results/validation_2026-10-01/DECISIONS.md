@@ -1354,3 +1354,20 @@ text positions throughout. Artifacts: step12 (11 JSONs); commits f9e2d96, 0f78b1
 +fit OOM-races tenants (retry loop, dim-batch 2). Commits: 9683920 (wave 1), T29 extension,
 +T30 registers, calibrate instrumentation, x25 fixes.
 +
+
++D49 ADDENDUM (2026-10-17 ~10:30Z) - TASK-HONESTY VERDICT LANDED: the POPE-answer lens
++(fits/llava-1.5-7b-hf-pope, n_prompts=100 matching the caption lens, dim-batch 4, same
++seeded pipeline) vs the caption lens: mean relative |dJ| = 1.19 (min 0.30 / max 2.63,
++band L16-28 mean 0.51) - the TASK changes the Jacobian ~10x more than the caption budget
++did (D48: 5-16%). The Jacobian linearization is strongly task/format-dependent: the
++one-lens assumption holds across caption budgets but FAILS across caption->POPE VQA.
++Recommendation: fit (or at minimum validate) per task distribution; for the yes/no
++mechanism work use the POPE-fitted lens, for captioning the caption-fitted lens. The
++x24/x25 mechanism numbers above were produced with the CAPTION lens on POPE prompts -
++their qualitative structure (prior-vs-evidence gap, commitment layering) is expected to
++survive (the gap is a within-lens image-vs-image-free contrast), but absolute readouts
++should be re-based on the task lens before publication-grade claims. OPS: the fit took
++~6 h wall on the contended box (dim-batch 4, OMP_NUM_THREADS=8; the pass budget is
++PER SAMPLE: d_model/dim_batch passes x samples - the "90% done" readings that plagued
++the retry loops were single-sample milestones; fit_masked resume works across attempts).
++
