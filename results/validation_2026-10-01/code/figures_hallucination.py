@@ -8,7 +8,7 @@ Outputs (deterministic, no timestamps):
   results/validation_2026-10-01/figures/figB3_commitment_boundary.png
   results/validation_2026-10-01/figures/figB4_prior_grounding_race.png
   results/validation_2026-10-01/figures/figB5_detector_ledger.png
-  results/validation_2026-10-01/summary/metrics_hallucination.json
+  results/validation_2026-10-01/figures/figB6_x14_powerup.png
 
 Every plotted number comes from raw/step10/*.json, raw/step11/*.json, raw/step4/*.json
 or is quoted verbatim from DECISIONS.md (D39/D40) for the VALIDATED directedness
@@ -68,6 +68,7 @@ x17n = load("step11/x17_attention_mirror_n200.json")
 x18 = load("step11/x18_pope_handoff.json")
 x9b = load("step4/x9b_alpha_sweep.json")  # the x9b sweep itself: 2800 rows, n=100/cell
 x7x9 = load("step4/x7_x9.json")          # the earlier X9 run: 1400 rows, 215 changed
+x14n = load("step10/x14_workspace_probe_n200.json")  # X14 power-up: n=200 images
 x19 = load("step11/x19_halluc_risk.json")
 
 
@@ -436,6 +437,82 @@ def figB5():
     return save(fig, "figB5_detector_ledger.png")
 
 
+# ----------------------------------------------------------------------------
+# figB6 -- X14 power-up: the same probe at n=200 (the n=24 hallucinated arm was
+#          n=2). Run on the box 2026-10-18 (x14_workspace_probe.py --n-images 200
+#          --handoff-rank, seeded selection seed=0, greedy, identity-transport +
+#          moment payload). Thin dashed = the original n=24 run, overlaid.
+# ----------------------------------------------------------------------------
+def figB6():
+    pl = x14n["per_layer"]
+    pl0 = x14["per_layer"]
+    layers = sorted(int(k) for k in pl)
+
+    def get(table, key, default=None):
+        return [table[str(l)].get(key, default) for l in layers]
+
+    fig, axes = plt.subplots(1, 2, figsize=(12.0, 5.4), sharey=True, constrained_layout=True)
+    for ax in axes:
+        ax.set_yscale("log")
+        ax.set_ylim(0.8, 9000)
+        ax.set_xlabel("layer")
+        ax.axvspan(24, 26, color=GREEN, alpha=0.10, lw=0)
+
+    ax = axes[0]
+    ax.plot(layers, get(pl0, "grounded_rank"), "--", color=BLUE, lw=1.2, alpha=0.7,
+            label=f"grounded words, n=24 (n={pl0['0']['n_grounded']} words)")
+    ax.plot(layers, get(pl0, "halluc_rank"), "--", color=VERMIL, lw=1.2, alpha=0.7,
+            label=f"hallucinated words, n=24 (n={pl0['0']['n_hallucinated']} words)")
+    ax.plot(layers, get(pl, "grounded_rank"), "o-", color=BLUE, lw=2, ms=4,
+            label=f"grounded words, n=200 (n={pl['0']['n_grounded']})")
+    ax.plot(layers, get(pl, "halluc_rank"), "s-", color=VERMIL, lw=2, ms=4,
+            label=f"hallucinated words, n=200 (n={pl['0']['n_hallucinated']})")
+    ax.annotate(
+        "n=24 crossing L24-26 was an n=2 sample:\n"
+        "at n=39 words the first grounded<halluc\n"
+        "crossing moves to L30, where both are ~2",
+        (1.2, 3.5),
+        fontsize=8.5,
+        color=VERMIL,
+        va="bottom",
+    )
+    ax.set_ylabel("mean rank of the word's token id in the lens distribution")
+    ax.set_title("Prior-vs-grounding race: prior lead survives (L0: halluc < grounded),\nthe crossover did not")
+    ax.legend(loc="lower left", fontsize=8)
+
+    ax = axes[1]
+    ax.plot(layers, get(pl0, "last_patch_object_rank"), "--", color=GREY, lw=1.2, alpha=0.7,
+            label="true objects at last IMAGE token, n=24")
+    ax.plot(layers, get(pl, "last_patch_object_rank"), "d-", color=GREY, lw=2, ms=4,
+            label="true objects at last IMAGE token, n=200")
+    ax.plot(layers, get(pl, "true_object_rank_at_halluc_positions"), "^-", color=PINK, lw=2, ms=4,
+            label="true objects AT hallucination positions, n=200")
+    ax.plot(layers, get(pl, "halluc_rank"), "s-", color=VERMIL, lw=2, ms=4,
+            label="hallucinated words (same positions), n=200")
+    if pl["0"].get("handoff_true_object_rank_mean") is not None:
+        ax.plot(layers, get(pl0, "handoff_true_object_rank_mean"), "--", color=GREEN, lw=1.2, alpha=0.7,
+                label="true objects at last PROMPT (handoff), n=24")
+        ax.plot(layers, get(pl, "handoff_true_object_rank_mean"), "o-", color=GREEN, lw=2, ms=4,
+                label="true objects at last PROMPT (handoff), n=200")
+    else:
+        ax.annotate("handoff not computed in this file (needs --handoff-rank)", (2, 1200), fontsize=8, color=GREY)
+    ax.set_title("Where truth lives: never at image tokens; the hallucinated word\nbeats the truth at its own decoding positions")
+    ax.legend(loc="lower left", fontsize=7.5)
+
+    fig.suptitle(
+        "X14 power-up: n=200 images (39 hallucinated / 385 grounded word instances vs n=24's 2 / 51)",
+        fontweight="bold",
+    )
+    fig.supxlabel(
+        "Source: raw/step10/x14_workspace_probe_n200.json (box run 2026-10-18, md5-verified below) overlaid on "
+        "raw/step10/x14_workspace_probe.json (n=24); same script, same seed=0 selection, same greedy decoding, "
+        "same identity-transport + moment-payload readout; ranks are 1-based, ties count as better.",
+        fontsize=7.5,
+        color=GREY,
+    )
+    return save(fig, "figB6_x14_powerup.png")
+
+
 def main():
     FIGDIR.mkdir(exist_ok=True)
     SUMDIR.mkdir(exist_ok=True)
@@ -445,11 +522,21 @@ def main():
         "figB3": figB3(),
         "figB4": figB4(),
         "figB5": figB5(),
+        "figB6": figB6(),
     }
 
     pl13 = x13["per_layer"]
     dig12 = x12["digest"]
     pl14 = x14["per_layer"]
+    pl14n = x14n["per_layer"]
+    first_cross = next(
+        (
+            layer
+            for layer in range(32)
+            if pl14n[str(layer)]["grounded_rank"] < pl14n[str(layer)]["halluc_rank"]
+        ),
+        None,
+    )
     pl19 = x19["per_layer"]
     metrics = {
         "figures": {
