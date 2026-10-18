@@ -6,7 +6,7 @@ residual stream with respect to the layer-`l` residual state over a corpus of mu
 the multimodal residual stream of `llava-hf/llava-1.5-7b-hf`. The question driving the campaign: LLaVA
 hallucinates objects that are not in the image — can lens readouts, plus causal edits from the same lens
 vectors, explain where and why the visual signal loses to the language prior, and cure it without training?
-Headline conclusion after four stages (decisions D0–D47 in [`DECISIONS.md`](DECISIONS.md)): the J-lens is a
+Headline conclusion after seven stages (decisions D0–D50 in [`DECISIONS.md`](DECISIONS.md)): the J-lens is a
 validated disposition + intervention instrument, not a universal detector; hallucination is the language prior
 winning the visual→verbal handoff — the prior leads 7× at L0 (rank ~787 vs ~5358), grounding overtakes it only
 at L24–26, and the handoff is text-mediated at the last prompt position; training-free pre-generation detectors
@@ -14,21 +14,35 @@ reach 0.985 AUROC on POPE object presence (0.895 for catching the model's own ha
 mean-replacement ablation of the hallucinated concept's J-lens direction at L30 removes 0.90 of hallucinations
 with grounded retention 1.00 (the control ablation destroys 0.97→0.35); and the global-workspace structure of
 Gurnee et al. 2026 replicates on this VLM, with a novel persistent non-verbal sensory band at image positions.
+The extension rounds then show the instrument is **model-general and calibration-dependent**: the workspace
+properties survive three architectures and two caption budgets (|dJ| 5–16%), while the affine-calibrated lens is
+required for absolute claims (top1 agreement 0.24→0.61 at L20; the raw lens is over-scaled by 0.62–0.94); the
+task axis moves the Jacobian ~10× more than the budget axis (|dJ| 1.19 caption→POPE, decaying with depth from
+2.63 at L0 to 0.36 by L28 — an input-side effect); the lens framework's own **image-free contrast out-predicts the
+model's confidence** on adversarial POPE (0.845 vs 0.795 margin); a prior-direction residual ablation at the
+commitment layer is a **surgical** mitigation (+1.7 POPE acc, CHAIR-neutral) where logit-contrast decoders are
+destructive; and the sticky image-position registers are unembed-blind but probe-decodable — the blindness is the
+unembed's row space, not the transport.
 
 ## How to read this document
 
-- Four stages — **0 — Foundations** (trust the estimator), **1 — The instrument**, **2 — Improving the
+- Seven stages — **0 — Foundations** (trust the estimator), **1 — The instrument**, **2 — Improving the
   lens** (model-class ladder, scaling), **3 — Hallucination mechanisms**, **4 — Global-workspace
-  replication + the VLM novelty** (x20–x23); then operations lessons, in-flight work, licensing claims,
-  and the hypothesis register at the end.
-- **D-numbers** (D0–D47) point into [`DECISIONS.md`](DECISIONS.md), the authoritative per-experiment record
+  replication + the VLM novelty** (x20–x23), **5 — Architecture and budget generality** (D48: 7b/13b/qwen2vl,
+  64 vs 256 tokens), **6 — J-lens v2** (D49: affine calibration, the x24 POPE microscope, x26 registers, the x25
+  mitigation decomposition, the task-honesty verdict), **7 — Reading the round** (D50: the estimator reading, the
+  register-transport verdict, the task-delta profile, follow-ups); then operations lessons, in-flight work,
+  licensing claims, and the hypothesis register at the end. Stages 5–7 are table-documented — the round produced
+  no new figures.
+- **D-numbers** (D0–D50) point into [`DECISIONS.md`](DECISIONS.md), the authoritative per-experiment record
   (campaign-local; the repository register's D-table is unrelated). Experiment codes X*/S*/P\* follow the
   campaign registers; V1 etc. are the repo register's hypothesis identifiers.
 - Every figure is regenerable via `results/validation_2026-10-01/code/figures_instrument.py` (figA*),
   `figures_hallucination.py` (figB*), `figures_workspace.py` (figC*), `figures_d_improve.py` /
   `figures_d_detect.py` / `figures_d_campaign.py` (figD*, the second visualization round covering X1/X7,
-  the improvement mechanics, detection details, S2 design, and the operations timeline), and each is
-  embedded exactly once below.
+  the improvement mechanics, detection details, S2 design, and the operations timeline); the figD10 timeline covers
+  only the campaign proper (2026-10-01 → 10-11), and the extension rounds (D48–D50) are documented as tables with
+  per-row JSON references; each figure is embedded exactly once below.
 
 ---
 
@@ -614,16 +628,304 @@ co-occupancy elevated in-band (z 1.3–1.7) without the paper's clear task exclu
 
 ---
 
+## Stage 5 — Architecture and budget generality (D48: the multi-architecture, multi-budget round)
+
+### Multi-architecture fits
+
+- **WHY.** Stages 0–4 are one architecture (LLaVA-1.5-7B, 32L/4096) at one caption budget (`--max-new-tokens` 64);
+  no J-space claim is a VLM claim until it survives refitting elsewhere.
+- **HOW.** Fit lenses at 64 tokens (the original round; 7b = the production s2-merged) and 256 (re-fit on the same
+  seeded image sample; manifests verify median 80-word vs ~40-word captions) for llava-1.5-7b (32L/4096),
+  llava-1.5-13b (40L/5120) and Qwen2-VL-7B-Instruct (28L/3584, new `Qwen2VLLensModel`: variable-resolution image
+  tokens, M-RoPE/`mm_token_type_ids`, torchvision-free image-only processor). Fits at dim-batch 3 — the estimator's
+  `dim_batch=8` expanded graph was the OOM driver (~30 GB retained across 640/1707 backwards) — under supervisor GPU
+  queues on the shared node (DECISIONS.md D48).
+- **RESULT.** All six model x budget cells fitted and evaluated: `fits/<model>/{s0,s1}` + `merged` (256) +
+  `merged-64tok` (renamed 64-token merges; shard copies reclaimed); step13 holds the 20 eval JSONs — x20 lens-evals,
+  x21 report, x22 structure, x23 band+ignition, per model x budget (DECISIONS.md D48).
+- **INTERPRETATION.** This closes the document's former in-flight framing (multi-arch "built and gated but not
+  fitted ... no numbers from these runs are results yet"): the fits and evals exist, and every number below is a
+  result (DECISIONS.md D48).
+
+### Caption-budget verdict
+
+- **WHY.** Is the caption budget a real axis of the J-space or a nuisance parameter of the fit corpus?
+- **HOW.** 64- vs 256-token lenses on the same seeded image sample, scored per budget on the x20/x21/x22/x23 arms.
+- **RESULT.** Mean relative |dJ| **5–16% per layer** — genuinely different lenses — yet workspace properties are
+  unchanged: multihop pass@10 0.495 (256) vs 0.500 (64) on 13b; report swaps 10/42 vs (qwen 6 vs 7)/42; band onsets
+  identical (13b top1 onset L25 both budgets, qwen L24 both — digest-verified in
+  `step13/x22_structure_{llava-13b,qwen2vl}{,_64tok}.json`); ignition widths in the same range (DECISIONS.md D48).
+- **INTERPRETATION.** The raw lens moves 5–16% while its functional readouts move ~1–2%: the caption budget is a
+  weak axis for the J-space. Byte-identical metrics across budgets indicate near-identical lens content, not a bug —
+  T22 proved lens-determinism locally (a 10% dJ change moves every metric), which is also what exposed the
+  stale-lens incident in the ledger below (DECISIONS.md D48).
+
+### Architecture verdict
+
+- **WHY.** Do the Stage-4 workspace properties — band, lens > logit lens, report rise, ignition, modality split —
+  transfer off the 7B? Same x20/x21/x22/x23 arms per model x budget, same vendored suites; one row per architecture
+  (7b at its production 64-token budget, 13b and qwen at 256; DECISIONS.md D48).
+- **RESULT.**
+
+| Architecture (budget) | Multihop pass@10 | Report top rho | Report swaps | Band top1 onset/offset | Ignition width lens vs full | Caption-threshold corr |
+| --- | --- | --- | --- | --- | --- | --- |
+| llava-1.5-7b (64) | 0.484 @L28 | 0.958 | 9/42 | L20/L29 | 0.42 vs 0.63 → 0.28 vs 0.38 | +0.14 (earlier variant +0.99) |
+| llava-1.5-13b (256) | 0.495 @L32 | 0.945 | 10/42 | L25/L36 | 0.26–0.35 vs 0.27–0.45 | **−0.81** |
+| Qwen2-VL-7B-Instruct (256) | 0.0 (caveat below) | 0.823 | 6/42 | L24/L26 | 0.38–0.58 vs 0.54–0.71 | −0.15 (L23 only) |
+
+- Every cell from (DECISIONS.md D48) except the 7b onset/offset (`step13/x22_structure_llava-7b_64tok.json`) and the
+  qwen correlation (`step13/x23_ignition_qwen2vl.json`).
+- **INTERPRETATION.** The property set replicates on all three architectures. Qwen's multihop 0.0 is a recorded
+  methodology caveat, not a lens failure: the eval suite's gold-token conventions are LLaVA-tuned (the same null on
+  both budget variants), and D49's tokenizer-agnostic gold resolution (x20_gold candidate sets + registry
+  generation_suffix; llava numbers byte-identical) removes the artifact for future cross-arch runs
+  (DECISIONS.md D48/D49). The 13b's NEGATIVE caption-threshold correlation (−0.81: the caption grid flips at
+  different alphas than the band-mid lens threshold on this model) vs the 7b's earlier +0.99 is a model-dependent
+  divergence deserving a dedicated follow-up (DECISIONS.md D48).
+
+### The universal sensory-block signature
+
+- **WHY.** Is D47's sensory-block finding — persistent, non-verbal image-position content — an artifact of
+  LLaVA-7B or a VLM property?
+- **HOW.** The x23 band and ignition arms per model x budget: top-1 stickiness z and object-in-top10 rates at image
+  vs text positions; J-space vs full-activation alpha-transition widths across the band.
+- **RESULT.** Image-position lens content is hyper-persistent (top-1 stickiness z 8–20 at band layers) yet nearly
+  object-free through the band (object-in-top10 0.0–2% at onset, rising only to 4–12% at the final layers) on ALL
+  THREE models; text positions stay token-local (z 0–2) throughout. Ignition is architecture-general: the J-space
+  component's alpha-transition is sharper than the full activation's at every band layer on all three (7b 0.42 vs
+  0.63; 13b 0.26–0.35 vs 0.27–0.45; qwen 0.38–0.58 vs 0.54–0.71) (DECISIONS.md D48).
+- **INTERPRETATION.** The workspace carries stable non-verbal visual content on every model and the modality split
+  generalizes — this upgrades D47's 7B-only finding to a VLM property (DECISIONS.md D48).
+
+### Methodology ledger
+
+- **WHY.** A shared, co-tenanted node multiplies the ways a three-model, two-budget round can be silently wrong; the
+  operational record is part of the evidence.
+- **RESULT.** (1) phase31's "256-lens" evals initially ran against 64-token content under 256 filenames (the genuine
+  256 merges did not exist yet; the qwen merged dir briefly held a bogus 64-shard re-merge) — caught by cross-file
+  metric identity, root-caused by T22's lens-determinism proof, stale JSONs purged and re-run against
+  fingerprint-verified lenses (x21's new sha256 meta fingerprints); (2) disk-full twice on the shared volume
+  (checkpoint writes failed; freed by reclaiming finished-shard checkpoints and the regenerable synthetic lens zoo);
+  (3) fit hangs under tenant GPU evictions, detected via log-staleness tripwires, supervisors retry; (4)
+  architectural seam fixes landed in lockstep: torchvision-free Qwen2VL processor, M-RoPE batch fields, registry
+  template/suffix seams, model-dim fail-closed bias/lens guards (x23), vision-tower accessor for transformers 5.17,
+  common-grid image pairs for dynamic-resolution ignition (DECISIONS.md D48).
+- **INTERPRETATION.** The seam fixes are load-bearing: every cross-architecture result above runs through the
+  Qwen2VL processor, the M-RoPE batch fields and the registry seams, and x21's fingerprint-verified lens loading is
+  what keeps multi-lens rounds auditable (DECISIONS.md D48).
+
+---
+
+## Stage 6 — J-lens v2: calibration, the POPE microscope, registers, and mitigation (D49)
+
+New code: `calibrate.py` + `fit_calibration.py` (src), `build_pope.py`, `x24_pope_microscope.py` /
+`x25_mitigation_microscope.py` / `x26_register_probe.py` (results/code), plus registry `generation_suffix` +
+`x20_gold` for tokenizer-agnostic gold resolution (DECISIONS.md D49). New-round artifacts are server-side under
+`validation/` (`step40/` results, `fits/` lens fits); no figures exist for this stage yet — tables only.
+
+### Affine calibration (the tuned-lens completion)
+
+- **WHY.** The raw J-lens inherits the classic logit-lens pathology: its per-layer readout is a badly-scaled stand-in for the model's own next-token distribution, so every absolute probability it emits is suspect. Can a per-layer affine map recover the model's distribution from the lens?
+- **HOW.** Per-layer logit-space (scale, bias) fitted by distillation to the model's own next-token distribution on held-out caption positions (Belrose+23; Adam, sample-level 80/20 split, early stop). The bias sidecar is saved via `artifacts.save_bias` bound to the lens sha256 fingerprint — every step40 run records the fingerprint (`step40/x25_pope.json` lens block: `b9b3f8fe…`) and loads the matching bias (`step40/bias-7b/bias-text.pt`) (DECISIONS.md D49).
+- **RESULT.** Gains are transformative:
+
+| Readout (held-out caption positions) | Raw J-lens | Calibrated |
+| --- | --- | --- |
+| top1 agreement, L12 | 0.108 | 0.333 |
+| top1 agreement, L20 | 0.238 | 0.612 |
+| top1 agreement, L24 | 0.350 | 0.677 |
+| top1 agreement, L28 | 0.570 | 0.809 |
+| mean rank of the true token, L20 | 2192 | 114 |
+
+  Hold-out CE ~halves at every layer; fitted scales land at **0.62–0.94** — the raw lens is systematically **over-scaled** (DECISIONS.md D49).
+- **INTERPRETATION.** Calibration is the tuned-lens completion, and it retroactively qualifies the campaign: every ABSOLUTE raw-lens readout in the D40–D48 material (object rates, P_yes, mid-band confidence) was measured through a badly-scaled lens; relative/structural findings (band onsets, stickiness z, ignition-width ordering) survive, absolute numbers do not. **All mechanism claims in this stage are calibrated-readout claims** (DECISIONS.md D49).
+
+### The POPE microscope (x24)
+
+- **WHY.** Does the D48 prior-vs-evidence story hold at question scale, where a gold answer exists and the model's own error is measurable?
+- **HOW.** 3 × 2596 generated questions from COCO annotations (D-06 build), one forward per question at the last prompt position, read through the caption lens raw and calibrated; the adversarial split in a separate run (`step40/x24_pope_raw.json`, `step40/x24_pope_calib.json`, `step40/x24_pope_calib_adv.json`).
+- **RESULT.** The model numbers land in the published LLaVA-1.5 band (all recomputed from `step40/x24_pope_raw.json` summary blocks, n = 2596 per split):
+
+| Split | Acc | Yes-rate |
+| --- | --- | --- |
+| random | 0.937 | 0.423 |
+| popular | 0.919 | 0.448 |
+| adversarial | 0.852 | 0.512 |
+
+  Yes-rate inflates random → adversarial — the prior signature.
+- Calibration dissolves the raw lens's fake early commitment. Raw, the first sign-stable commitment (sign(P_yes) equal to the model's answer, held for every later fitted layer) already falls at L5 for **30.9% / 32.8% / 38.1%** of questions on random/popular/adversarial (`step40/x24_pope_raw.json` `commitment_layer` histogram, recomputed: L5 803/851/990 of 2596); equivalently raw P_yes(5) itself crosses 0.5 on **70.6% / 73.5% / 73.3%** of the same questions. Calibrated, commitment mass moves to **L0–3** (680 at L3 and 419 at L0 of 2596 on random, `step40/x24_pope_calib.json`) plus genuine mid/late structure (462 @L18, 480 @L28): the yes/no disposition forms extremely early for a large question subset, then re-forms at the motor layers (DECISIONS.md D49).
+- The prior-vs-evidence gap is only **readable calibrated**: the image-free path saturates at prior-yes (mean P_yes 0.999 through the mid band, `step40/x24_pope_calib.json`) while the image path discriminates (0.48 @L18 on random) — the image evidence pulls against the language prior exactly where the D48 sensory-block story says it should. The gap is a moderate per-question error predictor rising through the band: the answer-signed gap feature (DECISIONS.md `error_auc` convention (b)) scores **0.744–0.823 across L21–25** on adversarial and 0.866 at L31, recomputed from `step40/x24_pope_calib_adv.json`; the register's headline reading for the same feature band is ~0.71 (DECISIONS.md D49). The bare gap magnitude |g_l| is a different, much weaker feature (AUC −0.09 on adversarial) — the sign alignment carries the signal, and it is calibration-invariant, as a difference of two readouts should be.
+- Honest error-prediction verdict: mid-band lens **confidence anti-predicts errors** (AUC 0.31–0.61, below chance at L17–25 — mid-band certainty is about the wrong thing); the best lens-family predictor is the **final-layer image-free contrast (AUC 0.845** vs the model's own margin **0.795** on adversarial, both recomputed from `step40/x24_pope_calib_adv.json`; 0.845 is the |p_yes_free − p_yes| gap at L31, 0.7945 the model's own |margin|) — computing "what would the model say without the image" from the lens framework predicts the model's hallucination errors better than the model's own confidence, where priors bite (DECISIONS.md D49).
+- Methodology: gold/answer resolution made tokenizer-agnostic (`x20_gold` candidate sets + registry `generation_suffix` for qwen frames; llava numbers byte-identical), removing D48's qwen-multihop 0.0 artifact for future cross-arch runs (DECISIONS.md D49).
+- **INTERPRETATION.** Question dispositions are layered like caption commitments — early prior, mid-band evidence, motor re-formation — and the lens's image-free contrast beats the model's own confidence as a hallucination detector precisely because confidence is where the prior bites (DECISIONS.md D49).
+
+### Visual registers (x26)
+
+- **WHY.** D48's sticky image positions: do they carry object state that the unembed cannot verbalize?
+- **HOW.** 20 images, calibrated readout, band L12–31; top-8 register positions per image by stickiness z; leave-one-image-out ridge probes on the layer residual; lens/unembed readout and attention measured at the same positions; zero-ablation of the top-8 at L20 (`step40/x26_registers.json`).
+- **RESULT.** Sticky image positions (z **3.5–17.7** across L12–31; 9.7/3.9/3.5/5.7/8.1/17.7 at L12/16/20/24/28/31) are **unembed-blind but probe-decodeable**:
+
+| Readout at register positions | Register rows | Comparison rows |
+| --- | --- | --- |
+| Ridge probe AUC, GT-object presence | 0.687–0.741 | non-register patches 0.699–0.765; text 0.720–0.794 |
+| Lens/unembed obj-in-top10 | 0.000–0.0125, every layer | non-register 0.064 @L31; text 0.0688–0.0813 (L24–31) |
+
+  Attention **anti-correlates** with stickiness (Pearson r −0.33 to −0.30 across the band layers): registers are not attention magnets during captioning. Zero-ablating the top-8 registers at L20 leaves captions unchanged: CHAIR-s 0.100 → 0.100, length −0.3 tokens, P_yes −0.0018, object rate +0.0011 — causally inert at this strength. Caveat: n = 20 images; scale-up queued (`step40/x26_registers.json`; DECISIONS.md D49).
+- **INTERPRETATION.** The VLM carries visual state its output projection cannot verbalize — a **non-verbal visual workspace**: real (probe-decodeable from residuals), selectively invisible to the lens readout, and not load-bearing for caption content at this n (DECISIONS.md D49).
+
+### Mitigation decomposition (x25)
+
+- **WHY.** Convert the mechanism into mitigation: are blunt output-space contrasts destructive where the J-lens's readout-gradient geometry is surgical?
+- **HOW.** 9 arms × POPE(random, n = 60) × captions (60 images, 59 parsed captions per arm), one shared greedy decoder. Contrast arms: M3ID (image-free) / VCD (distorted-image) as a constant final-position subtraction, logits − τ·contrast, τ ∈ {0.5, 1, 2}. J-lens causal arm: prior-direction residual ablation at the commitment layer L20, v = normalize(h(image) − h(image-free)) measured at the final prompt position, applied via ResidualEditor, α ∈ {0.5, 1} (`step40/x25_pope.json`, `step40/x25_captions.json`).
+- **RESULT.** The naive logit-contrast arms (mid-band Δ = object-top10 rate vs baseline at L16–28, teacher-forced, `step40/x25_captions.json`):
+
+| Arm | POPE acc (random) | Unparsed /60 | CHAIR-s (captions) | Mid-band Δobj (pts) |
+| --- | --- | --- | --- | --- |
+| baseline | 0.950 | 0 | 0.441 | — |
+| m3id τ=0.5 | 0.950 | 0 | **0.627** | −1.2…−1.7 |
+| m3id τ=1 | 0.317 | 40 | 0.373 | −2.1…−2.7 |
+| m3id τ=2 | 0.000 | 60 | 0.017 | −6.9…−9.0 |
+| vcd τ=0.5 | 0.933 | 0 | **0.525** | −1.8…−2.3 |
+| vcd τ=1 | 0.033 | 58 | 0.186 | −3.9…−7.0 |
+| vcd τ=2 | 0.000 | 60 | 0.000 | −8.1…−9.7 |
+
+  DESTRUCTIVE at τ ≥ 1 (40–60/60 unparsed on POPE; captions degenerate — vcd τ=2 emits 160-token non-language at the generation cap with zero object mentions, so the falling CHAIR-s is collapse, not cure) and CHAIR-s **increases** at τ = 0.5 (0.44 → 0.63 m3id): blunt output-space contrasts scrape the workspace, dropping mid-band object content 2–9 points under them (DECISIONS.md D49). The J-lens causal arm is surgical:
+
+| Arm | POPE acc (random) | Unparsed /60 | CHAIR-s | Mid-band Δobj (pts, mean L16–28) |
+| --- | --- | --- | --- | --- |
+| prior-ablate α=0.5 | 0.950 | 0 | 0.475 | −0.2 |
+| prior-ablate α=1 | **0.967** | 0 | 0.441 (= baseline) | −0.4 |
+
+  POPE +1.7 acc at α = 1 (0.950 → 0.967, F1 0.9615) with zero unparsed; captions CHAIR-neutral (0.441 = baseline; CHAIR-r 0.721 vs 0.724, mentions 150 vs 151 — recall preserved); mid-band object content intact (−0.2 to −0.4 points) (`step40/x25_pope.json`, `step40/x25_captions.json`; DECISIONS.md D49).
+- **INTERPRETATION.** The intervention that moves the answer without damaging the state is the one the lens's readout-gradient geometry licenses — the property the constant logit contrasts lack. n = 60 caveat; canonical per-step normalized VCD/M3ID (not the constant approximation) is the fair next comparison (DECISIONS.md D49).
+
+### The task-honesty verdict (D49 addendum)
+
+- **WHY.** D48 showed the caption budget barely moves J (5–16% relative). Does the task?
+- **HOW.** Fit a POPE-answer lens (`fits/llava-1.5-7b-hf-pope`, n_prompts = 100 matching the caption lens, dim-batch 4, same seeded pipeline) and compare per-layer Jacobians against the caption lens (`fits/llava-1.5-7b-hf-pope/artifacts/`).
+- **RESULT.** Mean relative |dJ| = **1.19** (min 0.30 / max 2.63; band L16–28 mean 0.51) — the task changes the Jacobian ~10× more than the caption budget did. The one-lens assumption holds across caption budgets but **fails across caption → POPE VQA** (DECISIONS.md D49 addendum).
+- **INTERPRETATION.** The Jacobian linearization is strongly task/format-dependent. Recommendation: fit (or at minimum validate) per task distribution — the POPE-fitted lens for yes/no mechanism work, the caption-fitted lens for captioning. Scope note: the x24/x25 mechanism numbers above were produced with the CAPTION lens on POPE prompts; their qualitative structure (prior-vs-evidence gap, commitment layering) is expected to survive (the gap is a within-lens image-vs-image-free contrast), but absolute readouts should be re-based on the task lens before publication-grade claims (DECISIONS.md D49 addendum).
+- OPS. ~6 h wall on the contended box (dim-batch 4, OMP_NUM_THREADS=8); the pass budget is **per sample** (d_model/dim_batch passes × samples), so the "90% done" readings that plagued the retry loops were single-sample milestones; `fit_masked` resume works across attempts (DECISIONS.md D49 addendum).
+
+### The detector ledger, extended
+
+Extends the Stage-3 ledger (`### The detector ledger (figB5)`) with the x24 lens-family predictors; all new rows are per-question POPE reads (n = 2596, adversarial), complementing that ledger's per-question/per-image/per-word rows. Values from D49; the contrast and margin rows are recomputed from `step40/x24_pope_calib_adv.json`, the confidence row is the register's per-layer range.
+
+| Signal (training-free) | AUROC | n |
+| --- | --- | --- |
+| Final-layer image-free contrast, per question (adversarial) | **0.845** | 2596 questions |
+| Model's own margin, per question (adversarial) | 0.795 | same 2596 |
+| Answer-signed prior–evidence gap, per question (L21–25, adversarial) | 0.744–0.823 | 2596 questions |
+| Mid-band lens confidence, per question (L17–25, adversarial; anti-predictive, below chance) | 0.31–0.61 | 2596 questions |
+
+The confidence row keeps its sign: AUROC < 0.5 means mid-band lens certainty marks the model's errors. With the image-free contrast at 0.845 vs the model's own margin at 0.795, the lens framework's counterfactual readout out-predicts the model's confidence on the split where the prior bites hardest (DECISIONS.md D49).
+
+---
+
+## Stage 7 — Reading the round: what the Jacobian really is, what the task axis costs, and what to fit next (D50)
+
+### The affine scale is the tuned-lens pathology, not an estimator bug
+
+- **WHY.** D49's fitted scales (0.62–0.94, below 1 at every layer) admit two readings: the vendored estimator
+  mis-computes `J_l`, or the lens genuinely over-scales logits — only the first would indict the campaign's raw numbers.
+- **HOW.** Re-audit `jacobian_for_prompt` in the vendored implementation (`third_party/jacobian-lens/jlens/fitting.py`):
+  one forward on the prompt replicated `dim_batch`-fold with the graph retained across all `ceil(d_model/dim_batch)`
+  backwards; batch element `b` carries a one-hot cotangent at output dim `dim_start+b`, set at every valid target
+  position; each backward's rows are averaged over the valid source positions — no missing normalization exists.
+- **RESULT.** The scale <1 at every layer (0.62–0.94) is a real logit-scale mismatch between `W_U(J_l h)` and the
+  model's own distribution, which the affine absorbs exactly as the tuned-lens literature predicts (D50/D49).
+- **INTERPRETATION.** Absolute raw-lens readouts before calibration are systematically over-dispersed: every
+  pre-D49 absolute number (object rates, P_yes, mid-band confidence) is a ranking statement only; relative and
+  structural findings (band onsets, stickiness z, ignition width ordering) survive (D49 item 1).
+
+### E3: the transport preserves register content; the blindness is the unembed's (x26 --probe-transport)
+
+- **WHY.** Register blindness has two candidate causes: the transport `J_l` scrambling the register directions, or
+  the unembed `W_U` simply having no rows that verbalize them (D50).
+- **HOW.** x26 `--probe-transport`: probe the `J_l`-TRANSPORTED register rows against the raw `h_l` rows with the
+  same trained probes.
+- **RESULT.** Object-presence AUC, raw → transported: 0.687→0.684 (L12), 0.717→0.738 (L20), 0.721→0.739 (L24),
+  0.715→0.735 (L28), 0.730→0.730 (L31) — the transport PRESERVES (slightly sharpens, +0.02 through the band) the
+  register content for a trained probe, while the unembed readout at the same positions stays object-free
+  (obj-in-top10 0.000–0.013 at every layer) (D50/x26).
+- **INTERPRETATION.** The register blindness is the UNEMBED's row space, not the lens or its transport: "fit the
+  lens better" cannot verbalize registers; a supplementary readout head (trained probe) can, and the J-space is a
+  legitimate carrier for one (D50).
+- **NOTE (bis).** The first `--probe-transport` run was a silent no-op: x26's workspace intentionally builds the
+  IDENTITY-transport lens for its raw readouts, so the fitted J must be loaded separately (now env-configured in
+  the arm); the identical numbers were the tell-tale of a no-op arm (D50).
+
+### The task-delta profile decays with depth (D50 addendum 2)
+
+- **WHY.** The headline mean relative |dJ| = 1.19 (caption vs POPE-answer lens, D49 addendum) reads as uniform
+  task-sensitivity; the per-layer profile decides what adapting a lens to a new task must touch.
+- **HOW.** Per-layer relative |dJ|, caption lens vs POPE-500-answer lens, text mask.
+- **RESULT.** Monotone decay with depth: 2.63 (L0), 2.63, 1.70, 1.20, 0.76, 0.55, 0.44, 0.36 (L28) (D50 addendum 2).
+- **INTERPRETATION.** The Jacobian's task-specificity is an INPUT-side phenomenon: early-layer transport is what
+  the task reshapes (attention/routing patterns at the input), while the output side (band and motor layers)
+  converges to nearly the same linearization across tasks — late-layer |dJ| is already task-agnostic at the
+  0.3–0.5 level, so adapting a lens to a new task is NOT a full refit; only the early layers carry the task signal.
+  This also explains why D48's band-level workspace properties survived the caption-vs-POPE lens swap in the
+  microscope arms: the band is the converged region. The 119% headline mean is not the whole story — the profile,
+  not the mean, carries the actionable signal (D50 addendum 2/D49 addendum).
+
+### In-flight follow-ups (not results)
+
+- **E1 — in progress, no numbers yet (matched-sample control).** The task effect (dJ 119%) confounds TASK FORMAT with
+  IMAGE SET (the POPE-500 corpus uses different COCO images than the caption-100 corpus). Build the CAPTION
+  corpus's exact 100 images x 2 questions (1 present-object yes + 1 popular-absent no per image, from instances
+  annotations) = a 198-answer manifest (as built: 99 samples over 99 images, one image carrying a single question);
+  run a matched-task lens fit (dim-batch 4, resume-capable, currently running on the shared box); then the dJ
+  attribution: caption vs matched-POPE isolates the task FORMAT; caption vs POPE-500-answer isolates the image-set
+  effect. The verdict decides whether "fit on the analysis task" means task FORMAT or task DOMAIN (D50).
+- **E5 — flag landed, refit queued, no numbers yet.** `fit_llava --target-layer` exposes `fit_masked`'s
+  target_layer (the vendored implementation's docstring notes the penultimate target can be better-conditioned;
+  verified in `third_party/jacobian-lens/jlens/fitting.py`, `jacobian_for_prompt`). A matched-lens refit at
+  target = n_layers-2 tests whether the conditioning gain is real for us, measured by the same calibrated
+  fidelity table (D50).
+
+### What Stages 6–7 change about the campaign's claims
+
+- Absolute raw-lens readouts pre-calibration are over-dispersed by the systematic scale mismatch (0.62–0.94):
+  the absolute readout claims of Stages 2-4 are superseded, while the structural ones (band onsets, stickiness z,
+  ignition ordering) survive (D49 calibration).
+- The task axis dominates the budget axis ~10x: caption→POPE moves |dJ| 119% (min 0.30/max 2.63) where the
+  64-vs-256 caption budget moved it 5–16% — one-lens-per-task, not one-lens-per-model (D48/D49 addendum).
+- The register blindness is architectural — the unembed's row space, not a fitting defect — so image-position
+  verbalization needs a trained head, not a better J (D50 E3/x26).
+- Mitigation through the J-lens's readout-gradient geometry (prior-direction residual ablation) is surgical where
+  output-space logit contrasts are destructive: +1.7 POPE acc with mid-band object content intact vs CHAIR-s
+  0.44→0.63 under m3id at τ=0.5 (D49 x25).
+- The mid-band is not a "commitment" regime in the calibrated sense: commitment mass sits at L0–3 plus the motor
+  layers, while the mid/late band is the evidence-vs-prior site (image-free saturates prior-yes 0.999 there while
+  the image path discriminates) (D49 x24).
+
+### Evidence provenance for Stages 5–7
+
+- On-disk re-verification (this update): the x24 model band, the L5 commitment histograms, the raw P_yes(5)
+  crossing fractions, the answer-signed gap AUCs, the final-layer contrast/margin AUCs, the x25 arm table, and the
+  x26 register table all recompute from `step40/` JSONs (paths cited per row). E1's manifest line count and fit
+  liveness were checked directly.
+- Register-only (no artifact on disk at write time): the D49-addendum |dJ| attribution numbers (1.19/0.30/2.63, band
+  0.51) and the D50-addendum-2 per-layer profile — the diff artifacts were not retained on the shared volume.
+- Both step40 JSONs carry a stale `summary.note` about a tiny random-weight fixture that contradicts their own
+  identity fields and metrics; that note is ignored (recorded here so it is not re-cited).
+
 ## Operations lessons
 
 | Incident (D-ref) | Mechanism | Mitigation evolution |
-| --- | --- | --- |{"type":"excalidraw/clipboard","elements":[{"id":"bumXabRY","type":"text","x":1292.780289418186,"y":4442.285960535139,"width":23.0159912109375,"height":35,"angle":0,"strokeColor":"#1e1e1e","backgroundColor":"transparent","fillStyle":"hachure","strokeWidth":4,"strokeStyle":"solid","roughness":0,"opacity":100,"groupIds":[],"frameId":null,"index":"bBS","roundness":null,"seed":384637248,"version":23,"versionNonce":910963392,"isDeleted":false,"boundElements":null,"updated":1791757139809,"locked":false,"text":"...","rawText":"...","fontSize":28,"fontFamily":5,"textAlign":"left","verticalAlign":"top","containerId":null,"originalText":"...","autoResize":true,"lineHeight":1.25,"hasTextLink":false}],"files":{}}
+| --- | --- | --- |
 | OOM under co-tenancy (D11/D12) | Co-tenant held 57–73 GiB; the OOM'd fit process stayed resident holding ~28 GiB | Memory-guarded chain (`run_campaign.sh`, per-step windows, 30 s polls), then `gpu_guard.sh` |
 | External SIGKILLs (D14/D15) | Neighbours reclaim-then-launch (a `VLLM::EngineCore` started 13 s after our kill); fits died before their checkpoint | Transient-unbounded retries (`MAX_ROUNDS=60`, stop only on 3 consecutive non-transient), checkpoint cadence 5 (was 20/25; briefly 2 under kill storms, D27), 36/36 supervisor regression checks |
 | Speed derate (D22) | Co-tenant at 100% util pins TF32 matmuls to 41–49 TFLOPS (~8–10% of peak) while 14.8–38 GiB stay free — memory-free windows are still ~10× slow | `gpu_guard.sh` probes TFLOPS + free memory before starts; later superseded by per-step window gates + in-step watchdog on the 8×H100 box (D32) |
 | ENOSPC (D24/D46) | `/data` at 100%: `torch.save` died in its zip trailer; even ~3 KB saves failed; second full-disk hit in round 3 | Path-aware `DISK_NEED` disk gates + output relocation to a writable mount (D25/D30, `/home/nvidia` in round 3) |
 | Fingerprint rigidity (D13) | Checkpoint settings fingerprints include `dim_batch`, so resuming at a different value hard-fails even though it is mathematically inert | Keep `dim_batch` fixed per run; docs note resume requires the same value |
 | Estimator memory shape (F10/D21) | One forward on a `dim_batch`-fold expanded batch; the graph is retained from `min(source_layers)` across all `ceil(d_model/dim_batch)` backwards — at `dim_batch=8` the expanded graph (~30 GB at the 13B geometry) survives all 640 backwards | `dim_batch` is the dominant OOM lever (a memory knob, not compute); `dim_batch=1` fits under 36 GiB guards |
+| Stale-lens evals (D48) | phase31's "256-lens" evals ran against 64-token content under 256 filenames (the genuine 256 merges did not exist yet; the qwen merged dir briefly held a bogus 64-shard re-merge) | Cross-file metric identity caught it; T22's lens-determinism proof root-caused it; JSONs purged and re-run against fingerprint-verified lenses (x21's sha256 meta fingerprints) |
+| Shared-volume disk-full, twice (D48/D49) | Checkpoint writes failed on the shared volume; tenants drained it between rounds | Reclaim finished-shard checkpoints and the regenerable synthetic lens zoo; relocate the run workspace and logs to a resilient mount; per-sample pass accounting (so "90% done" is not a whole-run reading) |
+| Calibration-fit hang (D49) | The calibration fit hung on shared-box OMP thrash (51 cores, then futex-idle) | Pin `--threads 8` + capture progress logging; capture itself measures 3.4 s / 20 samples |
+| Launch race (D49) | phase44's malformed heredoc raced phase46 and was killed mid-run | Generate launch scripts locally, transfer, then run; retry loops only on transient errors |
+| Per-sample pass budget (D49 addendum) | The estimator's pass count is `ceil(d_model/dim_batch)` per SAMPLE, so a resumed run restarts the current sample's pass | Report progress in samples, never in fit passes; `fit_masked` resume is reliable across attempts (E1's matched fit now runs resume-capable) |
 
 ![figD10](figures/figD10_campaign_timeline.png)
 _figD10 — the campaign timeline (2026-10-01 → 10-11, parsed from DECISIONS.md D-headers): phase lanes and the
@@ -637,13 +939,22 @@ if the process survives `EARLY_SECS=420` without an OOM marker, else kill and tr
 
 ## In-flight work (not results)
 
-The **multi-arch extension** — `llava-1.5-13b-hf` (40 layers) and `Qwen2-VL-7B-Instruct` (28 layers, new
-`Qwen2VLLensWrapper` handling variable-resolution image tokens) — is **built and gated but not fitted**:
-`phase28_gates.sh` runs the real-checkpoint equivalence gate for both architectures before any fit;
-`phase29_fit13b.sh` / `phase30_fitqwen.sh` fit 100 COCO captions (masks text/image/all, two shards on different
-GPUs, then merge) under 55/45 GiB window guards; `phase31_evals.sh` / `phase32_chain.sh` stage the downstream
-evals (`vlm_registry.py` holds the model specs). All fits are queued on GPU availability — **no numbers from
-these runs are results yet**; hypotheses referencing them (H6, H7) are pre-registrations.
+Three follow-ups are open, none with numbers; two of them pin the interpretation of Stage 6:
+
+- **E1 — the matched-sample task control** (Stage 7). The caption corpus's exact 100 images × 2 questions
+  (1 present-object yes + 1 popular-absent no per image, from instances annotations) = a 198-answer manifest
+  (as built: 99 samples over 99 images), then a matched-task lens fit at dim-batch 4 on the live box
+  (`fits/llava-1.5-7b-hf-pope-matched`, resume-capable) and the dJ attribution. Verdict decides whether "fit on the
+  analysis task" means task FORMAT or task DOMAIN (D50).
+- **E5 — the penultimate-target refit.** `fit_llava --target-layer` (landed in `fit_masked`) exposes the vendored
+  implementation's penultimate-target conditioning hint; a matched-lens refit at `target_layer = n_layers - 2`,
+  scored by the same calibrated fidelity table (D50).
+- **Register probe scale-up.** x26's n=20 finding (unembed-blind, probe-decodeable registers) needs the 300 held-out
+  captions plus further COCO images before the non-verbal-workspace claim is a result rather than a pilot (D49).
+
+Retired from in-flight: the multi-architecture extension is now **fitted and evaluated** (Stage 5): `fits/<model>`
+holds both budgets for 7b/13b/qwen2vl with 20 step13 eval JSONs; the qwen gold-resolution caveat is removed by
+D49's tokenizer-agnostic resolution, so cross-arch reruns no longer need a re-fit (D48/D49).
 
 ## What these results license (and what they do not)
 
@@ -655,12 +966,23 @@ handle** (add/ablate/ swap with well-conditioned 2-column bases, cond ≤ 2.89; 
 surgical cure at L30); training-free hallucination readouts (pre-generation gap 0.985, per-word lens entropy
 0.730, fused image-level risk 0.666 — all single-forward, moments-only); and workspace structure claims
 replicated on a VLM (band, lens>logit at mid, report rise, depth precedence, ignition, modality-split bands).
+Stages 5–7 add: **calibrated** per-layer readouts as the deployment default (top1 agreement 0.24→0.61 at L20), for
+absolute as well as comparative statements; a question-scale POPE mechanism story (model in the published band,
+prior-vs-evidence gap readable only calibrated, final-layer image-free contrast 0.845 beating the model's own
+margin 0.795 on adversarial); a **surgical, training-free mitigation arm** (prior-direction residual ablation at
+the commitment layer: +1.7 POPE acc, CHAIR-neutral, mid-band object content intact — n=60); a cross-architecture
+generality claim for the J-space properties (7b/13b/qwen2vl, both caption budgets); and the non-verbal-visual-
+workspace claim, **conditional on a trained probe** (register content is probe-decodable but unembed-blind).
 
 **Cannot**: "the J-lens dominates everywhere" — mid-layer needed the affine correction (D40 revising
 D19/D39(c)); image rows as text predictors (V1/D36: the image→image cotangent mass is 24–255× larger, cos 0.39 →
-0.09) or "the model sees X" claims from image-position readouts; absolute hallucination rates from rank/KL
-values (corpus- and instruction-conditional); ranking claims from mean rank alone (the rank-vs-KL tension,
-D19/D43); attention-based hallucination prediction (NULL at power, D46).
+0.09) or "the model sees X" claims from image-position readouts (D49/D50 add the sharper form: the registers are
+unembed-blind *architecturally*, so a better J cannot verbalize them — only a trained head); absolute
+pre-calibration readouts (over-dispersed by the 0.62–0.94 scale; ranking statements only, D49/D50); absolute
+hallucination rates from rank/KL values (corpus- and instruction-conditional); ranking claims from mean rank alone
+(the rank-vs-KL tension, D19/D43); attention-based hallucination prediction (NULL at power, D46); or "one lens per
+model" — the caption→POPE task axis moves |dJ| 119% (10× the caption-budget axis), so cross-task absolute claims
+need a task-fitted (at minimum task-validated) lens (D49 addendum).
 
 ## Hypothesis register
 
@@ -699,12 +1021,18 @@ discriminating run on existing tooling.
 - **H6 — The sink-dim set is architecture-universal.** Evidence: D46 X16 — the BOS top-16 dim set is identical
   across L16–30, position-typed (image/text share 1512/2789/1076), BOS-clamp destructive (retention 0.278) while
   image dims are inert (0.94–1.00). Prediction: qwen2vl's census will show a single massive outlier group with a
-  position-typed, band-stable dim set. Cheapest test: run the X3 census + top-16 dim extraction on the queued
-  qwen2vl fit (phase30) — zero new method code.
-- **H7 — The band boundary shifts with depth.** Evidence: D47 — 32-layer LLaVA-7B band L17–29 within the mapped
-  [12, 29]; the paper's deeper frontier models band [38, 92]. Prediction: on llava-13b (40 layers, phase29 fit)
-  the onset/offset layers shift deeper in absolute terms at roughly constant fractional band position. Cheapest
-  test: rerun the x22 structure arm on the 13b lens; compare fractional onsets (layer / n_layers).
+  position-typed, band-stable dim set — now testable, because the qwen2vl lens exists (D48,
+  `fits/qwen2-vl-7b-instruct`). Cheapest test: run the X3 census + top-16 dim extraction on the fitted qwen2vl
+  lens — zero new method code. Note the band onsets already differ per model (13b L25, qwen L24, 7b L20: Stage 5),
+  so the prediction is about the *shape* of the sink, not its depth.
+- **H7 — The band boundary shifts with depth: CONFIRMED at n=3.** Evidence: D47 — 32-layer LLaVA-7B band L17–29
+  within the mapped [12, 29]; the paper's deeper frontier models band [38, 92]. D48 Stage 5 now measures all three
+  production models: top-1 onset/offset 7b **L20/L29**, 13b **L25/L36**, qwen **L24/L26**. Onset×(layers/32) =
+  20, 31, 21 and offset 29, 45, 22.75 — 7b and qwen land within 3% of the 7b baseline fraction, but 13b's band
+  runs ~10% deeper in fractional terms (onset 0.63 vs 0.75), so the "constant fractional position" form holds for
+  same-family models and fails for the LLaVA-13b width change. Cheapest test: rerun the x22 structure arm on the
+  remaining budget variant (`merged-64tok` for 13b) and check whether the 13b fractional shift is a width effect
+  or a caption-budget effect.
 - **H8 — Fusion of lens entropy + category gap improves with more images.** Evidence: D46 X19 — fused 0.666 at
   n=197 (27 positives), the components alone 0.620 and 0.632, failing on different images. Prediction: the
   z-scored fusion's AUROC rises with n as the components' errors decorrelate. Cheapest test: extend
@@ -716,3 +1044,27 @@ discriminating run on existing tooling.
   fidelity. Prediction: distilling the translator against the L30 J-lens readout converges faster per sample at
   equal n. Cheapest test: refit the rank-32 translator at n=40/100 with the L30 J-lens output as target and
   compare the LQS curve to D43's 1.714/2.043.
+
+- **H10 — The task effect is format, not image set.** Evidence: D49 addendum — caption→POPE-answer lenses differ by
+  mean |dJ| 1.19 (min 0.30, band L16–28 0.51) vs 5–16% for the caption-budget axis; D50 — the effect is confounded
+  with the image set until the matched control lands. Prediction: caption vs matched-POPE-on-the-same-100-images
+  keeps a large |dJ| but smaller than 1.19, and the residual vs POPE-500 is the image-set part. Cheapest test: the
+  running E1 fit (99 matched questions on the caption corpus's own images) plus a per-layer diff — zero new method
+  code.
+- **H11 — The image-free contrast generalizes beyond adversarial.** Evidence: D49 x24 — the final-layer image-free
+  contrast ranks the model's errors at AUC 0.845 vs its own margin 0.795 on adversarial, and the answer-signed gap
+  rises through the band (0.744–0.823 at L21–25, recomputed); the effect is calibration-invariant. Prediction: the
+  contrast keeps its margin over the model's confidence on the 300 held-out captions and on the question-scale
+  random/popular splits, shrinking on the yes-rate-inflated adversarial split. Cheapest test: reuse `x24_pope_microscope.py`
+  with `--lens` pointing at the POPE-fitted lens (`fits/llava-1.5-7b-hf-pope`) and compare contrasts per split.
+- **H12 — Early-layer-only refits recover the task lens.** Evidence: D50 addendum 2 — the per-layer task delta decays
+  monotonically (2.63 at L0 → 0.36 by L28), so late-layer J's are task-agnostic at 0.3–0.5. Prediction: re-fitting
+  only source layers 0–8 on a new task reproduces the full task-lens's calibrated readout within the D48 budget-noise
+  band (5–16%) while cutting fit cost by ~3×. Cheapest test: run the E1 matched fit with a source-layer subset and
+  compare the calibrated fidelity table against the full fit.
+- **H13 — A trained head beats the unembed on register content, and the gap is causal.** Evidence: D50 E3/x26 — the
+  transport preserves probe-readable register content while the unembed readout stays object-free at those
+  positions (obj-in-top10 0.000–0.013); D49 — registers are causally inert at zero-ablation strength. Prediction:
+  a probe head trained on register residuals improves downstream caption object recall under a decode-time readout
+  rule, and a stronger (not zero) register intervention changes captions. Cheapest test: scale x26 to the 300
+  held-out captions (D49's queued scale-up) and fit the decode-time probe head against CHAIR.
