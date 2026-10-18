@@ -100,6 +100,7 @@ from jlens.lens import JacobianLens  # noqa: E402
 
 from vlm_lens.data.captions import DEFAULT_QUESTIONS  # noqa: E402
 from vlm_lens.data.manifest import manifest_meta, read_manifest  # noqa: E402
+from vlm_lens.artifacts import load_lens_set  # noqa: E402
 from vlm_lens.interventions import ResidualEdit, ResidualEditor  # noqa: E402
 from vlm_lens.models.llava import MultimodalBatch  # noqa: E402
 
@@ -1093,16 +1094,47 @@ def chair_aggregate(rows: list[dict[str, Any]]) -> dict[str, Any]:
 
 
 def _transport_rows(rows: torch.Tensor, lens: Any, layer: int) -> torch.Tensor:
-    """``lens.transport(rows, layer)`` with the identity-lens passthrough.
+    """``J_l @ rows`` with the identity-lens no-op detection.
 
-    The fitted-lens path applies the layer's J; an identity/fallback lens has no
-    Jacobian for the layer and the rows pass through unchanged (the probe then
-    measures the raw residual, recorded as such in the output notes).
+    x26's workspace builds the identity-transport lens (the x23 convention for raw
+    readouts); an identity block is NOT the fitted J. Load the fitted Jacobians
+    once (cached), and if the supplied lens is identity, transport with the FITTED
+    ``J_l`` instead; layers absent from the fitted lens pass through unchanged.
     """
-    jacobians = getattr(lens, "jacobians", None)
-    if not jacobians or layer not in jacobians:
-        return rows
-    return lens.transport(rows.float(), layer)
+    fitted = _fitted_jacobians()
+    jac = fitted.get(layer) if fitted else None
+    if jac is None:
+        jacobians = getattr(lens, "jacobians", None)
+        if not jacobians or layer not in jacobians:
+            return rows
+        block = jacobians[layer]
+        if block.ndim == 2 and float(torch.diagonal(block).sum()) == float(block.sum()):
+            return rows
+        return rows.to(block.device, torch.float32) @ block.T
+    return rows.to(jac.device, torch.float32) @ jac.T
+
+
+_FITTED_CACHE: dict[int, torch.Tensor] | None = None
+
+
+def _fitted_jacobians() -> dict[int, torch.Tensor] | None:
+    """The fitted lens's ``J_l`` blocks (loaded once; the identity-lens no-op path)."""
+    global _FITTED_CACHE
+    if _FITTED_CACHE is not None:
+        return _FITTED_CACHE
+    lens_dir = os.environ.get("X26_FITTED_LENS_DIR", "")
+    if not lens_dir:
+        _FITTED_CACHE = {}
+        return None
+    try:
+        lenses, _ = load_lens_set(lens_dir)
+    except Exception:  # noqa: BLE001 - any load failure = no fitted path
+        _FITTED_CACHE = {}
+        return None
+    mask = os.environ.get("X26_FITTED_LENS_MASK", "text")
+    lens = lenses.get(mask)
+    _FITTED_CACHE = dict(lens.jacobians) if lens is not None else {}
+    return _FITTED_CACHE
 
 
 # ------------------------------------------------------------------ arm a+b: registers
