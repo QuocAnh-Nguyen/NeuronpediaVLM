@@ -6,10 +6,13 @@ residual stream with respect to the layer-`l` residual state over a corpus of mu
 the multimodal residual stream of `llava-hf/llava-1.5-7b-hf`. The question driving the campaign: LLaVA
 hallucinates objects that are not in the image — can lens readouts, plus causal edits from the same lens
 vectors, explain where and why the visual signal loses to the language prior, and cure it without training?
-Headline conclusion after seven stages (decisions D0–D50 in [`DECISIONS.md`](DECISIONS.md)): the J-lens is a
+Headline conclusion after seven stages (decisions D0–D51 in [`DECISIONS.md`](DECISIONS.md); D51 retracts the X14
+crossover on the X14 n=200 power-up): the J-lens is a
 validated disposition + intervention instrument, not a universal detector; hallucination is the language prior
-winning the visual→verbal handoff — the prior leads 7× at L0 (rank ~787 vs ~5358), grounding overtakes it only
-at L24–26, and the handoff is text-mediated at the last prompt position; training-free pre-generation detectors
+winning the visual→verbal handoff — the prior leads from L0 and holds that lead through the whole workspace band
+(n=200 power-up: hallucinated words ranked 3–12× better than grounded words at L24–28, with the only crossover at
+L30, the motor regime), the handoff is text-mediated at the last prompt position, and the truth is never
+represented competitively at a hallucinated word's own decoding position; training-free pre-generation detectors
 reach 0.985 AUROC on POPE object presence (0.895 for catching the model's own hallucinated yes); a
 mean-replacement ablation of the hallucinated concept's J-lens direction at L30 removes 0.90 of hallucinations
 with grounded retention 1.00 (the control ablation destroys 0.97→0.35); and the global-workspace structure of
@@ -32,9 +35,9 @@ unembed's row space, not the transport.
   64 vs 256 tokens), **6 — J-lens v2** (D49: affine calibration, the x24 POPE microscope, x26 registers, the x25
   mitigation decomposition, the task-honesty verdict), **7 — Reading the round** (D50: the estimator reading, the
   register-transport verdict, the task-delta profile, follow-ups); then operations lessons, in-flight work,
-  licensing claims, and the hypothesis register at the end. Stages 5–7 are table-documented — the round produced
-  no new figures.
-- **D-numbers** (D0–D50) point into [`DECISIONS.md`](DECISIONS.md), the authoritative per-experiment record
+  licensing claims, and the hypothesis register at the end. Stage 3 also carries the X14 power-up retraction (D51,
+  figB6); Stages 5–6 are documented by tables plus the third-round figures (figE*).
+- **D-numbers** (D0–D51) point into [`DECISIONS.md`](DECISIONS.md), the authoritative per-experiment record
   (campaign-local; the repository register's D-table is unrelated). Experiment codes X*/S*/P\* follow the
   campaign registers; V1 etc. are the repo register's hypothesis identifiers.
 - Every figure is regenerable via `results/validation_2026-10-01/code/figures_instrument.py` (figA*),
@@ -434,7 +437,8 @@ across L0–24 (A-objects vanish by L24; B-objects appear only through L16); sin
   at every layer.
 - **RESULT.** The prior leads from the start: hallucinated generated words are high-ranked **from L0 (rank ~787
   vs grounded ~5358 — 7×)**, while grounded words are built up monotonically (5358 → 1.18). The trajectories
-  **cross at L24–26** (L24: grounded 4.86 vs hallucinated 6.5; L26: 1.18 vs 4.5). The handoff is text-mediated:
+  **cross at L24–26** (L24: grounded 4.86 vs hallucinated 6.5; L26: 1.18 vs 4.5) — on TWO hallucinated words,
+  which the power-up below retracts. The handoff is text-mediated:
   the image's true categories rank ~1200–2000 at the last IMAGE-token position at every layer (never decodable
   there), but at the **last PROMPT position** the best-per-image true object rank falls **1423 (L16) → 34 (L20)
   → 6–15 (L22–25)**; then the L31 readout flips to the imminent token (mean rank 3464 — the motor regime).
@@ -444,13 +448,71 @@ across L0–24 (A-objects vanish by L24; B-objects appear only through L16); sin
 - **INTERPRETATION.** Hallucination is the prior winning, not suppressed knowledge: the model does not represent
   the truth competitively at the commitment positions. Grounding is a computation that overtakes the prior in a
   narrow band (L20–25) at a specific location (last prompt position) — exactly the X12 boundary and the D41–D43
-  transport zone.
+  transport zone. **Revised by the n=200 power-up below: the narrow-band overtake does not survive.**
 
 ![figB4](figures/figB4_prior_grounding_race.png)
-_figB4 — the prior-vs-grounding race (24 images): hallucinated words rank ~787 vs grounded ~5358 at L0;
-grounding overtakes at L24–26; the image's true objects surface only at the last prompt position (1423 → 34 →
-6–15 across L16→L20→L22–25) and the L31 motor flip moves the readout to the imminent token (mean rank 3464)
-(`raw/step10/x14_workspace_probe.json`)._
+_figB4 — the prior-vs-grounding race (24 images; superseded in two respects by figB6 below — the 7× L0 lead is
+1.4× at n=200, and there is no L24–26 crossing): hallucinated words rank ~787 vs grounded ~5358 at L0; the
+image's true objects surface only at the last prompt position (1423 → 34 → 6–15 across L16→L20→L22–25) and the
+L31 motor flip moves the readout to the imminent token (mean rank 3464) (`raw/step10/x14_workspace_probe.json`)._
+
+### X14 power-up at n=200 (figB6) — the crossing is retracted
+
+- **WHY.** The hallucinated arm of the n=24 run was **2 words**. Every Layer-24–26 claim above (the "prior leads
+  7×", the crossover, the X13 dose-response reading) rests on that arm, so the round's headline mechanism needs a
+  power-up before it is a result.
+- **HOW.** The same `x14_workspace_probe.py`, the same seeded selection (`seed=0`) extended to 200 images, one
+  greedy generation per image, the same calibrated identity-transport + moment-payload readout, ranks defined
+  identically (`raw/step10/x14_workspace_probe_n200.json`, box run 2026-10-18). 385 grounded / **39 hallucinated**
+  word instances re-ranked at every layer. Two passes: the first omitted `--handoff-rank` (an opt-in flag),
+  leaving metric 4 uncomputed; the rerun with the flag is the shipped file, and the two passes are
+  **bit-identical on every non-handoff field** (0 mismatches × 32 layers) — greedy determinism confirmed.
+  Metric 4 (the handoff) is now measured at n=200 as well, and it retracts a third number — see RESULT.
+- **RESULT.** The prior's *lead* survives in sign; its *magnitude* and the *crossover* do not. Rank ratio
+  grounded / hallucinated (higher = the prior leads more):
+
+| Layer | n=24 (2 halluc words) | n=200 (39 halluc words) |
+| --- | --- | --- |
+| L0 | 6.81 (5358 vs 787) | **1.40** (5622 vs 4024) |
+| L8 | 6.22 | 1.43 |
+| L16 | 13.34 | 1.46 |
+| L20 | 13.86 | 1.06 |
+| L24 | 0.75 — crossing | **3.12** — prior leads |
+| L26 | 0.26 — crossing | **12.18** — prior leads |
+| L28 | 0.31 — crossing | **5.68** — prior leads |
+| L30 | 0.20 — crossing | 0.80 — the ONLY grounded-wins layer |
+
+  The n=24 crossing (grounded better at L24–28) inverts at power: through the band the hallucinated word is ranked
+  3–12× *better* than grounded words, and the single layer where grounded wins is L30, where both are at the
+  imminent token (1.98 vs 2.49) — the motor regime, not the workspace band. At L0 the lead falls from 6.81× to
+  1.40×. What survives: **DOES-THE-MODEL-KNOW stays negative** (at the hallucinated words' decoding positions the
+  image's true categories rank 703 / 373 / 1143 at L16 / L24 / L30 while the hallucinated word holds rank 1500 /
+  5.6 / 2.5 — the truth is not there competitively), and the **last image token is never decodable**
+  (best true-object rank 1416–1877 at every layer, both runs).
+  The **handoff** (metric 4), re-measured at n=200 with `--handoff-rank`: the MEAN true-object rank at the last
+  prompt position is **flat** (1590 at L0, 1511 at L24, 2214 at L30) where the n=24 mean fell to 704 at L24 —
+  the n=24 mean fall was a 24-image fluctuation. The per-image **best** still dips to 5–14 across L20–28 (vs 39
+  at L16): truth at the last prompt position surfaces for a **subset** of images, not the typical image — the
+  "text-mediated handoff" survives only as best-per-image, not as mean.
+
+![figB6](figures/figB6_x14_powerup.png)
+_figB6 — the X14 power-up (`raw/step10/x14_workspace_probe_n200.json` overlaid thin-dashed on the n=24 run,
+regenerable via `code/figures_hallucination.py`): left, the prior-vs-grounding race — the prior's L0 lead survives
+in sign (hallucinated ranked better) but shrinks 6.8× → 1.4×, and the only layer where the grounded word wins is
+L30, the motor regime; right, where truth lives — true objects never surface at the last image token (rank
+~1400–1900 at every layer), stay ~2 orders of magnitude behind the hallucinated word at the hallucinated word's
+own decoding positions (703 vs 1500 at L16), and at the last PROMPT position the mean is flat at n=200
+(~1500–1900; the n=24 mean fall was a fluctuation) while the per-image best dips to 5–14 at L20–28 (green)._
+
+- **INTERPRETATION.** **Retraction (revises D44's X14 result and the campaign headline):** there is no
+  grounding-overtakes-the-prior window at L24–26. The corrected reading is *stronger* for the campaign's central
+  claim — hallucination is the prior winning, and it wins through the whole workspace band, not just at L0 — but
+  it removes the narrow L20–25 band that H1's add-arm intervention was aimed at, and it means the X13 cure's
+  layer dose-response (0.50/0.60/0.70/0.90 at L16/24/28/30) must be re-read as *prior-ablation strength growing
+  with depth*, not as "improving as grounding overtakes". The `--handoff-rank` rerun extends the retraction to a
+  third number: the **mean** true-object rank at the last prompt position does not fall at n=200 (flat
+  ~1500–1900; the n=24 fall to 704 was a 24-image fluctuation), so the text-mediated handoff survives only as a
+  per-image-best phenomenon (5–14 at L20–28) — a subset of images surfaces truth, not the typical image.
 
 ### X13 cure test (figB2)
 
@@ -464,7 +526,8 @@ grounding overtakes at L24–26; the image's true objects surface only at the la
   **0.97 → 0.79 → 0.52 → 0.35** across the same layers.
 - **INTERPRETATION.** A training-free, single-direction **90% surgical cure at L30**: the hallucinated concept's
   direction is causally load-bearing for the unsupported token while grounded content survives it. The layer
-  dose-response matches the X14 crossing — the cure improves as grounding overtakes the prior.
+  dose-response rises with depth — which the X14 power-up re-reads as prior-ablation strength growing with depth
+  (the cure no longer needs the grounding-overtakes-the-prior story).
 
 ![figB2](figures/figB2_cure_test.png)
 _figB2 — the cure test (39 images): mean-replacement ablation of the hallucinated concept's J-lens direction
@@ -543,7 +606,6 @@ L16–30 (14/16 dims shared, recomputed from the JSON; D46 records the set)._
 _figB5 — the detector ledger: workspace CONTENT predicts hallucination (pre-generation gap 0.985; per-word lens
 entropy 0.730; fused image-level 0.666), attention allocation does not (0.501 NULL); caption-level risk is a
 0.6–0.73 problem, pre-generation yes/no is nearly solved (`raw/step11/` JSONs, D46)._
-
 ---
 
 ## Stage 4 — Global-workspace replication + the VLM novelty
@@ -1139,11 +1201,15 @@ need a task-fitted (at minimum task-validated) lens (D49 addendum).
 Numbered, testable, each with its evidence pointer; predictions are directional; tests are the cheapest
 discriminating run on existing tooling.
 
-- **H1 — Grounding-overtake intervention.** Boosting grounded categories at L20–25 text rows converts would-be
-  hallucinations. Evidence: D44 X14 — true-object rank 1423 → 34 → 6–15 at the last prompt position
-  (L16→L20→L22–25), crossing at L24–26; D44 X13 — ablation at those layers already removes 0.50–0.70.
-  Prediction: an add-arm (the mirror of X13's ablate-arm) at L20–25 turns hallucinated captions grounded more
-  often than decoding noise, below the α≈27 degeneration boundary (D40). Cheapest test: add an add-arm to
+- **H1 — Prior-distortion intervention (REFRAMED after the X14 power-up).** The n=200 run retracted the L24–26
+  crossover (the prior leads through the band: 3–12× at L24–28; the only crossover is L30, the motor regime), so
+  an add-arm aimed at a grounding-overtake window has no window to aim at. Surviving evidence: D44 X13 —
+  prior-direction ablation removes 0.50–0.70 by L28. **The re-measurement request is CLOSED** (the
+  `--handoff-rank` pass at n=200, this round): metric 4's MEAN does not fall (flat ~1500–1900; the n=24 mean
+  fall to 704 was a 24-image fluctuation), while the per-image BEST still dips to 5–14 at L20–28 — truth at the
+  last prompt position surfaces for a subset of images. Reframed prediction: ablating (not boosting) the prior
+  direction at the hallucinated word's own decoding position removes the hallucination more often than decoding
+  noise, with the effect growing with depth as the prior's rank dominance does. Cheapest test: add an add-arm to
   `x13_cure_test.py` on the same 39 images (~1 GPU-h, no fitting).
 - **H2 — Edits through the n=1000 translator.** Composing edit directions as `W_U[t] @ A_l J_l` matches J-vector
   edit efficacy and enables mid-layer cures at lower alpha. Evidence: D41 span overlap — J-vector top-64

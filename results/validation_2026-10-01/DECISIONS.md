@@ -1431,4 +1431,43 @@ text positions throughout. Artifacts: step12 (11 JSONs); commits f9e2d96, 0f78b1
 +0.3-0.5 level; only the early layers carry the task signal. (Also: this is why the D48
 +band-level workspace properties survived the caption-vs-POPE lens swap in the microscope
 +arms - the band is the converged region.)
-+
+
+## D51 - 2026-10-18: the X14 power-up retracts the L24-26 crossover - the prior leads through the whole band, and only the motor regime flips it
+
+X14 POWER-UP AT n=200 (x14_workspace_probe.py, same seed=0 selection extended to 200 COCO val2014
+images, one greedy generation per image, same calibrated identity-transport + moment-payload
+readout as the n=24 run; raw/step10/x14_workspace_probe_n200.json, box run 2026-10-18; 385
+grounded / 39 hallucinated word instances vs the n=24 run's 51 / 2). REASON: the D44
+headline mechanism (the prior leads 7x at L0, the trajectories cross at L24-26) rested on a
+TWO-word hallucinated arm, and the campaign's central claim was quoted in every downstream
+document on it.
+
+WHAT SURVIVES, WHAT DIES (rank ratio grounded/hallucinated, n=24 vs n=200):
+* SURVIVES (sign): the prior leads from L0. Hallucinated words rank better than grounded words
+  through the band on both samples.
+* DIES (magnitude): the 7x L0 lead is 1.40x at power (L0: 5622 vs 4024; the n=24 run read 5358
+  vs 787 = 6.81x). The L16 13.3x reading becomes 1.46x.
+* DIES (the crossover): the n=24 run showed grounded better at L24/26/28/30; at n=200 the
+  hallucinated word is ranked 3.12x / 12.18x / 5.68x BETTER at L24/26/28, and the single layer
+  where grounded wins is L30 (1.98 vs 2.49) - i.e. the motor regime, where the grounded word is
+  the imminent token. There is no grounding-overtake window at L24-26.
+* SURVIVES (unchanged): does-the-model-know is negative at power - at the hallucinated words'
+  own decoding positions the image's true categories rank 703 / 373 / 1143 at L16 / L24 / L30
+  while the hallucinated word holds rank 1500 / 5.6 / 2.5; and the last image token is never
+  decodable (best true-object rank 1416-1877 at every layer on both runs).
+* RE-MEASURED (the round's only open item, closed by a second pass with --handoff-rank): metric 4 (true-object
+  rank at the last prompt position) at n=200 - the MEAN does NOT fall (1590 / 1511 / 2214 at L0/L24/L30 vs the
+  n=24 mean's 704 at L24 - a 24-image fluctuation), while the per-image BEST still dips to 5-14 across L20-28
+  (vs 39 at L16): truth surfaces at the last prompt position for a SUBSET of images, not the typical image.
+  Determinism check: the two passes are bit-identical on every non-handoff field (0 mismatches x 32 layers).
+
+CONSEQUENCE (experienced experience revision): the corrected reading is stronger for the
+campaign's central claim (hallucination is the prior winning - and it wins through the whole
+workspace band, not just at L0), but it removes the narrow L20-25 window H1's add-arm aimed
+at, and it re-reads X13's layer dose-response (0.50/0.60/0.70/0.90 at L16/24/28/30) as
+prior-ablation strength growing with depth rather than as the cure tracking a grounding
+overtake. EXPERIMENTS.md carries the retraction in Stage 3 (figB6 embedded, figB4 and the
+headline superseded with pointers) and H1 is reframed accordingly.
+
+TOOLING: figures_hallucination.py gains figB6 (overlay of the two runs, thin dashed = n=24);
+the figure and its metrics row regenerate deterministically from the two vendored JSONs.

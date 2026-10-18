@@ -496,6 +496,17 @@ def figB6():
                 label="true objects at last PROMPT (handoff), n=200")
     else:
         ax.annotate("handoff not computed in this file (needs --handoff-rank)", (2, 1200), fontsize=8, color=GREY)
+    ax.annotate(
+        "handoff MEAN flat at n=200 (~1500-1900):\n"
+        "the n=24 mean fall (704 at L24) was a\n"
+        "24-image fluctuation; per-image BEST still\n"
+        "dips to 5-14 at L20-28 = a SUBSET of images\n"
+        "surfaces truth at the last prompt position",
+        (1.2, 3300),
+        fontsize=8,
+        color=GREEN,
+        va="bottom",
+    )
     ax.set_title("Where truth lives: never at image tokens; the hallucinated word\nbeats the truth at its own decoding positions")
     ax.legend(loc="lower left", fontsize=7.5)
 
@@ -637,6 +648,32 @@ def main():
                     "n_words_grounded_vs_hallucinated_x15": [x15n["aggregate"]["n_words_grounded"], x15n["aggregate"]["n_words_hallucinated"]],
                 },
                 "finding": "Hallucination is best predicted by calibrated workspace content, not attention: the pre-generation yes/no gap nearly solves object presence (0.985 over 185 questions; 0.895 as a low-gap detector of the model's own hallucinated yes), while caption-level risk is a 0.6-0.73 problem (fused 0.666) and the attention mirror is NULL (0.501); all lens detectors are training-free and single-pass.",
+            },
+            "figB6_x14_powerup": {
+                "file": "figures/figB6_x14_powerup.png",
+                "sources": [
+                    "raw/step10/x14_workspace_probe_n200.json (box rerun 2026-10-18: x14_workspace_probe.py --n-images 200 --handoff-rank, seeded selection seed=0, greedy)",
+                    "raw/step10/x14_workspace_probe.json (the original n=24 run, overlaid)",
+                ],
+                "key_numbers": {
+                    "n_images": x14n["meta"]["n_images"],
+                    "n_images_skipped_no_annotations": x14n["meta"]["n_images_skipped_no_annotations"],
+                    "n_tokens_generated": x14n["meta"]["n_tokens_generated"],
+                    "n_word_instances_grounded": x14n["meta"]["n_words_grounded"],
+                    "n_word_instances_hallucinated": x14n["meta"]["n_words_hallucinated"],
+                    "grounded_rank_L0": pl14n["0"]["grounded_rank"],
+                    "halluc_rank_L0": pl14n["0"]["halluc_rank"],
+                    "crossing_first_grounded_below_halluc_layer": first_cross,
+                    "true_at_halluc_positions_L24": pl14n["24"]["true_object_rank_at_halluc_positions"],
+                    "halluc_rank_L24": pl14n["24"]["halluc_rank"],
+                    "handoff_mean_L0_L24_L30": [pl14n[str(l)]["handoff_true_object_rank_mean"] for l in (0, 24, 30)],
+                    "handoff_best_L16_L20_L26": [pl14n[str(l)]["handoff_true_object_rank_best"] for l in (16, 20, 26)],
+                    "last_patch_rank_range_L0_L30": [
+                        min(pl14n[str(l)]["last_patch_object_rank"] for l in range(32)),
+                        max(pl14n[str(l)]["last_patch_object_rank"] for l in range(32)),
+                    ],
+                },
+                "finding": "At n=200 (39 hallucinated / 385 grounded word instances vs the n=24 run's 2 / 51; the two passes are bit-identical on all non-handoff fields, confirming greedy determinism): the prior-leads-from-L0 result survives qualitatively (hallucinated words rank below grounded at L0: 4024 vs 5622) but the lead shrinks from 6.8x to 1.4x; the n=24 crossover at L24-26 does NOT replicate - the first grounded<hallucinated crossing moves to L30, where both classes sit at rank ~2, so the late-band separation between the word classes is much weaker than n=24 implied; the does-the-model-know verdict SURVIVES (at L24 the hallucinated word ranks 5.6 vs the true object's 372 at the same positions); image-position non-decodability SURVIVES (last-patch ~1400-1800 at every layer); the L31 motor flip SURVIVES (both classes at rank 1.0). The mean-handoff headline does NOT survive: the mean true-object rank at the last prompt position is flat at n=200 (1590 at L0, 1511 at L24, 2214 at L30) while the n=24 mean fell to 704 at L24 - a 24-image fluctuation; the per-image BEST still dips to 5-14 across L20-28 (vs 39 at L16), so truth at the last prompt position surfaces for a SUBSET of images, not the typical image. Revision: the n=24 race-and-handoff narrative rested on n=2 hallucinated instances and 24 images.",
             },
         }
     }
