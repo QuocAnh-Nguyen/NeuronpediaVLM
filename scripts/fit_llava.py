@@ -129,7 +129,10 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     )
     fit.add_argument("--shard", default="0/1", metavar="I/N")
     fit.add_argument("--limit", type=int, default=None, help="use only the first N samples")
-    fit.add_argument("--checkpoint-every", type=int, default=1, help="0 = only at the end")
+    fit.add_argument("--target-layer", type=int, default=None,
+                     help="gradient target layer (default: the final layer; the "
+                          "reference implementation notes the penultimate target can "
+                          "be better-conditioned in some cases)")
     fit.add_argument("--no-resume", action="store_true")
     fit.add_argument("--log-every", type=int, default=1)
     fit.add_argument(
