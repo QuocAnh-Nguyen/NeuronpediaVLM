@@ -1461,7 +1461,7 @@ WHAT SURVIVES, WHAT DIES (rank ratio grounded/hallucinated, n=24 vs n=200):
   (vs 39 at L16): truth surfaces at the last prompt position for a SUBSET of images, not the typical image.
   Determinism check: the two passes are bit-identical on every non-handoff field (0 mismatches x 32 layers).
 
-CONSEQUENCE (experienced experience revision): the corrected reading is stronger for the
+CONSEQUENCE (documented revision): the corrected reading is stronger for the
 campaign's central claim (hallucination is the prior winning - and it wins through the whole
 workspace band, not just at L0), but it removes the narrow L20-25 window H1's add-arm aimed
 at, and it re-reads X13's layer dose-response (0.50/0.60/0.70/0.90 at L16/24/28/30) as
