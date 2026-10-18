@@ -1371,3 +1371,43 @@ text positions throughout. Artifacts: step12 (11 JSONs); commits f9e2d96, 0f78b1
 +PER SAMPLE: d_model/dim_batch passes x samples - the "90% done" readings that plagued
 +the retry loops were single-sample milestones; fit_masked resume works across attempts).
 +
+
+## D50 - 2026-10-18: interpreting the round, and the follow-ups - the estimator is not
+## mis-scaled by construction, the transport preserves register content, the blindness
+## is the unembed's, and the task axis needs a matched-sample control
++
++READING THE D49 RESULTS FOR "FIT THE LENS BETTER" LEVERS. (1) The affine scale <1 at
++every layer (0.62-0.94) is NOT an estimator bug: the vendored estimator (jlens/fitting.py,
++jacobian_for_prompt: dim_batch-replicated forward, one-hot cotangent at the target dim at
++every valid position, mean over valid source positions) has no missing normalization; the
++scale is a real logit-scale mismatch between W_U(J_l h) and the model's own distribution -
++the affine absorbs it exactly as the tuned-lens literature predicts. (2) The task effect
++(dJ 119%) confounds TASK FORMAT with IMAGE SET (the POPE-500 corpus uses different COCO
++images than the caption-100 corpus), so the honest question needs a matched-sample control.
++(3) The register blindness has two candidate causes: the transport J_l scrambling the
++register directions, or the unembed W_U simply having no rows that verbalize them.
++
++E3 (done, x26 --probe-transport): probing the J_l-TRANSPORTED register rows vs the raw h_l
++rows: object-presence AUC goes 0.687->0.684 (L12), 0.717->0.738 (L20), 0.721->0.739 (L24),
++0.715->0.735 (L28), 0.730->0.730 (L31) - the transport PRESERVES (slightly sharpens,
+++0.02 through the band) the register content for a trained probe, while the unembed readout
++at the same positions stays object-free (0.000-0.013 in top-10 at every layer). CONCLUSION:
++the register blindness is the UNEMBED's row space, not the lens or its transport - "fit the
++lens better" cannot verbalize registers; a supplementary readout head (trained probe) can,
++and the J-space is a legitimate carrier for one. NOTE (bis): the first --probe-transport
++run was a silent no-op - x26's workspace intentionally builds the IDENTITY-transport lens
++for its raw readouts, so the fitted J must be loaded separately (now env-configured in the
++arm); the identical numbers are the tell-tale of a no-op arm.
++
++E1 (queued): matched-sample control - the CAPTION corpus's exact 100 images x 2 questions
++(1 present-object yes + 1 popular-absent no per image, from instances annotations) = a
++198-answer manifest, then a matched-task lens fit (dim-batch 4, resume-capable) and the dJ
++attribution: caption vs matched-POPE isolates the task FORMAT; caption vs POPE-500-answer
++isolates the image-set effect. Verdict decides whether "fit on the analysis task" means
++task FORMAT or task DOMAIN.
++
++E5 (flag landed): fit_llava --target-layer exposes fit_masked's target_layer - the vendored
++implementation's docstring notes the penultimate target can be better-conditioned; a
++matched-lens refit at target = n_layers-2 tests whether the conditioning gain is real for
++us (measured by the same calibrated fidelity table).
++
