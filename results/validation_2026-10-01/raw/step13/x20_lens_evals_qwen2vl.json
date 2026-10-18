@@ -1,0 +1,3404 @@
+{
+  "experiment": "X20_lens_evals",
+  "paper": "Gurnee et al. 2026, 'Verbalizable Representations Form a Global Workspace in Language Models', transformer-circuits.pub/2026/workspace, section methods-comparison; prompts vendored from third_party/jacobian-lens/data/evaluations",
+  "backend": "hf-llava",
+  "lens_dir": "/data/anhnq/vlm-lens-out/validation/fits/qwen2-vl-7b-instruct/merged/artifacts",
+  "lens_source": "/data/anhnq/vlm-lens-out/validation/fits/qwen2-vl-7b-instruct/merged/artifacts (n_prompts=100)",
+  "bias_dir": "/data/anhnq/vlm-lens-out/validation/step5e",
+  "bias_source": "/data/anhnq/vlm-lens-out/validation/step5e/bias-text.pt (meta keys: ['created_utc', 'estimator', 'lens_dir', 'logit_bias_source', 'mask', 'n_samples_used', 'scale_clamp', 'skip_first'])",
+  "mask": "text",
+  "max_items": 100,
+  "max_seq_len": 1536,
+  "ks": [
+    1,
+    5,
+    10
+  ],
+  "variants": {
+    "j-lens": "fitted lens-<mask>.pt Jacobian transport, raw (no bias); unfitted layers have no readout, final layer = model logits",
+    "identity-uncal": "identity transport, no corrections (vanilla logit lens unembed(norm(h_l)))"
+  },
+  "model": {
+    "kind": "qwen2vl",
+    "n_layers": 28,
+    "d_model": 3584,
+    "workspace_band": {
+      "layers": [
+        11,
+        26
+      ],
+      "mid": 18,
+      "depth_fractions": [
+        0.39285714285714285,
+        0.9285714285714286
+      ]
+    },
+    "final_layer": 27
+  },
+  "lens": {
+    "n_prompts": 100,
+    "source_layers": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26
+    ],
+    "d_model": 3584
+  },
+  "suites": {
+    "association": {
+      "n_items_loaded": 100,
+      "n_items_scored": 100,
+      "n_items_skipped_too_long": 0,
+      "position_rules": {
+        "last-token": 100
+      },
+      "n_multi_token_intermediates": 4,
+      "n_synonym_fallbacks": 0,
+      "n_intermediates_total": 100,
+      "per_layer": {
+        "j-lens": [
+          {
+            "layer": 0,
+            "pct_depth": 0.0,
+            "n_intermediates": 100,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 128231.54
+          },
+          {
+            "layer": 1,
+            "pct_depth": 3.7,
+            "n_intermediates": 100,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 44262.9
+          },
+          {
+            "layer": 2,
+            "pct_depth": 7.41,
+            "n_intermediates": 100,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 39458.42
+          },
+          {
+            "layer": 3,
+            "pct_depth": 11.11,
+            "n_intermediates": 100,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 30227.6
+          },
+          {
+            "layer": 4,
+            "pct_depth": 14.81,
+            "n_intermediates": 100,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 20646.31
+          },
+          {
+            "layer": 5,
+            "pct_depth": 18.52,
+            "n_intermediates": 100,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 19850.84
+          },
+          {
+            "layer": 6,
+            "pct_depth": 22.22,
+            "n_intermediates": 100,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 16307.41
+          },
+          {
+            "layer": 7,
+            "pct_depth": 25.93,
+            "n_intermediates": 100,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 19834.68
+          },
+          {
+            "layer": 8,
+            "pct_depth": 29.63,
+            "n_intermediates": 100,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 34239.44
+          },
+          {
+            "layer": 9,
+            "pct_depth": 33.33,
+            "n_intermediates": 100,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 23390.83
+          },
+          {
+            "layer": 10,
+            "pct_depth": 37.04,
+            "n_intermediates": 100,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 23198.02
+          },
+          {
+            "layer": 11,
+            "pct_depth": 40.74,
+            "n_intermediates": 100,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 28039.33
+          },
+          {
+            "layer": 12,
+            "pct_depth": 44.44,
+            "n_intermediates": 100,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 58973.28
+          },
+          {
+            "layer": 13,
+            "pct_depth": 48.15,
+            "n_intermediates": 100,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 35279.6
+          },
+          {
+            "layer": 14,
+            "pct_depth": 51.85,
+            "n_intermediates": 100,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 39598.99
+          },
+          {
+            "layer": 15,
+            "pct_depth": 55.56,
+            "n_intermediates": 100,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 52643.82
+          },
+          {
+            "layer": 16,
+            "pct_depth": 59.26,
+            "n_intermediates": 100,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 46560.33
+          },
+          {
+            "layer": 17,
+            "pct_depth": 62.96,
+            "n_intermediates": 100,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 75263.87
+          },
+          {
+            "layer": 18,
+            "pct_depth": 66.67,
+            "n_intermediates": 100,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 71417.14
+          },
+          {
+            "layer": 19,
+            "pct_depth": 70.37,
+            "n_intermediates": 100,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 75730.1
+          },
+          {
+            "layer": 20,
+            "pct_depth": 74.07,
+            "n_intermediates": 100,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 106034.2
+          },
+          {
+            "layer": 21,
+            "pct_depth": 77.78,
+            "n_intermediates": 100,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 107481.2
+          },
+          {
+            "layer": 22,
+            "pct_depth": 81.48,
+            "n_intermediates": 100,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 119959.49
+          },
+          {
+            "layer": 23,
+            "pct_depth": 85.19,
+            "n_intermediates": 100,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 111712.21
+          },
+          {
+            "layer": 24,
+            "pct_depth": 88.89,
+            "n_intermediates": 100,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 110653.1
+          },
+          {
+            "layer": 25,
+            "pct_depth": 92.59,
+            "n_intermediates": 100,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 88438.81
+          },
+          {
+            "layer": 26,
+            "pct_depth": 96.3,
+            "n_intermediates": 100,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 103900.59
+          },
+          {
+            "layer": 27,
+            "pct_depth": 100.0,
+            "n_intermediates": 100,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 63072.95
+          }
+        ],
+        "identity-uncal": [
+          {
+            "layer": 0,
+            "pct_depth": 0.0,
+            "n_intermediates": 100,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 92046.39
+          },
+          {
+            "layer": 1,
+            "pct_depth": 3.7,
+            "n_intermediates": 100,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 91752.62
+          },
+          {
+            "layer": 2,
+            "pct_depth": 7.41,
+            "n_intermediates": 100,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 86041.17
+          },
+          {
+            "layer": 3,
+            "pct_depth": 11.11,
+            "n_intermediates": 100,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 93053.07
+          },
+          {
+            "layer": 4,
+            "pct_depth": 14.81,
+            "n_intermediates": 100,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 87726.39
+          },
+          {
+            "layer": 5,
+            "pct_depth": 18.52,
+            "n_intermediates": 100,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 72667.51
+          },
+          {
+            "layer": 6,
+            "pct_depth": 22.22,
+            "n_intermediates": 100,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 58773.34
+          },
+          {
+            "layer": 7,
+            "pct_depth": 25.93,
+            "n_intermediates": 100,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 63465.82
+          },
+          {
+            "layer": 8,
+            "pct_depth": 29.63,
+            "n_intermediates": 100,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 63705.57
+          },
+          {
+            "layer": 9,
+            "pct_depth": 33.33,
+            "n_intermediates": 100,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 50432.95
+          },
+          {
+            "layer": 10,
+            "pct_depth": 37.04,
+            "n_intermediates": 100,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 55842.74
+          },
+          {
+            "layer": 11,
+            "pct_depth": 40.74,
+            "n_intermediates": 100,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 68904.1
+          },
+          {
+            "layer": 12,
+            "pct_depth": 44.44,
+            "n_intermediates": 100,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 72994.02
+          },
+          {
+            "layer": 13,
+            "pct_depth": 48.15,
+            "n_intermediates": 100,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 71371.21
+          },
+          {
+            "layer": 14,
+            "pct_depth": 51.85,
+            "n_intermediates": 100,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 58949.86
+          },
+          {
+            "layer": 15,
+            "pct_depth": 55.56,
+            "n_intermediates": 100,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 59411.02
+          },
+          {
+            "layer": 16,
+            "pct_depth": 59.26,
+            "n_intermediates": 100,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 60710.84
+          },
+          {
+            "layer": 17,
+            "pct_depth": 62.96,
+            "n_intermediates": 100,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 67236.2
+          },
+          {
+            "layer": 18,
+            "pct_depth": 66.67,
+            "n_intermediates": 100,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 62034.54
+          },
+          {
+            "layer": 19,
+            "pct_depth": 70.37,
+            "n_intermediates": 100,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 55935.68
+          },
+          {
+            "layer": 20,
+            "pct_depth": 74.07,
+            "n_intermediates": 100,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 53941.02
+          },
+          {
+            "layer": 21,
+            "pct_depth": 77.78,
+            "n_intermediates": 100,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 56468.73
+          },
+          {
+            "layer": 22,
+            "pct_depth": 81.48,
+            "n_intermediates": 100,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 49412.06
+          },
+          {
+            "layer": 23,
+            "pct_depth": 85.19,
+            "n_intermediates": 100,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 64822.53
+          },
+          {
+            "layer": 24,
+            "pct_depth": 88.89,
+            "n_intermediates": 100,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 60296.6
+          },
+          {
+            "layer": 25,
+            "pct_depth": 92.59,
+            "n_intermediates": 100,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 61572.29
+          },
+          {
+            "layer": 26,
+            "pct_depth": 96.3,
+            "n_intermediates": 100,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 40712.22
+          },
+          {
+            "layer": 27,
+            "pct_depth": 100.0,
+            "n_intermediates": 100,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 63072.95
+          }
+        ]
+      },
+      "headline": {
+        "j-lens": {
+          "pass@1_min_over_layers": 0.0,
+          "pass@5_min_over_layers": 0.0,
+          "pass@10_min_over_layers": 0.0
+        },
+        "identity-uncal": {
+          "pass@1_min_over_layers": 0.0,
+          "pass@5_min_over_layers": 0.0,
+          "pass@10_min_over_layers": 0.0
+        }
+      },
+      "digest": {
+        "j-lens": {
+          "best_layer": 0,
+          "best_pass@10": 0.0,
+          "workspace_mid_layer": 18,
+          "pass@10_at_workspace_mid": 0.0,
+          "mean_rank_at_workspace_mid": 71417.14,
+          "final_layer": 27,
+          "pass@10_at_final_layer": 0.0,
+          "mean_rank_at_final_layer": 63072.95
+        },
+        "identity-uncal": {
+          "best_layer": 0,
+          "best_pass@10": 0.0,
+          "workspace_mid_layer": 18,
+          "pass@10_at_workspace_mid": 0.0,
+          "mean_rank_at_workspace_mid": 62034.54,
+          "final_layer": 27,
+          "pass@10_at_final_layer": 0.0,
+          "mean_rank_at_final_layer": 63072.95
+        }
+      }
+    },
+    "multihop": {
+      "n_items_loaded": 93,
+      "n_items_scored": 93,
+      "n_items_skipped_too_long": 0,
+      "position_rules": {
+        "last-token": 93
+      },
+      "n_multi_token_intermediates": 9,
+      "n_synonym_fallbacks": 0,
+      "n_intermediates_total": 103,
+      "per_layer": {
+        "j-lens": [
+          {
+            "layer": 0,
+            "pct_depth": 0.0,
+            "n_intermediates": 103,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 128663.04
+          },
+          {
+            "layer": 1,
+            "pct_depth": 3.7,
+            "n_intermediates": 103,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 36113.41
+          },
+          {
+            "layer": 2,
+            "pct_depth": 7.41,
+            "n_intermediates": 103,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 25601.89
+          },
+          {
+            "layer": 3,
+            "pct_depth": 11.11,
+            "n_intermediates": 103,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 20927.46
+          },
+          {
+            "layer": 4,
+            "pct_depth": 14.81,
+            "n_intermediates": 103,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 10589.5
+          },
+          {
+            "layer": 5,
+            "pct_depth": 18.52,
+            "n_intermediates": 103,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 7357.13
+          },
+          {
+            "layer": 6,
+            "pct_depth": 22.22,
+            "n_intermediates": 103,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 9729.4
+          },
+          {
+            "layer": 7,
+            "pct_depth": 25.93,
+            "n_intermediates": 103,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 21091.86
+          },
+          {
+            "layer": 8,
+            "pct_depth": 29.63,
+            "n_intermediates": 103,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 25438.63
+          },
+          {
+            "layer": 9,
+            "pct_depth": 33.33,
+            "n_intermediates": 103,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 29053.55
+          },
+          {
+            "layer": 10,
+            "pct_depth": 37.04,
+            "n_intermediates": 103,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 25912.33
+          },
+          {
+            "layer": 11,
+            "pct_depth": 40.74,
+            "n_intermediates": 103,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 25585.13
+          },
+          {
+            "layer": 12,
+            "pct_depth": 44.44,
+            "n_intermediates": 103,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 53187.8
+          },
+          {
+            "layer": 13,
+            "pct_depth": 48.15,
+            "n_intermediates": 103,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 43641.84
+          },
+          {
+            "layer": 14,
+            "pct_depth": 51.85,
+            "n_intermediates": 103,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 29324.68
+          },
+          {
+            "layer": 15,
+            "pct_depth": 55.56,
+            "n_intermediates": 103,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 35743.9
+          },
+          {
+            "layer": 16,
+            "pct_depth": 59.26,
+            "n_intermediates": 103,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 24872.54
+          },
+          {
+            "layer": 17,
+            "pct_depth": 62.96,
+            "n_intermediates": 103,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 39119.35
+          },
+          {
+            "layer": 18,
+            "pct_depth": 66.67,
+            "n_intermediates": 103,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 59520.27
+          },
+          {
+            "layer": 19,
+            "pct_depth": 70.37,
+            "n_intermediates": 103,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 66523.69
+          },
+          {
+            "layer": 20,
+            "pct_depth": 74.07,
+            "n_intermediates": 103,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 104047.18
+          },
+          {
+            "layer": 21,
+            "pct_depth": 77.78,
+            "n_intermediates": 103,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 72229.83
+          },
+          {
+            "layer": 22,
+            "pct_depth": 81.48,
+            "n_intermediates": 103,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 116241.28
+          },
+          {
+            "layer": 23,
+            "pct_depth": 85.19,
+            "n_intermediates": 103,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 92805.18
+          },
+          {
+            "layer": 24,
+            "pct_depth": 88.89,
+            "n_intermediates": 103,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 94092.83
+          },
+          {
+            "layer": 25,
+            "pct_depth": 92.59,
+            "n_intermediates": 103,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 57667.07
+          },
+          {
+            "layer": 26,
+            "pct_depth": 96.3,
+            "n_intermediates": 103,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 105250.44
+          },
+          {
+            "layer": 27,
+            "pct_depth": 100.0,
+            "n_intermediates": 103,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 49347.05
+          }
+        ],
+        "identity-uncal": [
+          {
+            "layer": 0,
+            "pct_depth": 0.0,
+            "n_intermediates": 103,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 62710.03
+          },
+          {
+            "layer": 1,
+            "pct_depth": 3.7,
+            "n_intermediates": 103,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 69269.94
+          },
+          {
+            "layer": 2,
+            "pct_depth": 7.41,
+            "n_intermediates": 103,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 75442.01
+          },
+          {
+            "layer": 3,
+            "pct_depth": 11.11,
+            "n_intermediates": 103,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 90360.72
+          },
+          {
+            "layer": 4,
+            "pct_depth": 14.81,
+            "n_intermediates": 103,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 83784.36
+          },
+          {
+            "layer": 5,
+            "pct_depth": 18.52,
+            "n_intermediates": 103,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 73582.17
+          },
+          {
+            "layer": 6,
+            "pct_depth": 22.22,
+            "n_intermediates": 103,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 49772.4
+          },
+          {
+            "layer": 7,
+            "pct_depth": 25.93,
+            "n_intermediates": 103,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 49333.63
+          },
+          {
+            "layer": 8,
+            "pct_depth": 29.63,
+            "n_intermediates": 103,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 52517.82
+          },
+          {
+            "layer": 9,
+            "pct_depth": 33.33,
+            "n_intermediates": 103,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 52185.99
+          },
+          {
+            "layer": 10,
+            "pct_depth": 37.04,
+            "n_intermediates": 103,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 47309.18
+          },
+          {
+            "layer": 11,
+            "pct_depth": 40.74,
+            "n_intermediates": 103,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 53371.52
+          },
+          {
+            "layer": 12,
+            "pct_depth": 44.44,
+            "n_intermediates": 103,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 51849.78
+          },
+          {
+            "layer": 13,
+            "pct_depth": 48.15,
+            "n_intermediates": 103,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 48294.16
+          },
+          {
+            "layer": 14,
+            "pct_depth": 51.85,
+            "n_intermediates": 103,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 43172.87
+          },
+          {
+            "layer": 15,
+            "pct_depth": 55.56,
+            "n_intermediates": 103,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 48579.93
+          },
+          {
+            "layer": 16,
+            "pct_depth": 59.26,
+            "n_intermediates": 103,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 53926.79
+          },
+          {
+            "layer": 17,
+            "pct_depth": 62.96,
+            "n_intermediates": 103,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 50749.16
+          },
+          {
+            "layer": 18,
+            "pct_depth": 66.67,
+            "n_intermediates": 103,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 50297.51
+          },
+          {
+            "layer": 19,
+            "pct_depth": 70.37,
+            "n_intermediates": 103,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 55738.27
+          },
+          {
+            "layer": 20,
+            "pct_depth": 74.07,
+            "n_intermediates": 103,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 55400.65
+          },
+          {
+            "layer": 21,
+            "pct_depth": 77.78,
+            "n_intermediates": 103,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 55750.86
+          },
+          {
+            "layer": 22,
+            "pct_depth": 81.48,
+            "n_intermediates": 103,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 66240.65
+          },
+          {
+            "layer": 23,
+            "pct_depth": 85.19,
+            "n_intermediates": 103,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 90389.96
+          },
+          {
+            "layer": 24,
+            "pct_depth": 88.89,
+            "n_intermediates": 103,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 89176.58
+          },
+          {
+            "layer": 25,
+            "pct_depth": 92.59,
+            "n_intermediates": 103,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 82988.16
+          },
+          {
+            "layer": 26,
+            "pct_depth": 96.3,
+            "n_intermediates": 103,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 37516.19
+          },
+          {
+            "layer": 27,
+            "pct_depth": 100.0,
+            "n_intermediates": 103,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 49347.05
+          }
+        ]
+      },
+      "headline": {
+        "j-lens": {
+          "pass@1_min_over_layers": 0.0,
+          "pass@5_min_over_layers": 0.0,
+          "pass@10_min_over_layers": 0.0
+        },
+        "identity-uncal": {
+          "pass@1_min_over_layers": 0.0,
+          "pass@5_min_over_layers": 0.0,
+          "pass@10_min_over_layers": 0.0
+        }
+      },
+      "digest": {
+        "j-lens": {
+          "best_layer": 0,
+          "best_pass@10": 0.0,
+          "workspace_mid_layer": 18,
+          "pass@10_at_workspace_mid": 0.0,
+          "mean_rank_at_workspace_mid": 59520.27,
+          "final_layer": 27,
+          "pass@10_at_final_layer": 0.0,
+          "mean_rank_at_final_layer": 49347.05
+        },
+        "identity-uncal": {
+          "best_layer": 0,
+          "best_pass@10": 0.0,
+          "workspace_mid_layer": 18,
+          "pass@10_at_workspace_mid": 0.0,
+          "mean_rank_at_workspace_mid": 50297.51,
+          "final_layer": 27,
+          "pass@10_at_final_layer": 0.0,
+          "mean_rank_at_final_layer": 49347.05
+        }
+      }
+    },
+    "multilingual": {
+      "n_items_loaded": 100,
+      "n_items_scored": 100,
+      "n_items_skipped_too_long": 0,
+      "position_rules": {
+        "last-token": 100
+      },
+      "n_multi_token_intermediates": 12,
+      "n_synonym_fallbacks": 0,
+      "n_intermediates_total": 400,
+      "per_layer": {
+        "j-lens": [
+          {
+            "layer": 0,
+            "pct_depth": 0.0,
+            "n_intermediates": 400,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 142267.57
+          },
+          {
+            "layer": 1,
+            "pct_depth": 3.7,
+            "n_intermediates": 400,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 71638.32
+          },
+          {
+            "layer": 2,
+            "pct_depth": 7.41,
+            "n_intermediates": 400,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 67886.87
+          },
+          {
+            "layer": 3,
+            "pct_depth": 11.11,
+            "n_intermediates": 400,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 32414.38
+          },
+          {
+            "layer": 4,
+            "pct_depth": 14.81,
+            "n_intermediates": 400,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 14270.96
+          },
+          {
+            "layer": 5,
+            "pct_depth": 18.52,
+            "n_intermediates": 400,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 9429.05
+          },
+          {
+            "layer": 6,
+            "pct_depth": 22.22,
+            "n_intermediates": 400,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 11348.61
+          },
+          {
+            "layer": 7,
+            "pct_depth": 25.93,
+            "n_intermediates": 400,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 22168.03
+          },
+          {
+            "layer": 8,
+            "pct_depth": 29.63,
+            "n_intermediates": 400,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 54937.4
+          },
+          {
+            "layer": 9,
+            "pct_depth": 33.33,
+            "n_intermediates": 400,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 70976.65
+          },
+          {
+            "layer": 10,
+            "pct_depth": 37.04,
+            "n_intermediates": 400,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 67603.99
+          },
+          {
+            "layer": 11,
+            "pct_depth": 40.74,
+            "n_intermediates": 400,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 68699.77
+          },
+          {
+            "layer": 12,
+            "pct_depth": 44.44,
+            "n_intermediates": 400,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 101848.85
+          },
+          {
+            "layer": 13,
+            "pct_depth": 48.15,
+            "n_intermediates": 400,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 75706.6
+          },
+          {
+            "layer": 14,
+            "pct_depth": 51.85,
+            "n_intermediates": 400,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 59481.14
+          },
+          {
+            "layer": 15,
+            "pct_depth": 55.56,
+            "n_intermediates": 400,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 74311.41
+          },
+          {
+            "layer": 16,
+            "pct_depth": 59.26,
+            "n_intermediates": 400,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 38674.83
+          },
+          {
+            "layer": 17,
+            "pct_depth": 62.96,
+            "n_intermediates": 400,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 71221.21
+          },
+          {
+            "layer": 18,
+            "pct_depth": 66.67,
+            "n_intermediates": 400,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 85637.39
+          },
+          {
+            "layer": 19,
+            "pct_depth": 70.37,
+            "n_intermediates": 400,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 80770.85
+          },
+          {
+            "layer": 20,
+            "pct_depth": 74.07,
+            "n_intermediates": 400,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 119612.68
+          },
+          {
+            "layer": 21,
+            "pct_depth": 77.78,
+            "n_intermediates": 400,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 112269.57
+          },
+          {
+            "layer": 22,
+            "pct_depth": 81.48,
+            "n_intermediates": 400,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 126320.97
+          },
+          {
+            "layer": 23,
+            "pct_depth": 85.19,
+            "n_intermediates": 400,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 101733.85
+          },
+          {
+            "layer": 24,
+            "pct_depth": 88.89,
+            "n_intermediates": 400,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 106511.42
+          },
+          {
+            "layer": 25,
+            "pct_depth": 92.59,
+            "n_intermediates": 400,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 79266.78
+          },
+          {
+            "layer": 26,
+            "pct_depth": 96.3,
+            "n_intermediates": 400,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 112217.26
+          },
+          {
+            "layer": 27,
+            "pct_depth": 100.0,
+            "n_intermediates": 400,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 61257.45
+          }
+        ],
+        "identity-uncal": [
+          {
+            "layer": 0,
+            "pct_depth": 0.0,
+            "n_intermediates": 400,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 97384.9
+          },
+          {
+            "layer": 1,
+            "pct_depth": 3.7,
+            "n_intermediates": 400,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 97781.43
+          },
+          {
+            "layer": 2,
+            "pct_depth": 7.41,
+            "n_intermediates": 400,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 100996.37
+          },
+          {
+            "layer": 3,
+            "pct_depth": 11.11,
+            "n_intermediates": 400,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 106518.64
+          },
+          {
+            "layer": 4,
+            "pct_depth": 14.81,
+            "n_intermediates": 400,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 80133.52
+          },
+          {
+            "layer": 5,
+            "pct_depth": 18.52,
+            "n_intermediates": 400,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 65640.59
+          },
+          {
+            "layer": 6,
+            "pct_depth": 22.22,
+            "n_intermediates": 400,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 54197.6
+          },
+          {
+            "layer": 7,
+            "pct_depth": 25.93,
+            "n_intermediates": 400,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 54730.91
+          },
+          {
+            "layer": 8,
+            "pct_depth": 29.63,
+            "n_intermediates": 400,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 61050.76
+          },
+          {
+            "layer": 9,
+            "pct_depth": 33.33,
+            "n_intermediates": 400,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 58255.13
+          },
+          {
+            "layer": 10,
+            "pct_depth": 37.04,
+            "n_intermediates": 400,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 54458.53
+          },
+          {
+            "layer": 11,
+            "pct_depth": 40.74,
+            "n_intermediates": 400,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 63198.33
+          },
+          {
+            "layer": 12,
+            "pct_depth": 44.44,
+            "n_intermediates": 400,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 60558.79
+          },
+          {
+            "layer": 13,
+            "pct_depth": 48.15,
+            "n_intermediates": 400,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 67310.77
+          },
+          {
+            "layer": 14,
+            "pct_depth": 51.85,
+            "n_intermediates": 400,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 61186.67
+          },
+          {
+            "layer": 15,
+            "pct_depth": 55.56,
+            "n_intermediates": 400,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 60341.52
+          },
+          {
+            "layer": 16,
+            "pct_depth": 59.26,
+            "n_intermediates": 400,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 72325.46
+          },
+          {
+            "layer": 17,
+            "pct_depth": 62.96,
+            "n_intermediates": 400,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 72361.56
+          },
+          {
+            "layer": 18,
+            "pct_depth": 66.67,
+            "n_intermediates": 400,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 58895.18
+          },
+          {
+            "layer": 19,
+            "pct_depth": 70.37,
+            "n_intermediates": 400,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 66254.02
+          },
+          {
+            "layer": 20,
+            "pct_depth": 74.07,
+            "n_intermediates": 400,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 65955.49
+          },
+          {
+            "layer": 21,
+            "pct_depth": 77.78,
+            "n_intermediates": 400,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 82181.57
+          },
+          {
+            "layer": 22,
+            "pct_depth": 81.48,
+            "n_intermediates": 400,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 78999.06
+          },
+          {
+            "layer": 23,
+            "pct_depth": 85.19,
+            "n_intermediates": 400,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 91663.76
+          },
+          {
+            "layer": 24,
+            "pct_depth": 88.89,
+            "n_intermediates": 400,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 84816.68
+          },
+          {
+            "layer": 25,
+            "pct_depth": 92.59,
+            "n_intermediates": 400,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 75146.55
+          },
+          {
+            "layer": 26,
+            "pct_depth": 96.3,
+            "n_intermediates": 400,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 43386.31
+          },
+          {
+            "layer": 27,
+            "pct_depth": 100.0,
+            "n_intermediates": 400,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 61257.45
+          }
+        ]
+      },
+      "headline": {
+        "j-lens": {
+          "pass@1_min_over_layers": 0.0,
+          "pass@5_min_over_layers": 0.0,
+          "pass@10_min_over_layers": 0.0
+        },
+        "identity-uncal": {
+          "pass@1_min_over_layers": 0.0,
+          "pass@5_min_over_layers": 0.0,
+          "pass@10_min_over_layers": 0.0
+        }
+      },
+      "digest": {
+        "j-lens": {
+          "best_layer": 0,
+          "best_pass@10": 0.0,
+          "workspace_mid_layer": 18,
+          "pass@10_at_workspace_mid": 0.0,
+          "mean_rank_at_workspace_mid": 85637.39,
+          "final_layer": 27,
+          "pass@10_at_final_layer": 0.0,
+          "mean_rank_at_final_layer": 61257.45
+        },
+        "identity-uncal": {
+          "best_layer": 0,
+          "best_pass@10": 0.0,
+          "workspace_mid_layer": 18,
+          "pass@10_at_workspace_mid": 0.0,
+          "mean_rank_at_workspace_mid": 58895.18,
+          "final_layer": 27,
+          "pass@10_at_final_layer": 0.0,
+          "mean_rank_at_final_layer": 61257.45
+        }
+      }
+    },
+    "order-ops": {
+      "n_items_loaded": 55,
+      "n_items_scored": 55,
+      "n_items_skipped_too_long": 0,
+      "position_rules": {
+        "last-token": 55
+      },
+      "n_multi_token_intermediates": 0,
+      "n_synonym_fallbacks": 1,
+      "n_intermediates_total": 110,
+      "per_layer": {
+        "j-lens": [
+          {
+            "layer": 0,
+            "pct_depth": 0.0,
+            "n_intermediates": 110,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 132168.63
+          },
+          {
+            "layer": 1,
+            "pct_depth": 3.7,
+            "n_intermediates": 110,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 52467.62
+          },
+          {
+            "layer": 2,
+            "pct_depth": 7.41,
+            "n_intermediates": 110,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 45079.62
+          },
+          {
+            "layer": 3,
+            "pct_depth": 11.11,
+            "n_intermediates": 110,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 31501.1
+          },
+          {
+            "layer": 4,
+            "pct_depth": 14.81,
+            "n_intermediates": 110,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 21089.95
+          },
+          {
+            "layer": 5,
+            "pct_depth": 18.52,
+            "n_intermediates": 110,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 10631.7
+          },
+          {
+            "layer": 6,
+            "pct_depth": 22.22,
+            "n_intermediates": 110,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 9165.64
+          },
+          {
+            "layer": 7,
+            "pct_depth": 25.93,
+            "n_intermediates": 110,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 21255.09
+          },
+          {
+            "layer": 8,
+            "pct_depth": 29.63,
+            "n_intermediates": 110,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 40531.25
+          },
+          {
+            "layer": 9,
+            "pct_depth": 33.33,
+            "n_intermediates": 110,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 38150.83
+          },
+          {
+            "layer": 10,
+            "pct_depth": 37.04,
+            "n_intermediates": 110,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 28635.42
+          },
+          {
+            "layer": 11,
+            "pct_depth": 40.74,
+            "n_intermediates": 110,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 26427.21
+          },
+          {
+            "layer": 12,
+            "pct_depth": 44.44,
+            "n_intermediates": 110,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 34275.58
+          },
+          {
+            "layer": 13,
+            "pct_depth": 48.15,
+            "n_intermediates": 110,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 20885.09
+          },
+          {
+            "layer": 14,
+            "pct_depth": 51.85,
+            "n_intermediates": 110,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 18683.65
+          },
+          {
+            "layer": 15,
+            "pct_depth": 55.56,
+            "n_intermediates": 110,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 16337.83
+          },
+          {
+            "layer": 16,
+            "pct_depth": 59.26,
+            "n_intermediates": 110,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 9146.42
+          },
+          {
+            "layer": 17,
+            "pct_depth": 62.96,
+            "n_intermediates": 110,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 21164.29
+          },
+          {
+            "layer": 18,
+            "pct_depth": 66.67,
+            "n_intermediates": 110,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 53523.68
+          },
+          {
+            "layer": 19,
+            "pct_depth": 70.37,
+            "n_intermediates": 110,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 49988.96
+          },
+          {
+            "layer": 20,
+            "pct_depth": 74.07,
+            "n_intermediates": 110,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 86259.62
+          },
+          {
+            "layer": 21,
+            "pct_depth": 77.78,
+            "n_intermediates": 110,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 67142.05
+          },
+          {
+            "layer": 22,
+            "pct_depth": 81.48,
+            "n_intermediates": 110,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 86158.53
+          },
+          {
+            "layer": 23,
+            "pct_depth": 85.19,
+            "n_intermediates": 110,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 73817.76
+          },
+          {
+            "layer": 24,
+            "pct_depth": 88.89,
+            "n_intermediates": 110,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 82235.89
+          },
+          {
+            "layer": 25,
+            "pct_depth": 92.59,
+            "n_intermediates": 110,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 54298.77
+          },
+          {
+            "layer": 26,
+            "pct_depth": 96.3,
+            "n_intermediates": 110,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 46556.25
+          },
+          {
+            "layer": 27,
+            "pct_depth": 100.0,
+            "n_intermediates": 110,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 23747.06
+          }
+        ],
+        "identity-uncal": [
+          {
+            "layer": 0,
+            "pct_depth": 0.0,
+            "n_intermediates": 110,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 31750.35
+          },
+          {
+            "layer": 1,
+            "pct_depth": 3.7,
+            "n_intermediates": 110,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 35448.92
+          },
+          {
+            "layer": 2,
+            "pct_depth": 7.41,
+            "n_intermediates": 110,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 50698.63
+          },
+          {
+            "layer": 3,
+            "pct_depth": 11.11,
+            "n_intermediates": 110,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 64782.69
+          },
+          {
+            "layer": 4,
+            "pct_depth": 14.81,
+            "n_intermediates": 110,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 52454.96
+          },
+          {
+            "layer": 5,
+            "pct_depth": 18.52,
+            "n_intermediates": 110,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 38807.98
+          },
+          {
+            "layer": 6,
+            "pct_depth": 22.22,
+            "n_intermediates": 110,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 26764.01
+          },
+          {
+            "layer": 7,
+            "pct_depth": 25.93,
+            "n_intermediates": 110,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 44787.06
+          },
+          {
+            "layer": 8,
+            "pct_depth": 29.63,
+            "n_intermediates": 110,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 67038.86
+          },
+          {
+            "layer": 9,
+            "pct_depth": 33.33,
+            "n_intermediates": 110,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 53513.12
+          },
+          {
+            "layer": 10,
+            "pct_depth": 37.04,
+            "n_intermediates": 110,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 42254.25
+          },
+          {
+            "layer": 11,
+            "pct_depth": 40.74,
+            "n_intermediates": 110,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 54215.65
+          },
+          {
+            "layer": 12,
+            "pct_depth": 44.44,
+            "n_intermediates": 110,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 61221.87
+          },
+          {
+            "layer": 13,
+            "pct_depth": 48.15,
+            "n_intermediates": 110,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 61268.69
+          },
+          {
+            "layer": 14,
+            "pct_depth": 51.85,
+            "n_intermediates": 110,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 53460.77
+          },
+          {
+            "layer": 15,
+            "pct_depth": 55.56,
+            "n_intermediates": 110,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 30469.84
+          },
+          {
+            "layer": 16,
+            "pct_depth": 59.26,
+            "n_intermediates": 110,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 36313.62
+          },
+          {
+            "layer": 17,
+            "pct_depth": 62.96,
+            "n_intermediates": 110,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 35421.79
+          },
+          {
+            "layer": 18,
+            "pct_depth": 66.67,
+            "n_intermediates": 110,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 29234.56
+          },
+          {
+            "layer": 19,
+            "pct_depth": 70.37,
+            "n_intermediates": 110,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 25404.3
+          },
+          {
+            "layer": 20,
+            "pct_depth": 74.07,
+            "n_intermediates": 110,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 30993.21
+          },
+          {
+            "layer": 21,
+            "pct_depth": 77.78,
+            "n_intermediates": 110,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 46660.45
+          },
+          {
+            "layer": 22,
+            "pct_depth": 81.48,
+            "n_intermediates": 110,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 39634.38
+          },
+          {
+            "layer": 23,
+            "pct_depth": 85.19,
+            "n_intermediates": 110,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 57152.91
+          },
+          {
+            "layer": 24,
+            "pct_depth": 88.89,
+            "n_intermediates": 110,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 60736.36
+          },
+          {
+            "layer": 25,
+            "pct_depth": 92.59,
+            "n_intermediates": 110,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 49753.02
+          },
+          {
+            "layer": 26,
+            "pct_depth": 96.3,
+            "n_intermediates": 110,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 12784.33
+          },
+          {
+            "layer": 27,
+            "pct_depth": 100.0,
+            "n_intermediates": 110,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 23747.06
+          }
+        ]
+      },
+      "headline": {
+        "j-lens": {
+          "pass@1_min_over_layers": 0.0,
+          "pass@5_min_over_layers": 0.0,
+          "pass@10_min_over_layers": 0.0
+        },
+        "identity-uncal": {
+          "pass@1_min_over_layers": 0.0,
+          "pass@5_min_over_layers": 0.0,
+          "pass@10_min_over_layers": 0.0
+        }
+      },
+      "digest": {
+        "j-lens": {
+          "best_layer": 0,
+          "best_pass@10": 0.0,
+          "workspace_mid_layer": 18,
+          "pass@10_at_workspace_mid": 0.0,
+          "mean_rank_at_workspace_mid": 53523.68,
+          "final_layer": 27,
+          "pass@10_at_final_layer": 0.0,
+          "mean_rank_at_final_layer": 23747.06
+        },
+        "identity-uncal": {
+          "best_layer": 0,
+          "best_pass@10": 0.0,
+          "workspace_mid_layer": 18,
+          "pass@10_at_workspace_mid": 0.0,
+          "mean_rank_at_workspace_mid": 29234.56,
+          "final_layer": 27,
+          "pass@10_at_final_layer": 0.0,
+          "mean_rank_at_final_layer": 23747.06
+        }
+      }
+    },
+    "poetry": {
+      "n_items_loaded": 98,
+      "n_items_scored": 98,
+      "n_items_skipped_too_long": 0,
+      "position_rules": {
+        "last-newline": 98
+      },
+      "n_multi_token_intermediates": 0,
+      "n_synonym_fallbacks": 0,
+      "n_intermediates_total": 98,
+      "per_layer": {
+        "j-lens": [
+          {
+            "layer": 0,
+            "pct_depth": 0.0,
+            "n_intermediates": 98,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 146165.71
+          },
+          {
+            "layer": 1,
+            "pct_depth": 3.7,
+            "n_intermediates": 98,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 41415.36
+          },
+          {
+            "layer": 2,
+            "pct_depth": 7.41,
+            "n_intermediates": 98,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 30147.43
+          },
+          {
+            "layer": 3,
+            "pct_depth": 11.11,
+            "n_intermediates": 98,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 21661.45
+          },
+          {
+            "layer": 4,
+            "pct_depth": 14.81,
+            "n_intermediates": 98,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 10806.46
+          },
+          {
+            "layer": 5,
+            "pct_depth": 18.52,
+            "n_intermediates": 98,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 6922.0
+          },
+          {
+            "layer": 6,
+            "pct_depth": 22.22,
+            "n_intermediates": 98,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 10388.22
+          },
+          {
+            "layer": 7,
+            "pct_depth": 25.93,
+            "n_intermediates": 98,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 19342.79
+          },
+          {
+            "layer": 8,
+            "pct_depth": 29.63,
+            "n_intermediates": 98,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 57349.1
+          },
+          {
+            "layer": 9,
+            "pct_depth": 33.33,
+            "n_intermediates": 98,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 22044.46
+          },
+          {
+            "layer": 10,
+            "pct_depth": 37.04,
+            "n_intermediates": 98,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 21365.97
+          },
+          {
+            "layer": 11,
+            "pct_depth": 40.74,
+            "n_intermediates": 98,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 27359.74
+          },
+          {
+            "layer": 12,
+            "pct_depth": 44.44,
+            "n_intermediates": 98,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 59137.35
+          },
+          {
+            "layer": 13,
+            "pct_depth": 48.15,
+            "n_intermediates": 98,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 43403.16
+          },
+          {
+            "layer": 14,
+            "pct_depth": 51.85,
+            "n_intermediates": 98,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 53582.18
+          },
+          {
+            "layer": 15,
+            "pct_depth": 55.56,
+            "n_intermediates": 98,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 98084.56
+          },
+          {
+            "layer": 16,
+            "pct_depth": 59.26,
+            "n_intermediates": 98,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 78035.91
+          },
+          {
+            "layer": 17,
+            "pct_depth": 62.96,
+            "n_intermediates": 98,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 80191.93
+          },
+          {
+            "layer": 18,
+            "pct_depth": 66.67,
+            "n_intermediates": 98,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 94907.3
+          },
+          {
+            "layer": 19,
+            "pct_depth": 70.37,
+            "n_intermediates": 98,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 69934.73
+          },
+          {
+            "layer": 20,
+            "pct_depth": 74.07,
+            "n_intermediates": 98,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 111435.99
+          },
+          {
+            "layer": 21,
+            "pct_depth": 77.78,
+            "n_intermediates": 98,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 112448.61
+          },
+          {
+            "layer": 22,
+            "pct_depth": 81.48,
+            "n_intermediates": 98,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 127653.8
+          },
+          {
+            "layer": 23,
+            "pct_depth": 85.19,
+            "n_intermediates": 98,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 112654.98
+          },
+          {
+            "layer": 24,
+            "pct_depth": 88.89,
+            "n_intermediates": 98,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 114790.22
+          },
+          {
+            "layer": 25,
+            "pct_depth": 92.59,
+            "n_intermediates": 98,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 97137.98
+          },
+          {
+            "layer": 26,
+            "pct_depth": 96.3,
+            "n_intermediates": 98,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 113851.94
+          },
+          {
+            "layer": 27,
+            "pct_depth": 100.0,
+            "n_intermediates": 98,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 72129.56
+          }
+        ],
+        "identity-uncal": [
+          {
+            "layer": 0,
+            "pct_depth": 0.0,
+            "n_intermediates": 98,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 82481.47
+          },
+          {
+            "layer": 1,
+            "pct_depth": 3.7,
+            "n_intermediates": 98,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 82414.33
+          },
+          {
+            "layer": 2,
+            "pct_depth": 7.41,
+            "n_intermediates": 98,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 85313.92
+          },
+          {
+            "layer": 3,
+            "pct_depth": 11.11,
+            "n_intermediates": 98,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 86381.96
+          },
+          {
+            "layer": 4,
+            "pct_depth": 14.81,
+            "n_intermediates": 98,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 73268.42
+          },
+          {
+            "layer": 5,
+            "pct_depth": 18.52,
+            "n_intermediates": 98,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 50409.48
+          },
+          {
+            "layer": 6,
+            "pct_depth": 22.22,
+            "n_intermediates": 98,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 40097.67
+          },
+          {
+            "layer": 7,
+            "pct_depth": 25.93,
+            "n_intermediates": 98,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 51601.26
+          },
+          {
+            "layer": 8,
+            "pct_depth": 29.63,
+            "n_intermediates": 98,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 58737.87
+          },
+          {
+            "layer": 9,
+            "pct_depth": 33.33,
+            "n_intermediates": 98,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 63196.93
+          },
+          {
+            "layer": 10,
+            "pct_depth": 37.04,
+            "n_intermediates": 98,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 60969.17
+          },
+          {
+            "layer": 11,
+            "pct_depth": 40.74,
+            "n_intermediates": 98,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 68631.04
+          },
+          {
+            "layer": 12,
+            "pct_depth": 44.44,
+            "n_intermediates": 98,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 69093.59
+          },
+          {
+            "layer": 13,
+            "pct_depth": 48.15,
+            "n_intermediates": 98,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 73740.44
+          },
+          {
+            "layer": 14,
+            "pct_depth": 51.85,
+            "n_intermediates": 98,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 73654.59
+          },
+          {
+            "layer": 15,
+            "pct_depth": 55.56,
+            "n_intermediates": 98,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 58732.1
+          },
+          {
+            "layer": 16,
+            "pct_depth": 59.26,
+            "n_intermediates": 98,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 67053.13
+          },
+          {
+            "layer": 17,
+            "pct_depth": 62.96,
+            "n_intermediates": 98,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 76217.16
+          },
+          {
+            "layer": 18,
+            "pct_depth": 66.67,
+            "n_intermediates": 98,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 73764.71
+          },
+          {
+            "layer": 19,
+            "pct_depth": 70.37,
+            "n_intermediates": 98,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 64478.85
+          },
+          {
+            "layer": 20,
+            "pct_depth": 74.07,
+            "n_intermediates": 98,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 68355.36
+          },
+          {
+            "layer": 21,
+            "pct_depth": 77.78,
+            "n_intermediates": 98,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 81460.01
+          },
+          {
+            "layer": 22,
+            "pct_depth": 81.48,
+            "n_intermediates": 98,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 81718.47
+          },
+          {
+            "layer": 23,
+            "pct_depth": 85.19,
+            "n_intermediates": 98,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 95576.95
+          },
+          {
+            "layer": 24,
+            "pct_depth": 88.89,
+            "n_intermediates": 98,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 83649.3
+          },
+          {
+            "layer": 25,
+            "pct_depth": 92.59,
+            "n_intermediates": 98,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 87851.67
+          },
+          {
+            "layer": 26,
+            "pct_depth": 96.3,
+            "n_intermediates": 98,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 48017.91
+          },
+          {
+            "layer": 27,
+            "pct_depth": 100.0,
+            "n_intermediates": 98,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 72129.56
+          }
+        ]
+      },
+      "headline": {
+        "j-lens": {
+          "pass@1_min_over_layers": 0.0,
+          "pass@5_min_over_layers": 0.0,
+          "pass@10_min_over_layers": 0.0
+        },
+        "identity-uncal": {
+          "pass@1_min_over_layers": 0.0,
+          "pass@5_min_over_layers": 0.0,
+          "pass@10_min_over_layers": 0.0
+        }
+      },
+      "digest": {
+        "j-lens": {
+          "best_layer": 0,
+          "best_pass@10": 0.0,
+          "workspace_mid_layer": 18,
+          "pass@10_at_workspace_mid": 0.0,
+          "mean_rank_at_workspace_mid": 94907.3,
+          "final_layer": 27,
+          "pass@10_at_final_layer": 0.0,
+          "mean_rank_at_final_layer": 72129.56
+        },
+        "identity-uncal": {
+          "best_layer": 0,
+          "best_pass@10": 0.0,
+          "workspace_mid_layer": 18,
+          "pass@10_at_workspace_mid": 0.0,
+          "mean_rank_at_workspace_mid": 73764.71,
+          "final_layer": 27,
+          "pass@10_at_final_layer": 0.0,
+          "mean_rank_at_final_layer": 72129.56
+        }
+      }
+    },
+    "typo": {
+      "n_items_loaded": 96,
+      "n_items_scored": 96,
+      "n_items_skipped_too_long": 0,
+      "position_rules": {
+        "last-token": 96
+      },
+      "n_multi_token_intermediates": 0,
+      "n_synonym_fallbacks": 0,
+      "n_intermediates_total": 96,
+      "per_layer": {
+        "j-lens": [
+          {
+            "layer": 0,
+            "pct_depth": 0.0,
+            "n_intermediates": 96,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 149284.48
+          },
+          {
+            "layer": 1,
+            "pct_depth": 3.7,
+            "n_intermediates": 96,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 81747.67
+          },
+          {
+            "layer": 2,
+            "pct_depth": 7.41,
+            "n_intermediates": 96,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 62666.04
+          },
+          {
+            "layer": 3,
+            "pct_depth": 11.11,
+            "n_intermediates": 96,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 33088.07
+          },
+          {
+            "layer": 4,
+            "pct_depth": 14.81,
+            "n_intermediates": 96,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 17096.84
+          },
+          {
+            "layer": 5,
+            "pct_depth": 18.52,
+            "n_intermediates": 96,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 6753.6
+          },
+          {
+            "layer": 6,
+            "pct_depth": 22.22,
+            "n_intermediates": 96,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 10609.77
+          },
+          {
+            "layer": 7,
+            "pct_depth": 25.93,
+            "n_intermediates": 96,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 17895.75
+          },
+          {
+            "layer": 8,
+            "pct_depth": 29.63,
+            "n_intermediates": 96,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 49796.11
+          },
+          {
+            "layer": 9,
+            "pct_depth": 33.33,
+            "n_intermediates": 96,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 36822.67
+          },
+          {
+            "layer": 10,
+            "pct_depth": 37.04,
+            "n_intermediates": 96,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 35631.67
+          },
+          {
+            "layer": 11,
+            "pct_depth": 40.74,
+            "n_intermediates": 96,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 32916.02
+          },
+          {
+            "layer": 12,
+            "pct_depth": 44.44,
+            "n_intermediates": 96,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 47640.73
+          },
+          {
+            "layer": 13,
+            "pct_depth": 48.15,
+            "n_intermediates": 96,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 22206.81
+          },
+          {
+            "layer": 14,
+            "pct_depth": 51.85,
+            "n_intermediates": 96,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 10263.16
+          },
+          {
+            "layer": 15,
+            "pct_depth": 55.56,
+            "n_intermediates": 96,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 16543.4
+          },
+          {
+            "layer": 16,
+            "pct_depth": 59.26,
+            "n_intermediates": 96,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 8368.56
+          },
+          {
+            "layer": 17,
+            "pct_depth": 62.96,
+            "n_intermediates": 96,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 30180.66
+          },
+          {
+            "layer": 18,
+            "pct_depth": 66.67,
+            "n_intermediates": 96,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 22032.79
+          },
+          {
+            "layer": 19,
+            "pct_depth": 70.37,
+            "n_intermediates": 96,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 49933.0
+          },
+          {
+            "layer": 20,
+            "pct_depth": 74.07,
+            "n_intermediates": 96,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 105239.8
+          },
+          {
+            "layer": 21,
+            "pct_depth": 77.78,
+            "n_intermediates": 96,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 98262.89
+          },
+          {
+            "layer": 22,
+            "pct_depth": 81.48,
+            "n_intermediates": 96,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 121826.23
+          },
+          {
+            "layer": 23,
+            "pct_depth": 85.19,
+            "n_intermediates": 96,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 99942.58
+          },
+          {
+            "layer": 24,
+            "pct_depth": 88.89,
+            "n_intermediates": 96,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 107463.27
+          },
+          {
+            "layer": 25,
+            "pct_depth": 92.59,
+            "n_intermediates": 96,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 74585.08
+          },
+          {
+            "layer": 26,
+            "pct_depth": 96.3,
+            "n_intermediates": 96,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 97320.09
+          },
+          {
+            "layer": 27,
+            "pct_depth": 100.0,
+            "n_intermediates": 96,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 42745.91
+          }
+        ],
+        "identity-uncal": [
+          {
+            "layer": 0,
+            "pct_depth": 0.0,
+            "n_intermediates": 96,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 99016.88
+          },
+          {
+            "layer": 1,
+            "pct_depth": 3.7,
+            "n_intermediates": 96,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 96295.23
+          },
+          {
+            "layer": 2,
+            "pct_depth": 7.41,
+            "n_intermediates": 96,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 103594.91
+          },
+          {
+            "layer": 3,
+            "pct_depth": 11.11,
+            "n_intermediates": 96,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 93804.81
+          },
+          {
+            "layer": 4,
+            "pct_depth": 14.81,
+            "n_intermediates": 96,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 69194.41
+          },
+          {
+            "layer": 5,
+            "pct_depth": 18.52,
+            "n_intermediates": 96,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 57708.95
+          },
+          {
+            "layer": 6,
+            "pct_depth": 22.22,
+            "n_intermediates": 96,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 46667.75
+          },
+          {
+            "layer": 7,
+            "pct_depth": 25.93,
+            "n_intermediates": 96,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 35886.76
+          },
+          {
+            "layer": 8,
+            "pct_depth": 29.63,
+            "n_intermediates": 96,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 38073.85
+          },
+          {
+            "layer": 9,
+            "pct_depth": 33.33,
+            "n_intermediates": 96,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 31108.43
+          },
+          {
+            "layer": 10,
+            "pct_depth": 37.04,
+            "n_intermediates": 96,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 44575.24
+          },
+          {
+            "layer": 11,
+            "pct_depth": 40.74,
+            "n_intermediates": 96,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 53342.14
+          },
+          {
+            "layer": 12,
+            "pct_depth": 44.44,
+            "n_intermediates": 96,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 56216.76
+          },
+          {
+            "layer": 13,
+            "pct_depth": 48.15,
+            "n_intermediates": 96,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 57140.47
+          },
+          {
+            "layer": 14,
+            "pct_depth": 51.85,
+            "n_intermediates": 96,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 51407.81
+          },
+          {
+            "layer": 15,
+            "pct_depth": 55.56,
+            "n_intermediates": 96,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 51331.21
+          },
+          {
+            "layer": 16,
+            "pct_depth": 59.26,
+            "n_intermediates": 96,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 57711.31
+          },
+          {
+            "layer": 17,
+            "pct_depth": 62.96,
+            "n_intermediates": 96,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 60923.04
+          },
+          {
+            "layer": 18,
+            "pct_depth": 66.67,
+            "n_intermediates": 96,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 59419.38
+          },
+          {
+            "layer": 19,
+            "pct_depth": 70.37,
+            "n_intermediates": 96,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 67761.12
+          },
+          {
+            "layer": 20,
+            "pct_depth": 74.07,
+            "n_intermediates": 96,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 72125.02
+          },
+          {
+            "layer": 21,
+            "pct_depth": 77.78,
+            "n_intermediates": 96,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 81338.99
+          },
+          {
+            "layer": 22,
+            "pct_depth": 81.48,
+            "n_intermediates": 96,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 71727.75
+          },
+          {
+            "layer": 23,
+            "pct_depth": 85.19,
+            "n_intermediates": 96,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 84660.19
+          },
+          {
+            "layer": 24,
+            "pct_depth": 88.89,
+            "n_intermediates": 96,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 77937.45
+          },
+          {
+            "layer": 25,
+            "pct_depth": 92.59,
+            "n_intermediates": 96,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 69373.39
+          },
+          {
+            "layer": 26,
+            "pct_depth": 96.3,
+            "n_intermediates": 96,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 33724.33
+          },
+          {
+            "layer": 27,
+            "pct_depth": 100.0,
+            "n_intermediates": 96,
+            "pass@1": 0.0,
+            "pass@5": 0.0,
+            "pass@10": 0.0,
+            "mean_rank": 42745.91
+          }
+        ]
+      },
+      "headline": {
+        "j-lens": {
+          "pass@1_min_over_layers": 0.0,
+          "pass@5_min_over_layers": 0.0,
+          "pass@10_min_over_layers": 0.0
+        },
+        "identity-uncal": {
+          "pass@1_min_over_layers": 0.0,
+          "pass@5_min_over_layers": 0.0,
+          "pass@10_min_over_layers": 0.0
+        }
+      },
+      "digest": {
+        "j-lens": {
+          "best_layer": 0,
+          "best_pass@10": 0.0,
+          "workspace_mid_layer": 18,
+          "pass@10_at_workspace_mid": 0.0,
+          "mean_rank_at_workspace_mid": 22032.79,
+          "final_layer": 27,
+          "pass@10_at_final_layer": 0.0,
+          "mean_rank_at_final_layer": 42745.91
+        },
+        "identity-uncal": {
+          "best_layer": 0,
+          "best_pass@10": 0.0,
+          "workspace_mid_layer": 18,
+          "pass@10_at_workspace_mid": 0.0,
+          "mean_rank_at_workspace_mid": 59419.38,
+          "final_layer": 27,
+          "pass@10_at_final_layer": 0.0,
+          "mean_rank_at_final_layer": 42745.91
+        }
+      }
+    }
+  },
+  "runtime_seconds": 8398.8
+}

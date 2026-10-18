@@ -1,0 +1,280 @@
+{
+  "round": "validation_2026-10-01",
+  "family": "extension round: x24 POPE microscope (commitment layering, prior-vs-evidence gap, training-free error-prediction ledger)",
+  "script": "results/validation_2026-10-01/code/figures_e_pope.py",
+  "figures": [
+    {
+      "file": "figE1_commitment_layering.png",
+      "sources": [
+        "raw/step40/x24_pope_raw.json",
+        "raw/step40/x24_pope_calib.json",
+        "raw/step40/x24_pope_calib_adv.json",
+        "DECISIONS.md D49 item 2 (fake early commitment; 31-39% L5 quote)",
+        "EXPERIMENTS.md Stage 6 (recomputed 30.9/32.8/38.1% L5 fractions; L0-3 680 @L3 + 419 @L0 on random)"
+      ],
+      "key_numbers": {
+        "n_questions_per_split": {
+          "value": {
+            "random": 2596,
+            "popular": 2596,
+            "adversarial": 2596
+          },
+          "source": "raw/step40/x24_pope_raw.json results.<split>.summary.n_questions"
+        },
+        "raw_L5_commitment_frac": {
+          "value": {
+            "random": 30.9,
+            "popular": 32.8,
+            "adversarial": 38.1
+          },
+          "source": "raw/step40/x24_pope_raw.json results.<split>.summary.commitment_histogram['5'] / n"
+        },
+        "raw_pyes5_ge05_frac": {
+          "value": {
+            "random": 70.6,
+            "popular": 73.5,
+            "adversarial": 73.3
+          },
+          "source": "raw/step40/x24_pope_raw.json per-question p_yes['5'] >= 0.5"
+        },
+        "calibrated_L0-3_mass_frac": {
+          "value": {
+            "random": 42.3,
+            "adversarial": 51.2
+          },
+          "source": "raw/step40/x24_pope_calib.json + raw/step40/x24_pope_calib_adv.json commitment_histogram['0'..'3'] / n (no calibrated popular run)"
+        },
+        "calibrated_L5_commitment_frac": {
+          "value": {
+            "random": 0.0,
+            "adversarial": 0.0
+          },
+          "source": "raw/step40/x24_pope_calib.json + raw/step40/x24_pope_calib_adv.json commitment_histogram['5'] / n"
+        },
+        "calibrated_random_hist_counts": {
+          "value": {
+            "none": 20,
+            "3": 680,
+            "18": 462,
+            "28": 480,
+            "23": 228,
+            "27": 101,
+            "0": 419,
+            "31": 148,
+            "26": 6,
+            "22": 49,
+            "25": 3
+          },
+          "source": "raw/step40/x24_pope_calib.json results.random.summary.commitment_histogram (680 @L3, 419 @L0, 462 @L18, 480 @L28 of 2596)"
+        },
+        "raw_present_absent_meanPyes_sep_L5": {
+          "value": {
+            "raw": 0.0048,
+            "calibrated": 0.0022
+          },
+          "source": "raw/step40/x24_pope_raw.json / raw/step40/x24_pope_calib.json per_layer['5'].mean_p_yes_label_yes vs _label_no (random)"
+        },
+        "commitment_none_frac": {
+          "value": {
+            "random": 0.8,
+            "popular": 0.7,
+            "adversarial": 1.0
+          },
+          "source": "raw/step40/x24_pope_raw.json commitment_histogram['none'] / n"
+        }
+      },
+      "finding": "Calibration dissolves the raw lens's fake early commitment. Raw, the first sign-stable commitment falls at L5 for 30.9/32.8/38.1% of questions (random/popular/adversarial) while the present/absent mean P_yes curves differ by 0.005 there and raw P_yes(5) >= 0.5 on 70.6/73.5/73.3% - the over-scaled lens crossing 0.5 without object evidence. Calibrated, the L5 spike is gone (0.0%) and commitment mass moves to L0-3 (42.3% random, 51.2% adversarial) plus genuine mid/late re-formation (L18 17.8%, L28 18.5% on random): the yes/no disposition forms extremely early for a large subset, then re-forms at the motor layers (DECISIONS.md D49)."
+    },
+    {
+      "file": "figE2_prior_evidence_gap.png",
+      "sources": [
+        "raw/step40/x24_pope_calib.json",
+        "raw/step40/x24_pope_calib_adv.json",
+        "raw/step40/x24_pope_raw.json (calibration-invariance check)",
+        "DECISIONS.md D49 item 2 (0.999 prior-yes saturation; gap feature)",
+        "EXPERIMENTS.md Stage 6 (0.744-0.823 L21-25 adversarial, 0.866 @L31)"
+      ],
+      "key_numbers": {
+        "n_errors": {
+          "value": {
+            "random": 163,
+            "adversarial": 384
+          },
+          "source": "raw/step40/x24_pope_calib.json / raw/step40/x24_pope_calib_adv.json per-question correct == false"
+        },
+        "image_free_plateau": {
+          "value": {
+            "random": {
+              "layers": [
+                11,
+                27
+              ],
+              "min_mean_p_yes_free": 0.9957
+            },
+            "adversarial": {
+              "layers": [
+                11,
+                26
+              ],
+              "min_mean_p_yes_free": 0.9978
+            }
+          },
+          "source": "raw/step40/x24_pope_calib.json / raw/step40/x24_pope_calib_adv.json gap_curve[l].mean_p_yes_free, contiguous run >= 0.995 through L18"
+        },
+        "image_path_dip": {
+          "value": {
+            "random": {
+              "mean_L18": 0.4844,
+              "min": 0.4553,
+              "argmin_layer": 31
+            },
+            "adversarial": {
+              "mean_L18": 0.6122,
+              "min": 0.4964,
+              "argmin_layer": 2
+            }
+          },
+          "source": "raw/step40/x24_pope_calib.json / raw/step40/x24_pope_calib_adv.json gap_curve[l].mean_p_yes"
+        },
+        "signed_gap_auroc_best": {
+          "value": {
+            "random": {
+              "layer": 31,
+              "auc": 0.8024
+            },
+            "adversarial": {
+              "layer": 31,
+              "auc": 0.8659
+            }
+          },
+          "source": "recomputed rank AUROC, rules convention (b); matches raw/step40/x24_pope_calib.json / raw/step40/x24_pope_calib_adv.json summary.error_auc.best (feature gap)"
+        },
+        "signed_gap_auroc_band_L21_25": {
+          "value": {
+            "random": [
+              0.6851,
+              0.6979,
+              0.7153,
+              0.7163,
+              0.719
+            ],
+            "adversarial": [
+              0.7435,
+              0.7722,
+              0.8108,
+              0.8226,
+              0.8222
+            ]
+          },
+          "source": "recomputed per layer L21..L25 (calibrated)"
+        },
+        "margin_baseline_auroc": {
+          "value": {
+            "random": 0.874,
+            "adversarial": 0.7945
+          },
+          "source": "raw/step40/x24_pope_calib.json / raw/step40/x24_pope_calib_adv.json summary.error_auc.final_logit_baseline.auc_margin_abs"
+        },
+        "calibration_invariance": {
+          "value": {
+            "random": {
+              "L31_auroc_calibrated": 0.8024,
+              "L31_identical_raw_vs_calibrated": true,
+              "max_band_delta": 0.0483,
+              "argmax_layer": 24
+            },
+            "adversarial": {
+              "L31_auroc_calibrated": 0.8659,
+              "L31_identical_raw_vs_calibrated": true,
+              "max_band_delta": 0.087,
+              "argmax_layer": 24
+            }
+          },
+          "source": "same feature recomputed on raw/step40/x24_pope_raw.json; L31 readout is calibration-invariant (per-question gap['31'] identical in the raw and calibrated files)"
+        }
+      },
+      "finding": "The prior-vs-evidence gap is only readable calibrated: the image-free path saturates at prior-yes (mean P_yes >= 0.995 over L11-27, both splits) while the image path dips mid-band (0.484 @L18 random, 0.612 adversarial) - the image evidence pulls against the language prior exactly where the sensory block reads. The answer-signed gap feature (error_auc convention b) is a moderate per-question error predictor rising through the band: 0.744-0.823 across L21-25 on adversarial, best 0.866 @L31 > the model's own |margin| 0.795; on random the gap never beats the margin (best 0.802 < 0.874). Calibration-invariance: the L31 AUROC is identical raw vs calibrated on both splits (the per-question gap['31'] is byte-identical in the two files) and the band values shift by <= 0.087 (max @L24 adversarial), preserving the split ordering and the rising-band shape."
+    },
+    {
+      "file": "figE3_error_prediction_ledger.png",
+      "sources": [
+        "raw/step40/x24_pope_calib_adv.json",
+        "raw/step40/x24_pope_raw.json (calibration-invariance check)",
+        "DECISIONS.md D49 item 2 (honest error-prediction verdict; 0.845 vs 0.795)",
+        "EXPERIMENTS.md Stage 6 (extended detector ledger table)"
+      ],
+      "key_numbers": {
+        "n_questions": {
+          "value": 2596,
+          "source": "raw/step40/x24_pope_calib_adv.json results.adversarial.summary.n_questions"
+        },
+        "n_errors": {
+          "value": 384,
+          "source": "raw/step40/x24_pope_calib_adv.json per-question correct == false (adversarial)"
+        },
+        "image_free_contrast_L31": {
+          "value": {
+            "auroc_detector": 0.8452,
+            "auroc_bare_abs_gap": 0.1548
+          },
+          "source": "raw/step40/x24_pope_calib_adv.json per-question |p_yes_free['31'] - p_yes['31']|; bare |gap| ranks correct answers high on this split, so the ledger keeps the detector direction (low contrast -> error), the same convention as the file's final_logit_baseline for |margin|"
+        },
+        "model_margin": {
+          "value": {
+            "auroc_detector": 0.7945,
+            "auroc_bare_abs_margin": 0.2055,
+            "stored_auc_margin_abs": 0.7945,
+            "recompute_matches_stored": true
+          },
+          "source": "raw/step40/x24_pope_calib_adv.json summary.error_auc.final_logit_baseline.auc_margin_abs; per-question |margin| recomputation agrees"
+        },
+        "signed_gap_best_layer": {
+          "value": {
+            "layer": 31,
+            "auc": 0.8659
+          },
+          "source": "recomputed rank AUROC, rules convention (b); matches raw/step40/x24_pope_calib_adv.json summary.error_auc.best (auc 0.8659 @L31)"
+        },
+        "mid_band_confidence_best_layer": {
+          "value": {
+            "layer": 17,
+            "auc": 0.3464,
+            "mid_band_layers": [
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29
+            ]
+          },
+          "source": "rules convention (a) feature (1 - aligned P_yes), sign kept; most below-chance layer of summary.error_auc.mid_band.layers; recomputed per-layer values bracket the register's 0.31-0.61 quote"
+        },
+        "chance": {
+          "value": 0.5,
+          "source": "definition"
+        }
+      },
+      "finding": "Honest error-prediction ledger on the adversarial split (n=2596, 384 errors): the answer-signed gap at its best layer (0.866 @L31) and the final-layer image-free contrast (0.845 as the low-contrast error flag; the bare |p_yes_free - p_yes| scores 0.155, i.e. high contrast marks correct answers) both beat the model's own |margin| (0.795); mid-band lens confidence anti-predicts (0.346 @L17, the most below-chance layer of the mid band L12-29; sign kept, so mid-band certainty marks the model's errors). Computing 'what would the model say without the image' from the lens framework predicts the model's hallucination errors better than the model's own confidence, where priors bite (DECISIONS.md D49)."
+    }
+  ],
+  "notes": [
+    "All plotted numbers are computed from the raw JSONs at run time; the register prose values (30.9/32.8/38.1%, 0.744-0.823, 0.866, 0.845, 0.795) are quoted in annotations only and reproduce from these files.",
+    "rank_auc implements the files' own error_auc rule (rank AUROC, Mann-Whitney U, positive group = model answer != POPE label, average ranks on ties); the recomputed per-layer auc_error_gap / auc_error_pyes match the stored per_layer values to machine precision, and the recomputed |margin| AUROC equals the stored final_logit_baseline.auc_margin_abs (0.7945 adversarial).",
+    "Detector-direction convention (as in the register's extended ledger): the image-free contrast and |margin| rows are scored in their error-flagging direction (low contrast / low margin -> error), while the mid-band confidence row keeps the feature's own sign (AUROC < 0.5 = mid-band certainty marks the model's errors).",
+    "No calibrated popular run exists (x24_pope_calib covers random, x24_pope_calib_adv covers adversarial); the popular panel shows the raw histogram only and the L0-3 calibrated mass is quoted for random and adversarial.",
+    "Deterministic: fixed palette, fixed layout, no timestamps; re-running regenerates byte-identical PNGs + metrics JSON."
+  ]
+}

@@ -1,0 +1,201 @@
+{
+  "script": "x23_vlm_workspace.py",
+  "created_utc": "2026-10-14T23:08:31+00:00",
+  "arm": "band",
+  "backend": "hf-llava",
+  "synthetic": false,
+  "images_dir": "/data/baodq/coco2014/val2014",
+  "annotations": "/data/baodq/coco2014/annotations/instances_val2014.json",
+  "n_images_requested": 60,
+  "n_samples": 59,
+  "seed": 0,
+  "layers": [
+    11,
+    15,
+    19,
+    23,
+    27
+  ],
+  "top_k": 10,
+  "max_new_tokens": 128,
+  "max_seq_len": 1536,
+  "prompt_template": "<|im_start|>user\n<image>{question}<|im_end|>\n<|im_start|>assistant\n",
+  "prompt_template_hash": "01eb9dfdfa103047886034bc702f27bac816191bfa51a9691e21f947ec43fffa",
+  "workspace_band": {
+    "paper_band_32l": [
+      12,
+      29
+    ],
+    "handoff_completion_layers": [
+      20,
+      25
+    ],
+    "readout_layer": 26
+  },
+  "lens": {
+    "loaded": true,
+    "dir": "/data/anhnq/vlm-lens-out/validation/fits/qwen2-vl-7b-instruct/merged/artifacts",
+    "mask": "text"
+  },
+  "bias": {
+    "loaded": false,
+    "dir": "/data/anhnq/vlm-lens-out/validation/step5e",
+    "dropped": "dim_mismatch",
+    "model_kind": "qwen2vl",
+    "model_d_model": 3584,
+    "model_vocab": 152064,
+    "note": "payload dims do not match this model; dropped, arm runs uncalibrated: bias last dim [4096] != 3584; logit_bias last dim [32064] != 152064"
+  },
+  "calibrated": false,
+  "per_layer": {
+    "11": {
+      "effective_dim_category_vectors": 67.481,
+      "image": {
+        "n_images": 59,
+        "n_positions_mean": 343.0,
+        "next_token_topk_acc": 0.0555,
+        "readout_excess_kurtosis": 0.2655,
+        "top1_stickiness": 0.0394,
+        "stickiness_null_mean": 0.0059,
+        "stickiness_null_std": 0.0041,
+        "stickiness_z": 8.1886,
+        "object_in_top10_rate": 0.0005
+      },
+      "text": {
+        "n_images": 59,
+        "n_positions_mean": 26.0,
+        "next_token_topk_acc": 0.04,
+        "readout_excess_kurtosis": 0.3152,
+        "top1_stickiness": 0.0424,
+        "stickiness_null_mean": 0.0098,
+        "stickiness_null_std": 0.0184,
+        "stickiness_z": 1.7714,
+        "object_in_top10_rate": 0.0007
+      },
+      "object_rate_asymmetry_text_minus_image": 0.0002
+    },
+    "15": {
+      "effective_dim_category_vectors": 67.481,
+      "image": {
+        "n_images": 59,
+        "n_positions_mean": 343.0,
+        "next_token_topk_acc": 0.0611,
+        "readout_excess_kurtosis": 0.2702,
+        "top1_stickiness": 0.0498,
+        "stickiness_null_mean": 0.0073,
+        "stickiness_null_std": 0.0045,
+        "stickiness_z": 9.4968,
+        "object_in_top10_rate": 0.0005
+      },
+      "text": {
+        "n_images": 59,
+        "n_positions_mean": 26.0,
+        "next_token_topk_acc": 0.08,
+        "readout_excess_kurtosis": 0.3044,
+        "top1_stickiness": 0.0021,
+        "stickiness_null_mean": 0.0033,
+        "stickiness_null_std": 0.0107,
+        "stickiness_z": -0.1139,
+        "object_in_top10_rate": 0.0
+      },
+      "object_rate_asymmetry_text_minus_image": -0.0005
+    },
+    "19": {
+      "effective_dim_category_vectors": 67.481,
+      "image": {
+        "n_images": 59,
+        "n_positions_mean": 343.0,
+        "next_token_topk_acc": 0.1,
+        "readout_excess_kurtosis": 0.2808,
+        "top1_stickiness": 0.0551,
+        "stickiness_null_mean": 0.0092,
+        "stickiness_null_std": 0.005,
+        "stickiness_z": 9.1637,
+        "object_in_top10_rate": 0.0005
+      },
+      "text": {
+        "n_images": 59,
+        "n_positions_mean": 26.0,
+        "next_token_topk_acc": 0.1661,
+        "readout_excess_kurtosis": 0.2977,
+        "top1_stickiness": 0.0,
+        "stickiness_null_mean": 0.0005,
+        "stickiness_null_std": 0.0018,
+        "stickiness_z": -0.2949,
+        "object_in_top10_rate": 0.0
+      },
+      "object_rate_asymmetry_text_minus_image": -0.0005
+    },
+    "23": {
+      "effective_dim_category_vectors": 67.481,
+      "image": {
+        "n_images": 59,
+        "n_positions_mean": 343.0,
+        "next_token_topk_acc": 0.0508,
+        "readout_excess_kurtosis": 0.37,
+        "top1_stickiness": 0.0623,
+        "stickiness_null_mean": 0.0104,
+        "stickiness_null_std": 0.0054,
+        "stickiness_z": 9.6887,
+        "object_in_top10_rate": 0.0348
+      },
+      "text": {
+        "n_images": 59,
+        "n_positions_mean": 26.0,
+        "next_token_topk_acc": 0.4888,
+        "readout_excess_kurtosis": 0.3742,
+        "top1_stickiness": 0.0,
+        "stickiness_null_mean": 0.0064,
+        "stickiness_null_std": 0.0157,
+        "stickiness_z": -0.4091,
+        "object_in_top10_rate": 0.0267
+      },
+      "object_rate_asymmetry_text_minus_image": -0.0081
+    },
+    "27": {
+      "effective_dim_category_vectors": 67.481,
+      "image": {
+        "n_images": 59,
+        "n_positions_mean": 343.0,
+        "next_token_topk_acc": 0.4893,
+        "readout_excess_kurtosis": 0.1969,
+        "top1_stickiness": 0.0775,
+        "stickiness_null_mean": 0.0235,
+        "stickiness_null_std": 0.0079,
+        "stickiness_z": 6.8617,
+        "object_in_top10_rate": 0.1176
+      },
+      "text": {
+        "n_images": 59,
+        "n_positions_mean": 26.0,
+        "next_token_topk_acc": 0.9851,
+        "readout_excess_kurtosis": 0.5612,
+        "top1_stickiness": 0.0466,
+        "stickiness_null_mean": 0.0447,
+        "stickiness_null_std": 0.0396,
+        "stickiness_z": 0.0471,
+        "object_in_top10_rate": 0.0359
+      },
+      "object_rate_asymmetry_text_minus_image": -0.0817
+    }
+  },
+  "digest": "== X23 arm=band: modality-split workspace statistics ==\nlayer    acc_img  acc_txt  kurt_img  kurt_txt stick_img stick_txt  z_img  z_txt  obj_img  obj_txt  eff_dim\nL11        0.056    0.040       0.3       0.3     0.039     0.042   8.19   1.77    0.001    0.001     67.5\nL15        0.061    0.080       0.3       0.3     0.050     0.002   9.50  -0.11    0.001    0.000     67.5\nL19        0.100    0.166       0.3       0.3     0.055     0.000   9.16  -0.29    0.001    0.000     67.5\nL23        0.051    0.489       0.4       0.4     0.062     0.000   9.69  -0.41    0.035    0.027     67.5\nL27        0.489    0.985       0.2       0.6     0.077     0.047   6.86   0.05    0.118    0.036     67.5\nnovel claim: the workspace band for image-position content is delayed/absent relative to text positions \u2014 obj_img should stay ~0 at ALL layers while obj_txt rises through the band (prior evidence: image-position readouts stay object-free at all layers)",
+  "summary": {
+    "n_images_processed": 59,
+    "n_images_skipped_no_annotations": 0,
+    "max_object_rate_asymmetry_layer": 11
+  },
+  "results": [],
+  "notes": {
+    "band_stats": "next-token top-k accuracy: teacher-forced, position p predicts ids[p+1] (the last prompt position has no in-prompt successor and is excluded); readout excess kurtosis: mean over the modality's positions of kurtosis(logit_row) - 3; top-1 stickiness: P(top1[p+1] == top1[p]) over positionally consecutive same-modality positions, vs a shuffled null (the modality's top-1 ids permuted over its positions, the same pair set recomputed; analytic permutation mean + empirical std over --n-null-shuffles per image); effective dimensionality: participation ratio of the covariance of the category J-lens vectors (position-independent)",
+    "topk": "top-k = the k highest calibrated J-lens logits at the position; membership counts a token's emission id (last subword of ' ' + name) among the k ids",
+    "modality_split": "image = the 576 placeholder positions; text = all non-image non-bos prompt positions (x16's groups; the bos position belongs to neither split); all statistics use the calibrated J-lens readout at each position"
+  },
+  "interpretation_limits": [
+    "next-token accuracy is teacher-forced over in-prompt successors: at image positions the target is almost always the next placeholder id, so the image-side accuracy measures placeholder predictability, not object knowledge \u2014 the object_in_top10_rate columns carry the modality claim",
+    "the top-1 stickiness null is a permutation of the modality's own top-1 sequence, so it controls for the token marginals but not for position semantics",
+    "effective dimensionality is position-independent by construction (the category J-lens vector matrix); it is reported per layer for completeness only",
+    "the captioning prompt's text positions are few (~20 per image), so text-side pools are ~30x smaller than image-side pools per image",
+    "the tiny backend is a random-weight fixture: it exercises the machinery, its rates do not transfer to the real model"
+  ]
+}

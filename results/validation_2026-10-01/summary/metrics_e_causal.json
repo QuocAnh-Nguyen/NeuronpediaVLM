@@ -1,0 +1,323 @@
+{
+  "round": "validation_2026-10-01",
+  "family": "extension-round figures (mitigation frontier, register blindness)",
+  "script": "results/validation_2026-10-01/code/figures_e_causal.py",
+  "figures": [
+    {
+      "file": "figE4_mitigation_frontier.png",
+      "sources": [
+        "raw/step40/x25_pope.json",
+        "raw/step40/x25_captions.json",
+        "DECISIONS.md D49 (x25 mitigation microscope verdict)"
+      ],
+      "key_numbers": {
+        "n_arms": {
+          "value": 9,
+          "source": "raw/step40/x25_pope.json summary.n_arms"
+        },
+        "pope_split": {
+          "value": "random",
+          "source": "raw/step40/x25_pope.json arms.*.pope keys"
+        },
+        "n_questions": {
+          "value": 60,
+          "source": "raw/step40/x25_pope.json arms.baseline.pope.random.n"
+        },
+        "n_caption_images": {
+          "value": 60,
+          "source": "raw/step40/x25_captions.json n_images"
+        },
+        "baseline_accuracy": {
+          "value": 0.95,
+          "source": "raw/step40/x25_pope.json arms.baseline.pope.random.accuracy"
+        },
+        "best_causal_arm": {
+          "value": "prior_ablate_alpha_1",
+          "source": "raw/step40/x25_pope.json arms: prior-ablate arm with max accuracy"
+        },
+        "best_f1_arm": {
+          "value": "prior_ablate_alpha_1",
+          "source": "raw/step40/x25_pope.json summary.pope.random.best_f1_arm"
+        },
+        "per_arm": {
+          "value": {
+            "baseline": {
+              "accuracy": 0.95,
+              "unparsed": 0,
+              "chair_s": 0.4407,
+              "chair_r": 0.7244,
+              "midband_delta_pts": 0.0,
+              "per_layer_delta_pts": {}
+            },
+            "m3id_tau_0.5": {
+              "accuracy": 0.95,
+              "unparsed": 0,
+              "chair_s": 0.6271,
+              "chair_r": 0.6693,
+              "midband_delta_pts": -1.463,
+              "per_layer_delta_pts": {
+                "16": -1.19,
+                "20": -1.43,
+                "24": -1.66,
+                "28": -1.57
+              }
+            },
+            "m3id_tau_1": {
+              "accuracy": 0.3167,
+              "unparsed": 40,
+              "chair_s": 0.3729,
+              "chair_r": 0.4988,
+              "midband_delta_pts": -2.16,
+              "per_layer_delta_pts": {
+                "16": -2.73,
+                "20": -2.06,
+                "24": -2.22,
+                "28": -1.63
+              }
+            },
+            "m3id_tau_2": {
+              "accuracy": 0.0,
+              "unparsed": 60,
+              "chair_s": 0.0169,
+              "chair_r": 0.0113,
+              "midband_delta_pts": -7.985,
+              "per_layer_delta_pts": {
+                "16": -6.89,
+                "20": -8.24,
+                "24": -9.02,
+                "28": -7.79
+              }
+            },
+            "vcd_tau_0.5": {
+              "accuracy": 0.9333,
+              "unparsed": 0,
+              "chair_s": 0.5254,
+              "chair_r": 0.6345,
+              "midband_delta_pts": -1.985,
+              "per_layer_delta_pts": {
+                "16": -1.94,
+                "20": -1.8,
+                "24": -2.31,
+                "28": -1.89
+              }
+            },
+            "vcd_tau_1": {
+              "accuracy": 0.0333,
+              "unparsed": 58,
+              "chair_s": 0.1864,
+              "chair_r": 0.2591,
+              "midband_delta_pts": -5.7,
+              "per_layer_delta_pts": {
+                "16": -6.97,
+                "20": -5.87,
+                "24": -6.06,
+                "28": -3.9
+              }
+            },
+            "vcd_tau_2": {
+              "accuracy": 0.0,
+              "unparsed": 60,
+              "chair_s": 0.0,
+              "chair_r": 0.0,
+              "midband_delta_pts": -9.02,
+              "per_layer_delta_pts": {
+                "16": -9.68,
+                "20": -8.81,
+                "24": -9.47,
+                "28": -8.12
+              }
+            },
+            "prior_ablate_alpha_0.5": {
+              "accuracy": 0.95,
+              "unparsed": 0,
+              "chair_s": 0.4746,
+              "chair_r": 0.7363,
+              "midband_delta_pts": -0.207,
+              "per_layer_delta_pts": {
+                "16": -0.13,
+                "20": 0.18,
+                "24": -0.53,
+                "28": -0.35
+              }
+            },
+            "prior_ablate_alpha_1": {
+              "accuracy": 0.9667,
+              "unparsed": 0,
+              "chair_s": 0.4407,
+              "chair_r": 0.7208,
+              "midband_delta_pts": -0.415,
+              "per_layer_delta_pts": {
+                "16": -0.44,
+                "20": -0.06,
+                "24": -0.71,
+                "28": -0.45
+              }
+            }
+          },
+          "source": "raw/step40/x25_pope.json + raw/step40/x25_captions.json (accuracy/unparsed; chair; mid-band = mean over 16,20,24,28 of lens_trajectory.shift_vs_baseline.object_topk_rate)"
+        },
+        "causal_midband_delta_pts": {
+          "value": [
+            -0.415,
+            -0.207
+          ],
+          "source": "raw/step40/x25_captions.json shift_vs_baseline prior-ablate arms, L16-28 mean"
+        },
+        "contrast_midband_delta_pts": {
+          "value": [
+            -9.02,
+            -7.985,
+            -5.7,
+            -2.16,
+            -1.985,
+            -1.463
+          ],
+          "source": "raw/step40/x25_captions.json shift_vs_baseline m3id/vcd arms, L16-28 mean"
+        },
+        "contrast_unparsed_range": {
+          "value": [
+            40,
+            60
+          ],
+          "source": "raw/step40/x25_pope.json arms.*.pope.random.n_unparsed (m3id/vcd tau>=1)"
+        },
+        "clean_format_higher_chair_arms": {
+          "value": {
+            "m3id_tau_0.5": 0.6271,
+            "vcd_tau_0.5": 0.5254
+          },
+          "source": "raw/step40/x25_captions.json arms.*.captions.metrics.chair_s where chair_s > baseline (unparsed = 0)"
+        }
+      },
+      "finding": "Mitigation frontier on LLaVA-1.5-7B (9 arms, POPE-random n=60 + CHAIR over the caption images): the J-lens causal arm (prior ablation of the lens-measured prior direction at L20) is the only arm that improves POPE accuracy while leaving the caption metric and the mid-band workspace content untouched; M3ID/VCD pay with broken answer format (unparsed) or with mid-band object content."
+    },
+    {
+      "file": "figE5_register_blindness.png",
+      "sources": [
+        "raw/step40/x26_registers.json",
+        "DECISIONS.md D50 (E3 verdict: blindness is the unembed's row space)"
+      ],
+      "key_numbers": {
+        "n_images": {
+          "value": 20,
+          "source": "raw/step40/x26_registers.json n_samples"
+        },
+        "n_probe_targets": {
+          "value": 2,
+          "source": "raw/step40/x26_registers.json probes.object_targets.n_targets"
+        },
+        "workspace_band": {
+          "value": [
+            12,
+            29
+          ],
+          "source": "raw/step40/x26_registers.json workspace_band (band_lo, band_hi)"
+        },
+        "probe_auc_by_layer": {
+          "value": {
+            "L12": {
+              "register": 0.687,
+              "image_nonregister": 0.6988,
+              "text": 0.7196
+            },
+            "L16": {
+              "register": 0.7412,
+              "image_nonregister": 0.7053,
+              "text": 0.7645
+            },
+            "L20": {
+              "register": 0.7165,
+              "image_nonregister": 0.7314,
+              "text": 0.774
+            },
+            "L24": {
+              "register": 0.7207,
+              "image_nonregister": 0.6994,
+              "text": 0.7642
+            },
+            "L28": {
+              "register": 0.7152,
+              "image_nonregister": 0.7073,
+              "text": 0.7636
+            },
+            "L31": {
+              "register": 0.7298,
+              "image_nonregister": 0.765,
+              "text": 0.7944
+            }
+          },
+          "source": "raw/step40/x26_registers.json probes.object_targets.per_layer[L].*.mean_auc"
+        },
+        "unembed_object_in_top10_by_layer": {
+          "value": {
+            "L12": {
+              "register": 0.0,
+              "image_nonregister": 0.0,
+              "text": 0.0
+            },
+            "L16": {
+              "register": 0.0,
+              "image_nonregister": 0.0,
+              "text": 0.0
+            },
+            "L20": {
+              "register": 0.0063,
+              "image_nonregister": 0.0053,
+              "text": 0.025
+            },
+            "L24": {
+              "register": 0.0063,
+              "image_nonregister": 0.0242,
+              "text": 0.0813
+            },
+            "L28": {
+              "register": 0.0125,
+              "image_nonregister": 0.0437,
+              "text": 0.075
+            },
+            "L31": {
+              "register": 0.0125,
+              "image_nonregister": 0.064,
+              "text": 0.0688
+            }
+          },
+          "source": "raw/step40/x26_registers.json probes.unembed_crosscheck_object_in_top10[L]"
+        },
+        "register_stickiness_z_by_layer": {
+          "value": {
+            "L12": 9.69,
+            "L16": 3.91,
+            "L20": 3.5,
+            "L24": 5.69,
+            "L28": 8.11,
+            "L31": 17.7
+          },
+          "source": "raw/step40/x26_registers.json registers.per_layer[L].image.stickiness_z"
+        },
+        "attention_stickiness_corr_by_layer": {
+          "value": {
+            "L12": -0.3321,
+            "L16": -0.3406,
+            "L20": -0.3335,
+            "L24": -0.339,
+            "L28": -0.3198,
+            "L31": -0.2951
+          },
+          "source": "raw/step40/x26_registers.json attention.aggregate[L].mean_corr_stickiness_mass"
+        },
+        "attention_stickiness_corr_mean": {
+          "value": -0.3267,
+          "source": "mean over L12-L31 of raw/step40/x26_registers.json attention.aggregate[L].mean_corr_stickiness_mass"
+        }
+      },
+      "finding": "Visual registers are probe-readable but unembed-blind: a ridge probe decodes GT-object presence from register rows (and patches/text) at every layer while the lens/unembed top-10 stays object-free on register positions; the transport preserves the content for a probe (E3), so the blindness is the output projection's row space, not the representation."
+    }
+  ],
+  "notes": [
+    "All plotted numbers are read from the raw JSONs at run time; the only DECISIONS.md-sourced value is the E3 verdict phrasing (D50), cited in place.",
+    "figE4 mid-band delta = mean over the teacher-forced lens layers (16, 20, 24, 28) of x25_captions lens_trajectory.shift_vs_baseline.object_topk_rate (paired same-images shift; baseline is 0 by definition and has no entry).",
+    "figE4 marker shape encodes POPE unparsed outputs (n_unparsed > 0 -> square); coincident (accuracy, CHAIR-s) points get a deterministic jitter from np.random.default_rng(0).",
+    "figE5 register band = x26 workspace_band (band_lo..band_hi); stickiness z is the register (image) class from registers.per_layer; the unembed crosscheck object-in-top10 rates equal registers.per_layer rates (asserted by construction in x26).",
+    "Deterministic: fixed layout, fixed jitter seed, no timestamps; re-running regenerates byte-identical PNGs + metrics JSON."
+  ]
+}

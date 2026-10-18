@@ -1,0 +1,479 @@
+{
+  "script": "x25_mitigation_microscope.py",
+  "created_utc": "2026-10-16T14:17:09+00:00",
+  "backend": "hf-llava",
+  "model": "llava-7b",
+  "synthetic": false,
+  "tasks": [
+    "pope"
+  ],
+  "seed": 0,
+  "n_images": 60,
+  "max_new_tokens": 256,
+  "pope_max_new_tokens": 8,
+  "max_seq_len": 1536,
+  "top_k": 10,
+  "layers": [
+    16,
+    20,
+    24,
+    28
+  ],
+  "ablate_layer": 20,
+  "ablate_layer_note": "default = the kind's x22 top1-onset layer (D48 workspace band); the prior direction v_l is measured in the raw residual space at this layer",
+  "m3id_taus": [
+    0.5,
+    1.0,
+    2.0
+  ],
+  "vcd_taus": [
+    0.5,
+    1.0,
+    2.0
+  ],
+  "ablate_alphas": [
+    0.5,
+    1.0
+  ],
+  "vcd_distortion": {
+    "noise_sigma": 15.0,
+    "blur_radius": 2.0,
+    "note": "vcd distortion is PIL-only (the repo invariant: images reach processors as PIL, no torchvision): RGB float array + seeded numpy gaussian noise (sigma on the 0-255 scale) clipped back to uint8, then PIL ImageFilter.GaussianBlur(radius). Seeded per sample (seed, sample index) so every arm sees the same distortion"
+  },
+  "prompt_template": "USER: <image>\n{question}\nASSISTANT:",
+  "prompt_template_hash": "1cf033c083cb1f064cd6525c8b6363cd2fd597d8fb9a7fe111e7a4e554c9c3a0",
+  "lens": {
+    "loaded": true,
+    "dir": "/data/anhnq/vlm-lens-out/validation/fits/llava-1.5-7b-hf/merged/artifacts",
+    "mask": "text",
+    "n_prompts": 100,
+    "source_layers": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30
+    ],
+    "fingerprint": "b9b3f8fe99d48a30fe394f393cd2a2a1e97684408804194b6d143422549b58ff",
+    "fingerprint_note": "sha256 over the loaded lens's fitted J_l values (layer tag + raw float32 bytes, layer order): equal report metrics with equal fingerprints = the same fitted lens was read; equal metrics with different fingerprints = a lens-blind readout"
+  },
+  "bias": {
+    "loaded": true,
+    "dir": "/data/anhnq/vlm-lens-out/validation/step40/bias-7b"
+  },
+  "calibrated": true,
+  "yes_no_tokens": {
+    "rule": "the gap uses the tokenizer ids of the capitalized leading-space forms ' Yes' / ' No' when those are single tokens \u2014 the repo's teacher-forced POPE answer form (data/pope.py appends ' ' + label.capitalize() to this same template, and generated content follows the leading-space emission convention); both ' yes'/'no' and capitalized forms are evaluated for every question word and ALL candidates are recorded; if no form is a single token (the tiny hash tokenizer), the first form of (' Yes', ' yes', 'Yes', 'yes') whose yes/no ids exist and differ supplies the FINAL subtoken id (x14's _category_token_ids convention) with single_token=false",
+    "yes": {
+      "form": "Yes",
+      "id": 3869,
+      "single_token": true
+    },
+    "no": {
+      "form": "No",
+      "id": 1939,
+      "single_token": true
+    },
+    "candidates": {
+      "yes": {
+        " Yes": {
+          "ids": [
+            29871,
+            3869
+          ],
+          "single_token": false
+        },
+        " yes": {
+          "ids": [
+            29871,
+            4874
+          ],
+          "single_token": false
+        },
+        "Yes": {
+          "ids": [
+            3869
+          ],
+          "single_token": true
+        },
+        "yes": {
+          "ids": [
+            4874
+          ],
+          "single_token": true
+        }
+      },
+      "no": {
+        " No": {
+          "ids": [
+            29871,
+            1939
+          ],
+          "single_token": false
+        },
+        " no": {
+          "ids": [
+            29871,
+            694
+          ],
+          "single_token": false
+        },
+        "No": {
+          "ids": [
+            1939
+          ],
+          "single_token": true
+        },
+        "no": {
+          "ids": [
+            694
+          ],
+          "single_token": true
+        }
+      }
+    }
+  },
+  "arms": {
+    "baseline": {
+      "params": {
+        "family": "baseline",
+        "note": "plain greedy generate (do_sample=False)"
+      },
+      "pope": {
+        "random": {
+          "n": 60,
+          "n_yes": 25,
+          "n_no": 35,
+          "n_unparsed": 0,
+          "yes_rate": 0.4167,
+          "accuracy": 0.95,
+          "precision": 0.96,
+          "recall": 0.9231,
+          "f1": 0.9412,
+          "tp": 24,
+          "fp": 1,
+          "fn": 2,
+          "tn": 33,
+          "n_generated_total": 480,
+          "n_processor_steps": 0,
+          "n_editor_forwards": 0
+        }
+      }
+    },
+    "m3id_tau_0.5": {
+      "params": {
+        "family": "m3id",
+        "tau": 0.5,
+        "form": "logits - tau * contrast",
+        "contrast": "final-position logits of the image-free prompt forward",
+        "contrast_note": "m3id/vcd contrast: the contrast prompt (the image-free text, or the image with distortion) is forwarded ONCE per sample and its FINAL-POSITION logits are reused as a per-step CONSTANT contrast vector: step_logits - tau * contrast. The contrast prompt tokenizes to a different sequence length than the image prompt (image placeholders), so per-step re-forwarding would need a per-step position alignment that does not exist; the constant vector makes the contrast EXACT at the prefill/handoff decision (generated token 0) and an approximation afterwards. Both arms share one LogitsProcessor; only the contrast vector differs"
+      },
+      "pope": {
+        "random": {
+          "n": 60,
+          "n_yes": 23,
+          "n_no": 37,
+          "n_unparsed": 0,
+          "yes_rate": 0.3833,
+          "accuracy": 0.95,
+          "precision": 1.0,
+          "recall": 0.8846,
+          "f1": 0.9388,
+          "tp": 23,
+          "fp": 0,
+          "fn": 3,
+          "tn": 34,
+          "n_generated_total": 480,
+          "n_processor_steps": 480,
+          "n_editor_forwards": 0
+        }
+      }
+    },
+    "m3id_tau_1": {
+      "params": {
+        "family": "m3id",
+        "tau": 1.0,
+        "form": "logits - tau * contrast",
+        "contrast": "final-position logits of the image-free prompt forward",
+        "contrast_note": "m3id/vcd contrast: the contrast prompt (the image-free text, or the image with distortion) is forwarded ONCE per sample and its FINAL-POSITION logits are reused as a per-step CONSTANT contrast vector: step_logits - tau * contrast. The contrast prompt tokenizes to a different sequence length than the image prompt (image placeholders), so per-step re-forwarding would need a per-step position alignment that does not exist; the constant vector makes the contrast EXACT at the prefill/handoff decision (generated token 0) and an approximation afterwards. Both arms share one LogitsProcessor; only the contrast vector differs"
+      },
+      "pope": {
+        "random": {
+          "n": 60,
+          "n_yes": 9,
+          "n_no": 11,
+          "n_unparsed": 40,
+          "yes_rate": 0.15,
+          "accuracy": 0.3167,
+          "precision": 1.0,
+          "recall": 0.3462,
+          "f1": 0.5143,
+          "tp": 9,
+          "fp": 0,
+          "fn": 17,
+          "tn": 10,
+          "n_generated_total": 433,
+          "n_processor_steps": 433,
+          "n_editor_forwards": 0
+        }
+      }
+    },
+    "m3id_tau_2": {
+      "params": {
+        "family": "m3id",
+        "tau": 2.0,
+        "form": "logits - tau * contrast",
+        "contrast": "final-position logits of the image-free prompt forward",
+        "contrast_note": "m3id/vcd contrast: the contrast prompt (the image-free text, or the image with distortion) is forwarded ONCE per sample and its FINAL-POSITION logits are reused as a per-step CONSTANT contrast vector: step_logits - tau * contrast. The contrast prompt tokenizes to a different sequence length than the image prompt (image placeholders), so per-step re-forwarding would need a per-step position alignment that does not exist; the constant vector makes the contrast EXACT at the prefill/handoff decision (generated token 0) and an approximation afterwards. Both arms share one LogitsProcessor; only the contrast vector differs"
+      },
+      "pope": {
+        "random": {
+          "n": 60,
+          "n_yes": 0,
+          "n_no": 0,
+          "n_unparsed": 60,
+          "yes_rate": 0.0,
+          "accuracy": 0.0,
+          "precision": null,
+          "recall": 0.0,
+          "f1": null,
+          "tp": 0,
+          "fp": 0,
+          "fn": 26,
+          "tn": 0,
+          "n_generated_total": 480,
+          "n_processor_steps": 480,
+          "n_editor_forwards": 0
+        }
+      }
+    },
+    "vcd_tau_0.5": {
+      "params": {
+        "family": "vcd",
+        "tau": 0.5,
+        "form": "logits - tau * contrast",
+        "contrast": "final-position logits of the distorted-image forward",
+        "contrast_note": "m3id/vcd contrast: the contrast prompt (the image-free text, or the image with distortion) is forwarded ONCE per sample and its FINAL-POSITION logits are reused as a per-step CONSTANT contrast vector: step_logits - tau * contrast. The contrast prompt tokenizes to a different sequence length than the image prompt (image placeholders), so per-step re-forwarding would need a per-step position alignment that does not exist; the constant vector makes the contrast EXACT at the prefill/handoff decision (generated token 0) and an approximation afterwards. Both arms share one LogitsProcessor; only the contrast vector differs",
+        "form_note": "vcd uses the m3id subtraction form logits - tau * logits_distorted (the x25 spec's 'same but' reading) rather than canonical VCD's (1+alpha)*l - alpha*l_aug, which differs by the +alpha*l term; the same tau grid as m3id is used so the contrast weight is directly comparable across arms"
+      },
+      "pope": {
+        "random": {
+          "n": 60,
+          "n_yes": 26,
+          "n_no": 34,
+          "n_unparsed": 0,
+          "yes_rate": 0.4333,
+          "accuracy": 0.9333,
+          "precision": 0.9231,
+          "recall": 0.9231,
+          "f1": 0.9231,
+          "tp": 24,
+          "fp": 2,
+          "fn": 2,
+          "tn": 32,
+          "n_generated_total": 480,
+          "n_processor_steps": 480,
+          "n_editor_forwards": 0
+        }
+      }
+    },
+    "vcd_tau_1": {
+      "params": {
+        "family": "vcd",
+        "tau": 1.0,
+        "form": "logits - tau * contrast",
+        "contrast": "final-position logits of the distorted-image forward",
+        "contrast_note": "m3id/vcd contrast: the contrast prompt (the image-free text, or the image with distortion) is forwarded ONCE per sample and its FINAL-POSITION logits are reused as a per-step CONSTANT contrast vector: step_logits - tau * contrast. The contrast prompt tokenizes to a different sequence length than the image prompt (image placeholders), so per-step re-forwarding would need a per-step position alignment that does not exist; the constant vector makes the contrast EXACT at the prefill/handoff decision (generated token 0) and an approximation afterwards. Both arms share one LogitsProcessor; only the contrast vector differs",
+        "form_note": "vcd uses the m3id subtraction form logits - tau * logits_distorted (the x25 spec's 'same but' reading) rather than canonical VCD's (1+alpha)*l - alpha*l_aug, which differs by the +alpha*l term; the same tau grid as m3id is used so the contrast weight is directly comparable across arms"
+      },
+      "pope": {
+        "random": {
+          "n": 60,
+          "n_yes": 1,
+          "n_no": 1,
+          "n_unparsed": 58,
+          "yes_rate": 0.0167,
+          "accuracy": 0.0333,
+          "precision": 1.0,
+          "recall": 0.0385,
+          "f1": 0.0741,
+          "tp": 1,
+          "fp": 0,
+          "fn": 25,
+          "tn": 1,
+          "n_generated_total": 470,
+          "n_processor_steps": 470,
+          "n_editor_forwards": 0
+        }
+      }
+    },
+    "vcd_tau_2": {
+      "params": {
+        "family": "vcd",
+        "tau": 2.0,
+        "form": "logits - tau * contrast",
+        "contrast": "final-position logits of the distorted-image forward",
+        "contrast_note": "m3id/vcd contrast: the contrast prompt (the image-free text, or the image with distortion) is forwarded ONCE per sample and its FINAL-POSITION logits are reused as a per-step CONSTANT contrast vector: step_logits - tau * contrast. The contrast prompt tokenizes to a different sequence length than the image prompt (image placeholders), so per-step re-forwarding would need a per-step position alignment that does not exist; the constant vector makes the contrast EXACT at the prefill/handoff decision (generated token 0) and an approximation afterwards. Both arms share one LogitsProcessor; only the contrast vector differs",
+        "form_note": "vcd uses the m3id subtraction form logits - tau * logits_distorted (the x25 spec's 'same but' reading) rather than canonical VCD's (1+alpha)*l - alpha*l_aug, which differs by the +alpha*l term; the same tau grid as m3id is used so the contrast weight is directly comparable across arms"
+      },
+      "pope": {
+        "random": {
+          "n": 60,
+          "n_yes": 0,
+          "n_no": 0,
+          "n_unparsed": 60,
+          "yes_rate": 0.0,
+          "accuracy": 0.0,
+          "precision": null,
+          "recall": 0.0,
+          "f1": null,
+          "tp": 0,
+          "fp": 0,
+          "fn": 26,
+          "tn": 0,
+          "n_generated_total": 480,
+          "n_processor_steps": 480,
+          "n_editor_forwards": 0
+        }
+      }
+    },
+    "prior_ablate_alpha_0.5": {
+      "params": {
+        "family": "prior-ablate",
+        "alpha": 0.5,
+        "direction": "prior-ablate direction: v_l = normalize(h_l(image) - h_l(no image)) measured at the FINAL PROMPT position of each prompt (the handoff position whose distribution predicts generated token 0; the x14 step_records[0] convention) in the RAW residual space at --ablate-layer. This is a measured state difference, NOT a token J-lens vector, so ResidualEditor's token-string resolution is bypassed (DirectionEditor) while its hook machinery and apply_edit ablate semantics are reused verbatim: h' = h - alpha * <h, v_l> v_l at the edited positions",
+        "positions_note": "the ablation scope is ResidualEdit positions='last': the prefill forward's final row (the handoff position) and every single-token decode row \u2014 the DECISION positions. Image-token rows are untouched (they do not recur under KV caching), so visual content keeps flowing while the image-prior component is removed where tokens are chosen (x23 SWAP_NOTE's text-scope decode convention)"
+      },
+      "pope": {
+        "random": {
+          "n": 60,
+          "n_yes": 25,
+          "n_no": 35,
+          "n_unparsed": 0,
+          "yes_rate": 0.4167,
+          "accuracy": 0.95,
+          "precision": 0.96,
+          "recall": 0.9231,
+          "f1": 0.9412,
+          "tp": 24,
+          "fp": 1,
+          "fn": 2,
+          "tn": 33,
+          "n_generated_total": 480,
+          "n_processor_steps": 0,
+          "n_editor_forwards": 480
+        }
+      }
+    },
+    "prior_ablate_alpha_1": {
+      "params": {
+        "family": "prior-ablate",
+        "alpha": 1.0,
+        "direction": "prior-ablate direction: v_l = normalize(h_l(image) - h_l(no image)) measured at the FINAL PROMPT position of each prompt (the handoff position whose distribution predicts generated token 0; the x14 step_records[0] convention) in the RAW residual space at --ablate-layer. This is a measured state difference, NOT a token J-lens vector, so ResidualEditor's token-string resolution is bypassed (DirectionEditor) while its hook machinery and apply_edit ablate semantics are reused verbatim: h' = h - alpha * <h, v_l> v_l at the edited positions",
+        "positions_note": "the ablation scope is ResidualEdit positions='last': the prefill forward's final row (the handoff position) and every single-token decode row \u2014 the DECISION positions. Image-token rows are untouched (they do not recur under KV caching), so visual content keeps flowing while the image-prior component is removed where tokens are chosen (x23 SWAP_NOTE's text-scope decode convention)"
+      },
+      "pope": {
+        "random": {
+          "n": 60,
+          "n_yes": 26,
+          "n_no": 34,
+          "n_unparsed": 0,
+          "yes_rate": 0.4333,
+          "accuracy": 0.9667,
+          "precision": 0.9615,
+          "recall": 0.9615,
+          "f1": 0.9615,
+          "tp": 25,
+          "fp": 1,
+          "fn": 1,
+          "tn": 33,
+          "n_generated_total": 480,
+          "n_processor_steps": 0,
+          "n_editor_forwards": 480
+        }
+      }
+    }
+  },
+  "pope_meta": {
+    "pope_parse": "the answer is the LEADING yes/no token of the generated text: the first alphabetic word, lowercased, must be 'yes' or 'no' (tokenizer-agnostic string parse; 'Yes, there is...' -> yes, 'No.' -> no, anything else -> unparsed). Unparsed counts as INCORRECT for accuracy/F1 and is reported separately (it is a real failure mode, not a tie-break). Stricter than x18's parse_answer, which falls back to a unique yes/no anywhere in the text",
+    "pope_slice": "per-split records are the FIRST --n-images records of the shipped jsonl (POPE files are balanced by construction; the prefix slice keeps that balance and is deterministic)",
+    "params": {
+      "pope_dir": "/data/anhnq/vlm-lens-out/validation/pope",
+      "pope_splits": [
+        "random"
+      ],
+      "pope_max_new_tokens": 8,
+      "n_images_cap": 60
+    }
+  },
+  "pope_split_counts": {
+    "random": {
+      "n_records": 60,
+      "n_missing_images": 0,
+      "n_yes_labels": 26
+    }
+  },
+  "notes": {
+    "contrast": "m3id/vcd contrast: the contrast prompt (the image-free text, or the image with distortion) is forwarded ONCE per sample and its FINAL-POSITION logits are reused as a per-step CONSTANT contrast vector: step_logits - tau * contrast. The contrast prompt tokenizes to a different sequence length than the image prompt (image placeholders), so per-step re-forwarding would need a per-step position alignment that does not exist; the constant vector makes the contrast EXACT at the prefill/handoff decision (generated token 0) and an approximation afterwards. Both arms share one LogitsProcessor; only the contrast vector differs",
+    "vcd_form": "vcd uses the m3id subtraction form logits - tau * logits_distorted (the x25 spec's 'same but' reading) rather than canonical VCD's (1+alpha)*l - alpha*l_aug, which differs by the +alpha*l term; the same tau grid as m3id is used so the contrast weight is directly comparable across arms",
+    "distortion": "vcd distortion is PIL-only (the repo invariant: images reach processors as PIL, no torchvision): RGB float array + seeded numpy gaussian noise (sigma on the 0-255 scale) clipped back to uint8, then PIL ImageFilter.GaussianBlur(radius). Seeded per sample (seed, sample index) so every arm sees the same distortion",
+    "prior_ablate": "prior-ablate direction: v_l = normalize(h_l(image) - h_l(no image)) measured at the FINAL PROMPT position of each prompt (the handoff position whose distribution predicts generated token 0; the x14 step_records[0] convention) in the RAW residual space at --ablate-layer. This is a measured state difference, NOT a token J-lens vector, so ResidualEditor's token-string resolution is bypassed (DirectionEditor) while its hook machinery and apply_edit ablate semantics are reused verbatim: h' = h - alpha * <h, v_l> v_l at the edited positions",
+    "positions": "the ablation scope is ResidualEdit positions='last': the prefill forward's final row (the handoff position) and every single-token decode row \u2014 the DECISION positions. Image-token rows are untouched (they do not recur under KV caching), so visual content keeps flowing while the image-prior component is removed where tokens are chosen (x23 SWAP_NOTE's text-scope decode convention)",
+    "pope_parse": "the answer is the LEADING yes/no token of the generated text: the first alphabetic word, lowercased, must be 'yes' or 'no' (tokenizer-agnostic string parse; 'Yes, there is...' -> yes, 'No.' -> no, anything else -> unparsed). Unparsed counts as INCORRECT for accuracy/F1 and is reported separately (it is a real failure mode, not a tie-break). Stricter than x18's parse_answer, which falls back to a unique yes/no anywhere in the text",
+    "pope_slice": "per-split records are the FIRST --n-images records of the shipped jsonl (POPE files are balanced by construction; the prefix slice keeps that balance and is deterministic)",
+    "chair": "CHAIR-s (sentence level) = fraction of captions mentioning >= 1 COCO category that is NOT annotated on the image; CHAIR-r (recall) = mean over images of |mentioned AND annotated| / |annotated| (images with an empty annotation set are excluded from the caption pool entirely, x23's convention). 'Mentioned' scans the caption for every category name in the instances file (the 80-class list \u2014 the standard CHAIR-in-COCO simplification)",
+    "matcher": "x25 in-arm matcher (the x25 spec's simple matcher; vlm_registry exposes no matcher to reuse): per category name, the case-insensitive word-boundary regex \\b<name>(s|es)?\\b \u2014 exact + plural-strip match. Documented gaps: no span masking ('hot dog' also matches 'dog'; the x13 matcher's span masking is the upgrade if CHAIR needs it), no irregular plurals ('mice' does not match 'mouse'), no synonym collapse",
+    "trajectory": "lens trajectory (captions only, post-hoc): each arm's generated caption is teacher-forced onto its prompt (one extra forward per image per arm, no edits active) and the calibrated J-lens readout (x14's _calibrated_lens_logits: identity transport + bias, * scale, unembed, / temp, + logit_bias; unfitted layers read raw) is evaluated at the CAPTION token positions only: mean P(yes) = softmax probability of the x18 yes id, and object_in_top_k = the rate at which one of the image's annotated category emission ids (x14's ' '+name final-subword convention) is in the readout's top-k. shift_vs_baseline = arm mean - baseline mean per layer (same images, so the shift is paired)",
+    "synthetic": "--synthetic builds the corpus in-memory (x23's exact convention): --n-images deterministic random RGB images, ids 1..n, each annotated with 2 categories cycled from the 16-name SYNTH_CATEGORIES pool. Synthetic POPE: 2 present + 2 absent questions per image per split ('Is there a <name> in the image?'), balanced 50/50; the absent pool is sampled uniformly regardless of split, so the popular/adversarial split NAMES exercise the per-split machinery but carry no hard-negative semantics (tiny has no real semantics)",
+    "no_register_arm": "arm 5 (register-off) is intentionally absent: T30 owns the visual-register arm"
+  },
+  "digest": "== X25 mitigation microscope: backend=hf-llava model=llava-7b seed=0 tasks=['pope'] ==\nlayers=[16, 20, 24, 28] ablate_layer=20 calibrated=True n_images=60\n\n-- POPE (leading yes/no token; unparsed = incorrect) --            acc    F1   yes%    n  unparsed\nbaseline                     random       0.950 0.941 0.417    60         0\nm3id_tau_0.5                 random       0.950 0.939 0.383    60         0\nm3id_tau_1                   random       0.317 0.514 0.150    60        40\nm3id_tau_2                   random       0.000------ 0.000    60        60\nvcd_tau_0.5                  random       0.933 0.923 0.433    60         0\nvcd_tau_1                    random       0.033 0.074 0.017    60        58\nvcd_tau_2                    random       0.000------ 0.000    60        60\nprior_ablate_alpha_0.5       random       0.950 0.941 0.417    60         0\nprior_ablate_alpha_1         random       0.967 0.962 0.433    60         0",
+  "summary": {
+    "n_arms": 9,
+    "arm_ids": [
+      "baseline",
+      "m3id_tau_0.5",
+      "m3id_tau_1",
+      "m3id_tau_2",
+      "vcd_tau_0.5",
+      "vcd_tau_1",
+      "vcd_tau_2",
+      "prior_ablate_alpha_0.5",
+      "prior_ablate_alpha_1"
+    ],
+    "note": "best = observed optimum on this run's corpus only; the tiny backend is a random-weight fixture whose rates do not transfer",
+    "pope": {
+      "random": {
+        "baseline_accuracy": 0.95,
+        "best_f1_arm": "prior_ablate_alpha_1",
+        "best_f1": 0.9615
+      }
+    }
+  }
+}

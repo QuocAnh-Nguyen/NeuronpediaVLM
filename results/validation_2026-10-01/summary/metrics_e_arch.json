@@ -1,0 +1,415 @@
+{
+  "round": "validation_2026-10-01",
+  "family": "architecture round (cross-architecture band map, universal sensory-block signature)",
+  "script": "results/validation_2026-10-01/code/figures_e_arch.py",
+  "figures": [
+    {
+      "file": "figE6_band_map.png",
+      "sources": [
+        "raw/step13/x22_structure_llava-7b_64tok.json",
+        "raw/step13/x22_structure_llava-13b.json",
+        "raw/step13/x22_structure_llava-13b_64tok.json",
+        "raw/step13/x22_structure_qwen2vl.json",
+        "raw/step13/x22_structure_qwen2vl_64tok.json",
+        "raw/step13/x23_band_llava-7b_64tok.json workspace_band.paper_band_32l (paper comparison band)",
+        "DECISIONS.md D48 (band onsets per model; budget verdict)"
+      ],
+      "key_numbers": {
+        "llava_7b_64tok_top1_onset_offset": {
+          "value": [
+            20,
+            29
+          ],
+          "source": "raw/step13/x22_structure_llava-7b_64tok.json digest 'half-rise onset/offset': top1"
+        },
+        "llava_7b_64tok_top1_onset_offset_frac": {
+          "value": [
+            0.625,
+            0.906
+          ],
+          "source": "raw/step13/x22_structure_llava-7b_64tok.json top1 onset/offset / n_layers"
+        },
+        "llava_7b_64tok_metric_onsets": {
+          "value": {
+            "autocorrelation onset": 12,
+            "effective-dimensionality onset": 17,
+            "top-1 accuracy onset": 20,
+            "kurtosis onset": 28
+          },
+          "source": "raw/step13/x22_structure_llava-7b_64tok.json digest onsets (autocorr_delta/effdim/top1/kurt)"
+        },
+        "llava_7b_64tok_fitted_band": {
+          "value": [
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29
+          ],
+          "source": "raw/step13/x22_structure_llava-7b_64tok.json band (lens-fitted)"
+        },
+        "llava_7b_64tok_onset_x_layers_over_32": {
+          "value": 20.0,
+          "source": "raw/step13/x22_structure_llava-7b_64tok.json top1 onset x (layers/32), the depth-matched scale"
+        },
+        "llava_13b_256_top1_onset_offset": {
+          "value": [
+            25,
+            36
+          ],
+          "source": "raw/step13/x22_structure_llava-13b.json digest 'half-rise onset/offset': top1"
+        },
+        "llava_13b_256_top1_onset_offset_frac": {
+          "value": [
+            0.625,
+            0.9
+          ],
+          "source": "raw/step13/x22_structure_llava-13b.json top1 onset/offset / n_layers"
+        },
+        "llava_13b_256_metric_onsets": {
+          "value": {
+            "autocorrelation onset": 15,
+            "effective-dimensionality onset": 20,
+            "top-1 accuracy onset": 25,
+            "kurtosis onset": 16
+          },
+          "source": "raw/step13/x22_structure_llava-13b.json digest onsets (autocorr_delta/effdim/top1/kurt)"
+        },
+        "llava_13b_256_fitted_band": {
+          "value": [
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31,
+            32,
+            33,
+            34,
+            35,
+            36
+          ],
+          "source": "raw/step13/x22_structure_llava-13b.json band (lens-fitted)"
+        },
+        "llava_13b_256_onset_x_layers_over_32": {
+          "value": 31.25,
+          "source": "raw/step13/x22_structure_llava-13b.json top1 onset x (layers/32), the depth-matched scale"
+        },
+        "llava_13b_64tok_top1_onset_offset": {
+          "value": [
+            25,
+            36
+          ],
+          "source": "raw/step13/x22_structure_llava-13b_64tok.json digest 'half-rise onset/offset': top1"
+        },
+        "llava_13b_64tok_top1_onset_offset_frac": {
+          "value": [
+            0.625,
+            0.9
+          ],
+          "source": "raw/step13/x22_structure_llava-13b_64tok.json top1 onset/offset / n_layers"
+        },
+        "llava_13b_64tok_metric_onsets": {
+          "value": {
+            "autocorrelation onset": 15,
+            "effective-dimensionality onset": 20,
+            "top-1 accuracy onset": 25,
+            "kurtosis onset": 16
+          },
+          "source": "raw/step13/x22_structure_llava-13b_64tok.json digest onsets (autocorr_delta/effdim/top1/kurt)"
+        },
+        "llava_13b_64tok_fitted_band": {
+          "value": [
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31,
+            32,
+            33,
+            34,
+            35,
+            36
+          ],
+          "source": "raw/step13/x22_structure_llava-13b_64tok.json band (lens-fitted)"
+        },
+        "llava_13b_64tok_onset_x_layers_over_32": {
+          "value": 31.25,
+          "source": "raw/step13/x22_structure_llava-13b_64tok.json top1 onset x (layers/32), the depth-matched scale"
+        },
+        "qwen2vl_256_top1_onset_offset": {
+          "value": [
+            24,
+            26
+          ],
+          "source": "raw/step13/x22_structure_qwen2vl.json digest 'half-rise onset/offset': top1"
+        },
+        "qwen2vl_256_top1_onset_offset_frac": {
+          "value": [
+            0.857,
+            0.929
+          ],
+          "source": "raw/step13/x22_structure_qwen2vl.json top1 onset/offset / n_layers"
+        },
+        "qwen2vl_256_metric_onsets": {
+          "value": {
+            "autocorrelation onset": 26,
+            "effective-dimensionality onset": 21,
+            "top-1 accuracy onset": 24,
+            "kurtosis onset": 26
+          },
+          "source": "raw/step13/x22_structure_qwen2vl.json digest onsets (autocorr_delta/effdim/top1/kurt)"
+        },
+        "qwen2vl_256_fitted_band": {
+          "value": [
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26
+          ],
+          "source": "raw/step13/x22_structure_qwen2vl.json band (lens-fitted)"
+        },
+        "qwen2vl_256_onset_x_layers_over_32": {
+          "value": 21.0,
+          "source": "raw/step13/x22_structure_qwen2vl.json top1 onset x (layers/32), the depth-matched scale"
+        },
+        "qwen2vl_64tok_top1_onset_offset": {
+          "value": [
+            24,
+            26
+          ],
+          "source": "raw/step13/x22_structure_qwen2vl_64tok.json digest 'half-rise onset/offset': top1"
+        },
+        "qwen2vl_64tok_top1_onset_offset_frac": {
+          "value": [
+            0.857,
+            0.929
+          ],
+          "source": "raw/step13/x22_structure_qwen2vl_64tok.json top1 onset/offset / n_layers"
+        },
+        "qwen2vl_64tok_metric_onsets": {
+          "value": {
+            "autocorrelation onset": 26,
+            "effective-dimensionality onset": 21,
+            "top-1 accuracy onset": 24,
+            "kurtosis onset": 26
+          },
+          "source": "raw/step13/x22_structure_qwen2vl_64tok.json digest onsets (autocorr_delta/effdim/top1/kurt)"
+        },
+        "qwen2vl_64tok_fitted_band": {
+          "value": [
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26
+          ],
+          "source": "raw/step13/x22_structure_qwen2vl_64tok.json band (lens-fitted)"
+        },
+        "qwen2vl_64tok_onset_x_layers_over_32": {
+          "value": 21.0,
+          "source": "raw/step13/x22_structure_qwen2vl_64tok.json top1 onset x (layers/32), the depth-matched scale"
+        },
+        "paper_band_32l_frac": {
+          "value": [
+            0.375,
+            0.906
+          ],
+          "source": "raw/step13/x23_band_llava-7b_64tok.json workspace_band.paper_band_32l / 32"
+        },
+        "budget_axis_verdict": {
+          "value": "identical top-1 onset/offset per model across 64 vs 256 tokens (13b L25/L36 both; qwen L24/L26 both)",
+          "source": "x22 digests of the two budgets per model"
+        }
+      },
+      "finding": "The top-1 workspace band keeps its fractional position within the LLaVA family across the width change (7b L20-L29/32 = 0.625-0.906; 13b L25-L36/40 = 0.625-0.900, identical at both caption budgets), while 13b's band sits deeper once depth-matched (onset x layers/32: 20 -> 31) and qwen2vl's band compresses onto the motor end (L24-L26/28 = 0.857-0.929, both budgets). The budget axis (64 vs 256 tokens) moves nothing: identical half-rise onsets/offsets per model."
+    },
+    {
+      "file": "figE7_sensory_block.png",
+      "sources": [
+        "raw/step13/x23_band_llava-7b_64tok.json",
+        "raw/step13/x23_band_llava-13b.json",
+        "raw/step13/x23_band_qwen2vl.json",
+        "DECISIONS.md D48 (universal sensory-block signature)"
+      ],
+      "key_numbers": {
+        "llava_7b_z_img_range": {
+          "value": [
+            3.21,
+            18.56
+          ],
+          "source": "raw/step13/x23_band_llava-7b_64tok.json per_layer[L].image.stickiness_z over measured layers"
+        },
+        "llava_7b_z_txt_range": {
+          "value": [
+            0.25,
+            1.99
+          ],
+          "source": "raw/step13/x23_band_llava-7b_64tok.json per_layer[L].text.stickiness_z"
+        },
+        "llava_7b_obj_img_range": {
+          "value": [
+            0.0,
+            0.069
+          ],
+          "source": "raw/step13/x23_band_llava-7b_64tok.json per_layer[L].image.object_in_top10_rate"
+        },
+        "llava_7b_obj_txt_range": {
+          "value": [
+            0.0,
+            0.018
+          ],
+          "source": "raw/step13/x23_band_llava-7b_64tok.json per_layer[L].text.object_in_top10_rate"
+        },
+        "llava_7b_obj_img_onset_final": {
+          "value": [
+            0.0,
+            0.069
+          ],
+          "source": "raw/step13/x23_band_llava-7b_64tok.json image obj-in-top10 at first/last measured layer (L12/L31)"
+        },
+        "llava_13b_z_img_range": {
+          "value": [
+            12.5,
+            23.86
+          ],
+          "source": "raw/step13/x23_band_llava-13b.json per_layer[L].image.stickiness_z over measured layers"
+        },
+        "llava_13b_z_txt_range": {
+          "value": [
+            -0.21,
+            2.19
+          ],
+          "source": "raw/step13/x23_band_llava-13b.json per_layer[L].text.stickiness_z"
+        },
+        "llava_13b_obj_img_range": {
+          "value": [
+            0.018,
+            0.096
+          ],
+          "source": "raw/step13/x23_band_llava-13b.json per_layer[L].image.object_in_top10_rate"
+        },
+        "llava_13b_obj_txt_range": {
+          "value": [
+            0.007,
+            0.051
+          ],
+          "source": "raw/step13/x23_band_llava-13b.json per_layer[L].text.object_in_top10_rate"
+        },
+        "llava_13b_obj_img_onset_final": {
+          "value": [
+            0.018,
+            0.064
+          ],
+          "source": "raw/step13/x23_band_llava-13b.json image obj-in-top10 at first/last measured layer (L15/L39)"
+        },
+        "qwen2vl_z_img_range": {
+          "value": [
+            6.86,
+            9.69
+          ],
+          "source": "raw/step13/x23_band_qwen2vl.json per_layer[L].image.stickiness_z over measured layers"
+        },
+        "qwen2vl_z_txt_range": {
+          "value": [
+            -0.41,
+            1.77
+          ],
+          "source": "raw/step13/x23_band_qwen2vl.json per_layer[L].text.stickiness_z"
+        },
+        "qwen2vl_obj_img_range": {
+          "value": [
+            0.001,
+            0.118
+          ],
+          "source": "raw/step13/x23_band_qwen2vl.json per_layer[L].image.object_in_top10_rate"
+        },
+        "qwen2vl_obj_txt_range": {
+          "value": [
+            0.0,
+            0.036
+          ],
+          "source": "raw/step13/x23_band_qwen2vl.json per_layer[L].text.object_in_top10_rate"
+        },
+        "qwen2vl_obj_img_onset_final": {
+          "value": [
+            0.001,
+            0.118
+          ],
+          "source": "raw/step13/x23_band_qwen2vl.json image obj-in-top10 at first/last measured layer (L11/L27)"
+        },
+        "sensory_block_verdict": {
+          "value": "image-position content hyper-persistent (z 3.2\u201323.9) yet object-free at band onset (0.0\u20131.8%), rising to 4\u201312% only at the final layers; text z \u2264 2.2 throughout",
+          "source": "x23 band digests, all three models"
+        }
+      },
+      "finding": "Three architectures, one modality split: image-position lens content is hyper-persistent (top-1 stickiness z 3.2-23.9 across models) while text positions stay token-local (z <= 2.2) on all three; image rows are object-free at band onset (0.0-1.8%) and rise to 4-12% only at the final layers, so the workspace carries stable non-verbal visual content and objects verbalise only in the motor regime."
+    }
+  ],
+  "notes": [
+    "All plotted numbers are read from the raw JSONs at run time; the only external values are the paper comparison band [12,29] (read from x23 workspace_band.paper_band_32l) and DECISIONS.md D48 phrasing.",
+    "figE6 band shading uses the x22 digest's half-rise top-1 onset/offset (in-band layers); the four dots are the digest's half-rise onsets for autocorr_delta/effdim/top1/kurt, each at layer/n_layers.",
+    "figE7 x positions normalise each model's measured layers by its last measured layer so the three architectures align on one depth axis.",
+    "figE7 object rates: in the step13 rerun the image-side rate is >= the text-side rate at every measured layer on all three models; the D48 sensory-block claim carried here is the image-side one (object-free at onset, 4-12% at the final layers), not a text>image asymmetry.",
+    "Deterministic: fixed palette, fixed layout, fixed jitter seed (np.random.default_rng(0)), no timestamps; re-running regenerates byte-identical PNGs + metrics JSON."
+  ]
+}
