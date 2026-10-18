@@ -10,9 +10,9 @@ Outputs (deterministic, no timestamps):
   results/validation_2026-10-01/figures/figB5_detector_ledger.png
   results/validation_2026-10-01/summary/metrics_hallucination.json
 
-Every plotted number comes from raw/step10/*.json, raw/step11/*.json, or is quoted
-verbatim from DECISIONS.md (D39/D40) where the underlying step4 JSON was not
-archived under results/raw (verified: no step4/ directory, no x9b/x7_x9 JSON).
+Every plotted number comes from raw/step10/*.json, raw/step11/*.json, raw/step4/*.json
+or is quoted verbatim from DECISIONS.md (D39/D40) for the VALIDATED directedness
+mining, whose per-generation output was not archived (only its citation).
 """
 
 import json
@@ -66,6 +66,8 @@ x14 = load("step10/x14_workspace_probe.json")
 x15n = load("step11/x15_hesitation_n200.json")
 x17n = load("step11/x17_attention_mirror_n200.json")
 x18 = load("step11/x18_pope_handoff.json")
+x9b = load("step4/x9b_alpha_sweep.json")  # the x9b sweep itself: 2800 rows, n=100/cell
+x7x9 = load("step4/x7_x9.json")          # the earlier X9 run: 1400 rows, 215 changed
 x19 = load("step11/x19_halluc_risk.json")
 
 
@@ -77,85 +79,154 @@ def save(fig, name):
 
 
 # ----------------------------------------------------------------------------
-# figB1 -- dose-response (x9b raw JSON not archived in results/raw;
-#          numbers quoted from DECISIONS.md D39 + D40 P3, as instructed)
+# figB1 -- dose-response, JSON-grounded from raw/step4/x9b_alpha_sweep.json.
+#
+# That file IS the x9b sweep: 2800 greedy generations on 10 held-out COCO concept
+# pairs x 10 samples x L16/L24, add/ablate/swap, one ResidualEdit per generation
+# (positions="last" default). Per plotted point n=100 (10 pairs x 10 samples). It
+# was synced from the box's /data/anhnq/vlm-lens-out/validation/step4/ (box mtime
+# 2026-10-08T21:28:52Z) in commit 765138b; an earlier figure comment claiming
+# "not archived" predated that sync and was wrong.
+#
+# Alpha scale: ablate/swap alphas are literal multiples of the residual norm; the
+# add grid's k=1..32 is normalized per pair (alpha = k * norm / v_norm), so its
+# cells span ~27-902 (L16) and ~58-2348 (L24) - ENTIRELY inside the degeneration
+# zone. Its rows' `directed` flag is a raw word-presence check ("target word
+# appears in output but not baseline") that counts repetition collapse as
+# directed; the validated figure is D39's 7/215 = 3.3% from the earlier X9 run
+# (raw/step4/x7_x9.json), mined with independent word-boundary recomputation at
+# alpha 1.34-14.68.
 # ----------------------------------------------------------------------------
-ALPHAS = [0.5, 1, 2, 4]
-ABLATE_L16 = [7, 16, 24, 34]  # % generations changed, DECISIONS.md D40 P3
-SWAP_L16 = [7, 12, 24, 39]  # DECISIONS.md D40 P3
-SWAP_L24_A4 = 35  # only documented L24 point, DECISIONS.md D40 P3
+import statistics  # noqa: E402
+
+
+def _cells(mode: str, layer: int) -> list[dict]:
+    """Aggregate one (mode, layer) sweep arm into per-strength cells (n=100 each)."""
+    rows = [row for row in x9b["results"] if row["mode"] == mode and row["layer"] == layer]
+    cells = []
+    for strength in sorted({row["strength"] for row in rows}):
+        selected = [row for row in rows if row["strength"] == strength]
+        alphas = [row["edit"]["alpha"] for row in selected]
+        n = len(selected)
+        cells.append(
+            {
+                "strength": strength,
+                "n": n,
+                "changed": sum(row["changed"] for row in selected) / n,
+                "directed_raw": sum(row["directed"] for row in selected) / n,
+                "alpha": statistics.median(alphas),
+                "alpha_min": min(alphas),
+                "alpha_max": max(alphas),
+            }
+        )
+    return cells
+
+
+def _ci95(cells: list[dict]) -> tuple[list[float], list[float]]:
+    """Binomial 95% CI half-widths (fraction units), clipped to [0, 1]."""
+    low, high = [], []
+    for cell in cells:
+        probability, n = cell["changed"], cell["n"]
+        half = 1.96 * (probability * (1 - probability) / n) ** 0.5
+        low.append(min(half, probability))
+        high.append(min(half, 1 - probability))
+    return low, high
+
+
+SERIES = [  # (mode, color, marker, label)
+    ("ablate", BLUE, "o", "ablate"),
+    ("swap", ORANGE, "s", "swap"),
+    ("add", PINK, "^", "add (k-normalized: alpha = k*norm/v_norm)"),
+]
 
 
 def figB1():
-    fig, axes = plt.subplots(1, 2, figsize=(11.5, 4.6), sharey=True, constrained_layout=True)
-    xmax = 1400
+    fig, axes = plt.subplots(1, 2, figsize=(12.0, 5.4), sharey=True, constrained_layout=True)
+    xmax = 3600.0
 
-    for ax, _layer in zip(axes, [16, 24], strict=False):
+    for ax in axes:
         ax.set_xscale("log")
         ax.set_xlim(0.42, xmax)
-        ax.set_ylim(0, 100)
-        ax.set_xticks([0.5, 1, 2, 4, 10, 27, 100, 300, 1035])
+        ax.set_ylim(0, 116)
+        ax.set_xticks([0.5, 1, 2, 4, 10, 27, 100, 300, 1000, 3000])
         ax.xaxis.set_major_formatter(FuncFormatter(lambda v, _: f"{v:g}"))
         ax.xaxis.set_minor_formatter(NullFormatter())
-        # sane window / degeneration shading (D40 P3)
         ax.axvspan(0.42, 4, color=GREEN, alpha=0.10, lw=0)
         ax.axvspan(27, xmax, color=VERMIL, alpha=0.10, lw=0)
 
-    ax16, ax24 = axes
+    for ax, layer in zip(axes, [16, 24], strict=False):
+        for mode, color, marker, label in SERIES:
+            cells = _cells(mode, layer)
+            low, high = _ci95(cells)
+            ax.errorbar(
+                [cell["alpha"] for cell in cells],
+                [100 * cell["changed"] for cell in cells],
+                yerr=[[100 * v for v in low], [100 * v for v in high]],
+                xerr=[
+                    [cell["alpha"] - cell["alpha_min"] for cell in cells],
+                    [cell["alpha_max"] - cell["alpha"] for cell in cells],
+                ],
+                fmt=marker + "-",
+                color=color,
+                lw=2,
+                ms=7,
+                capsize=3,
+                elinewidth=1.1,
+                label=f"{label} @ L{layer}",
+            )
+            if mode == "add":
+                # per-point RAW word-presence directed fraction (unvalidated)
+                for cell in cells:
+                    ax.annotate(
+                        f"{100 * cell['directed_raw']:.0f}%",
+                        (cell["alpha"], 100 * cell["changed"]),
+                        textcoords="offset points",
+                        xytext=(0, -13),
+                        ha="center",
+                        fontsize=7.5,
+                        color=color,
+                    )
 
-    ax16.plot(ALPHAS, ABLATE_L16, "o-", color=BLUE, lw=2, ms=6, label="ablate @ L16")
-    ax16.plot(ALPHAS, SWAP_L16, "s-", color=ORANGE, lw=2, ms=6, label="swap @ L16")
-    for a, v in zip(ALPHAS, ABLATE_L16, strict=False):
-        ax16.annotate(f"{v}%", (a, v), textcoords="offset points", xytext=(0, 7), ha="center", fontsize=8, color=BLUE)
-    for a, v in zip(ALPHAS, SWAP_L16, strict=False):
-        ax16.annotate(f"{v}%", (a, v), textcoords="offset points", xytext=(0, -13), ha="center", fontsize=8, color=ORANGE)
-    ax16.axhline(3.3, color=VERMIL, lw=1.4, ls=":")
-    ax16.annotate(
-        "change is cheap, direction is rare:\n7/215 changed generations (3.3%)\nare concept-directed (D39); directed\nedits need alpha = 5-14x residual norm",
-        (5.6, 8.5),
-        fontsize=8,
-        color=VERMIL,
-        va="bottom",
-    )
-    ax16.annotate(
-        "sane window\nalpha <= 4",
-        (0.55, 88),
-        fontsize=8.5,
-        color=GREEN,
-        fontweight="bold",
-    )
-    ax16.annotate(
-        "degeneration alpha >= 27:\nadd grid ran at alpha 27-1035\n(k label mislabeled); 'directed'\nrows = repetition collapse\n(dog->cat gives 'cat cat cat')",
-        (30, 52),
-        fontsize=8,
-        color=VERMIL,
-        va="top",
-    )
-    ax16.set_title("L16 edits: monotone dose-response, swap steepest")
-    ax16.set_xlabel("edit strength alpha (x residual norm, log scale)")
-    ax16.set_ylabel("generations with changed caption (%)")
-    ax16.legend(loc="upper left", bbox_to_anchor=(0.0, 0.80))
-
-    ax24.plot([4], [SWAP_L24_A4], "D", color=ORANGE, ms=9)
-    ax24.annotate("swap @ L24, alpha 4:\n35% (the only L24 point\nrecorded in D40 P3)", (4, 35), textcoords="offset points", xytext=(10, -4), fontsize=8.5, color=ORANGE)
-    ax24.annotate(
-        "add grid @ L24 runs at alpha ~ 58-1035\n(same k units; alpha = 27@L16 maps to 58@L24)\n- inside the degeneration zone",
-        (60, 78),
-        fontsize=8,
-        color=VERMIL,
-        va="top",
-    )
-    ax24.annotate("sane window\nalpha <= 4", (0.55, 88), fontsize=8.5, color=GREEN, fontweight="bold")
-    ax24.annotate("degeneration alpha >= 27", (30, 92), fontsize=8.5, color=VERMIL, fontweight="bold")
-    ax24.set_title("L24 edits: same zones; only the alpha=4 swap point is recorded")
-    ax24.set_xlabel("edit strength alpha (x residual norm, log scale)")
+        # D39's VALIDATED directedness on the earlier X9 run (7/215 = 3.3%)
+        ax.axhline(3.3, color=GREY, lw=1.4, ls=":")
+        ax.annotate(
+            "D39 validated: 7/215 changed generations are\n"
+            "concept-directed (3.3%), needing alpha 5-14x;\n"
+            "add-point labels = RAW word-presence flag\n"
+            "(unvalidated: counts 'cat cat cat' collapse)",
+            (0.55, 12.5),
+            fontsize=8,
+            color=GREY,
+            va="bottom",
+        )
+        ax.annotate(
+            "sane window\nalpha <= 4",
+            (0.55, 113),
+            fontsize=8.5,
+            color=GREEN,
+            fontweight="bold",
+            va="top",
+        )
+        ax.annotate(
+            "degeneration alpha >= 27:\nrepetition collapse,\nnot injection",
+            (32, 113),
+            fontsize=8,
+            color=VERMIL,
+            va="top",
+        )
+        ax.set_title(f"L{layer}: change is cheap; the add grid never leaves the red zone")
+        ax.set_xlabel("edit strength alpha (x residual norm, log; xerr = per-pair alpha range)")
+        ax.legend(loc="center left", bbox_to_anchor=(0.02, 0.78), fontsize=8)
+    axes[0].set_ylabel("generations with changed caption (% of n=100)")
 
     fig.suptitle(
-        "Dose-response: caption change is cheap, concept-directed change is rare (~3%)",
+        "Dose-response from raw/step4/x9b_alpha_sweep.json (2800 generations, n=100/point, 95% CI)",
         fontweight="bold",
     )
     fig.supxlabel(
-        "Sources: DECISIONS.md D40 P3 (x9b alpha sweep, 2800 greedy generations) and D39; x9b JSON not archived under results/raw.",
+        "Source: results/validation_2026-10-01/raw/step4/x9b_alpha_sweep.json (box mtime 2026-10-08T21:28:52Z, "
+        "md5 a3d7a85c...); the earlier X9 run raw/step4/x7_x9.json (1400 generations, 215 changed = 15.4%) "
+        "is the run D39 mined for the validated directedness line.",
         fontsize=7.5,
         color=GREY,
     )
@@ -385,19 +456,31 @@ def main():
             "figB1_dose_response": {
                 "file": "figures/figB1_dose_response.png",
                 "sources": [
-                    "DECISIONS.md D40 P3 (x9b alpha sweep: 2800 greedy generations, add/ablate/swap at L16/L24; raw JSON not archived under results/raw)",
-                    "DECISIONS.md D39 (directionality mining of X9's 215 changed generations)",
+                    "raw/step4/x9b_alpha_sweep.json (the x9b sweep: 2800 generations, n=100 per point; synced from the box 2026-10-08T21:28:52Z, md5 a3d7a85c...)",
+                    "raw/step4/x7_x9.json (the earlier X9 run: 1400 generations, 215 changed = 15.4%)",
+                    "DECISIONS.md D39 (validated directionality mining of the 215 changed generations)",
+                    "DECISIONS.md D40 P3 (alpha-normalization rule; earlier transcription, superseded by the archived JSON)",
                 ],
                 "key_numbers": {
-                    "ablate_change_rate_pct_L16_alpha_0.5_1_2_4": ABLATE_L16,
-                    "swap_change_rate_pct_L16_alpha_0.5_1_2_4": SWAP_L16,
-                    "swap_change_rate_pct_L24_alpha_4": SWAP_L24_A4,
-                    "add_grid_alpha_range_D40": [27, 1035],
-                    "add_grid_alpha_range_D39": [1.34, 14.68],
+                    "ablate_change_rate_pct_L16": [round(100 * c["changed"]) for c in _cells("ablate", 16)],
+                    "ablate_change_rate_pct_L24": [round(100 * c["changed"]) for c in _cells("ablate", 24)],
+                    "swap_change_rate_pct_L16": [round(100 * c["changed"]) for c in _cells("swap", 16)],
+                    "swap_change_rate_pct_L24": [round(100 * c["changed"]) for c in _cells("swap", 24)],
+                    "add_change_rate_pct_L16": [round(100 * c["changed"]) for c in _cells("add", 16)],
+                    "add_change_rate_pct_L24": [round(100 * c["changed"]) for c in _cells("add", 24)],
+                    "add_directed_raw_pct_L16": [round(100 * c["directed_raw"]) for c in _cells("add", 16)],
+                    "add_alpha_median_range": [
+                        round(_cells("add", 16)[0]["alpha"], 1),
+                        round(_cells("add", 24)[-1]["alpha"], 0),
+                    ],
+                    "add_alpha_full_range_all_rows": [
+                        round(min(r["edit"]["alpha"] for r in x9b["results"] if r["mode"] == "add"), 2),
+                        round(max(r["edit"]["alpha"] for r in x9b["results"] if r["mode"] == "add"), 1),
+                    ],
                     "concept_directed_of_changed": {"n_directed": 7, "n_changed": 215, "fraction_pct": 3.3},
                     "directed_alpha_needed_x_residual_norm": [5, 14],
                 },
-                "finding": "Caption change is cheap (7-39% of generations at alpha 0.5-4, monotone in alpha) but concept-DIRECTED change is rare (7/215 = 3.3% of changed generations, needing alpha 5-14x the residual norm); alpha >= 27 breaks down into repetition degeneration, not injection.",
+                "finding": "Caption change is cheap and monotone in alpha (ablate 7-34%, swap 7-39% at alpha 0.5-4; n=100/point) while concept-DIRECTED change is rare (D39 validated: 7/215 = 3.3% of the earlier run's changed generations, needing alpha 5-14x); the x9b add grid runs at k-normalized alpha ~27-2348, entirely in the degeneration zone, and its raw word-presence directed flag (20-60% of changed) counts repetition collapse as directed - the validated 3.3% line is the honest figure.",
             },
             "figB2_cure_test": {
                 "file": "figures/figB2_cure_test.png",

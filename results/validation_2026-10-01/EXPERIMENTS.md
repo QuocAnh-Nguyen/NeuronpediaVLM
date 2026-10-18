@@ -195,8 +195,9 @@ all 10 COCO pair bases are well-conditioned (cond 1.30–2.89 at L8/16/24, ~345�
 - **HOW.** X7: condition number of the 2-column swap basis `[v_s, v_t]` for 10 COCO concept pairs at L8/16/24
   (exclude at cond > 1e3). X9: greedy generations on held-out captions with add/ablate/swap at L16/24 over an
   alpha grid; x9b extends to 2800 generations (D40); directionality mining on the 215 changed generations (D39).
-- **RESULT.** X7: 31 entries, **cond ∈ [1.30, 2.89]** — all far below the exclusion threshold; cosine 0.25–0.78,
-  norms 0.83–1.35, `degenerate=false` everywhere. X9: **215/1400 generations changed** (15.4%; add 161, ablate
+- **RESULT.** X7: 30 entries (10 pairs × L8/L16/L24 in `raw/step4/x7_x9.json` `x7_conditioning`),
+  **cond ∈ [1.12, 2.89]** — all far below the exclusion threshold; cosine 0.10–0.78, norms source
+  0.83–1.47 / target 0.87–1.58, `degenerate=false` everywhere. X9: **215/1400 generations changed** (15.4%; add 161, ablate
   32, swap 22); edits bite early (first-diff tokens cluster at caption positions 10–14 and 1–3; add@L16 91 vs
   add@L24 70). Dose-response is monotone (figB1): ablate 7/16/24/34% and swap 7/12/24/39% at alpha 0.5/1/2/4;
   swap@L24 reaches 35% at alpha 4. But **direction is rare**: 7 of 215 changed generations (3.3%) are
@@ -207,10 +208,15 @@ all 10 COCO pair bases are well-conditioned (cond 1.30–2.89 at L8/16/24, ~345�
   supplies the mechanism; H1/H2 propose the fixes.
 
 ![figB1](figures/figB1_dose_response.png)
-_figB1 — edit dose-response and directedness (X9 + x9b, 2800 generations): caption change is cheap and monotone
-in alpha (ablate 7/16/24/34%, swap 7/12/24/39% at α = 0.5/1/2/4), but concept-directed change is rare (7/215 =
-3.3%) and needs α ≈ 5–14× the residual norm; α ≥ 27 degenerates into repetition collapse, not injection
-(D39/D40)._
+_figB1 — edit dose-response, JSON-grounded from `raw/step4/x9b_alpha_sweep.json` (the x9b sweep itself: 2800
+generations, 10 pairs × 10 samples × L16/L24, n=100 per point with 95% CI; synced from the box's
+`/data/anhnq/vlm-lens-out/validation/step4/`, mtime 2026-10-08T21:28:52Z, md5-identical to the local copy): the
+**add series** (pink triangles, previously absent) runs at k-normalized α ≈ 27–2348 — entirely inside the
+degeneration zone — carrying per-point labels of its RAW word-presence "directed" fraction (20–60%,
+unvalidated: counts repetition collapse); ablate 7→34% @L16 / 6→31% @L24 and swap 7→39% @L16 / 2→35% @L24
+across α = 0.5/1/2/4 (xerr = per-pair alpha spread on the k-normalized arms); the validated figure is the grey
+line — D39's 7/215 = 3.3% concept-directed of the earlier X9 run (`raw/step4/x7_x9.json`: 1400 generations,
+215 changed), needing α ≈ 5–14× (D39/D40)._
 
 ---
 
@@ -298,15 +304,24 @@ covariance drift quantified (D41)._
 ### P3 alpha sweep (figB1, above)
 
 - **WHY.** Map the sane operating window: where does "change the caption" stop being "direct the caption"?
-- **HOW.** x9b: 2800 greedy generations, add/ablate/swap at L16/L24; directedness flags validated against an
-  independent word-boundary recomputation.
-- **RESULT.** Change is monotone in alpha (figB1). The add grid ran at alpha ≈ 27–1035 (its "k=1" label is
-  really α≈27 at L16, 58 at L24) — combined with D39's add grid (α 1.34–14.68, 10–80% change) the full curve is
-  monotone. Within the sane window (α ≤ 4) directedness is **0.5–3%** (ablate 1–2/200, swap 0–6/200). At **α ≥
-  27** the "directed" rows are degeneration: `dog→cat add@L16` yields "cat cat cat cat ...", a repetition
-  collapse — breakdown, not injection.
-- **INTERPRETATION.** Change is cheap, direction is rare (D39's 7/215 remains the reference), large-alpha
-  effects are model breakdown; protocols must report residual-relative alpha, never the k label (D40).
+- **HOW.** x9b: 2800 greedy generations, add/ablate/swap at L16/L24, one `ResidualEdit` per generation
+  (`positions="last"`); per-row `directed` flag = raw word-presence check (target word appears in the output and
+  not in the baseline), reproducible against an independent recomputation 2800/2800 (D40). The stricter
+  **validated** mining is D39's, on the earlier X9 run; its per-generation output was not archived.
+- **RESULT.** Change is monotone in alpha (figB1; L16/L24 arms per `raw/step4/x9b_alpha_sweep.json`,
+  n=100 per point: ablate 7/16/24/34% and 6/15/21/31%, swap 7/12/24/39% and 2/10/19/35%). The add grid ran at
+  k-normalized **α ≈ 27–2348** (per-pair alpha = k·norm/v_norm; median per cell 28–902 @L16 and 64–2035 @L24;
+  raw row range 26.8–2348.2; its "k=1" label is really α≈28 at L16, 64 at L24 — verified against the archived
+  JSON, correcting the earlier "27–1035 / 58 at L24" transcription), so it **never leaves the degeneration zone**;
+  the only sane-window add data is D39's earlier grid (α 1.34–14.68, 10–80% change), not archived. In the archived
+  JSON the raw flag's sane-window rate is ablate 5/200 and swap 12/200 (3.2%/8.1% **of changed**; the flag counts
+  collapse as directed) — the earlier "0.5–3% (1–2/200, 0–6/200)" traces to D39's validated mining on the earlier
+  run. At **α ≥ 27** the add "directed" rows are dominated by degeneration: `dog→cat add@L16` yields
+  "cat cat cat cat ...", a repetition collapse — breakdown, not injection.
+- **INTERPRETATION.** Change is cheap, direction is rare (D39's 7/215 = 3.3% of changed remains the validated
+  reference), large-alpha effects are model breakdown; protocols must report residual-relative alpha, never the
+  k label (D40). The full dose-response is now regenerable: `python
+  results/validation_2026-10-01/code/figures_hallucination.py` rebuilds figB1 from `raw/step4/*.json`.
 
 ### target_mask=text refit (D42)
 

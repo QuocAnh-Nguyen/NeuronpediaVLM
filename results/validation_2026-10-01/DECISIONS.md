@@ -691,10 +691,12 @@ within cross-GPU rounding (L0 bos 8.32 vs 8.3; L16 bos 1568.83 vs 1568.8; L31 63
 pos_1_16 65.25, text_post 91.50) giving X9's alpha grid measured units. Verdict re-confirmed:
 `pos_1_16_sink_like=false`, `recommended_skip_first=1`.
 
-**X7** (`step4/x7_x9.json`): 31 conditioning entries; cond in [1.30, 2.89] - ALL far below
-the 1e3 exclusion threshold, `degenerate=false` everywhere, cosine 0.25-0.78, norms
-0.83-1.35 (residual-relative units). The pseudo-inverse swap bases are well-conditioned;
-the exclusion rule never needed to fire.
+**X7** (`step4/x7_x9.json`): 30 conditioning entries (10 pairs x L8/L16/L24); cond in [1.12,
+2.89] - ALL far below the 1e3 exclusion threshold, `degenerate=false` everywhere, cosine
+0.10-0.78, norms source 0.83-1.47 / target 0.87-1.58 (residual-relative units). Corrected
+2026-10-19 against the archived JSON (earlier text: "31 entries, [1.30, 2.89], cosine 0.25-0.78,
+norms 0.83-1.35"). The pseudo-inverse swap bases are well-conditioned; the exclusion rule never
+needed to fire.
 
 **X9** (`step4/x7_x9.json`): 215/1400 generations changed (rate 0.154; add 161, ablate 32,
 swap 22); first-diff tokens cluster at caption positions 10-14 and 1-3 - edits bite early.
@@ -831,18 +833,25 @@ mid-layer" caveat was substantially the uncorrected mean shift, not only A2's va
 D39 (a)/(b)/(d) stand. A per-layer gated variant (apply the correction where it helps) is the
 natural refinement for the L9-16 regression.
 
-4. ALPHA SWEEP (P3/x9b: 2800 greedy generations, held-out captions, add/ablate/swap at L16/L24).
-Dose-response at L16: ablate alpha 0.5/1/2/4 -> 7/16/24/34% of generations change; swap ->
-7/12/24/39% (swap steepest; swap@L24 reaches 35% at alpha 4). The add grid was designed in
-k units and runs entirely at alpha ~= 27-1035 (its summary "k=1" label is really alpha ~= 27 at
-L16, 58 at L24 - report alpha, never the k label); combined with D39's add grid (alpha
-1.34-14.68, 10-80% change) the change-rate curve is monotone. Concept-directedness validated:
-the stored per-row flags reproduce an independent word-boundary recomputation 2800/2800, and
-within the sane window (alpha <= 4) directedness is 0.5-3% (ablate 1-2/200, swap 0-6/200); at
-alpha >= 27 the add "directed" rows are dominated by degeneration, not injection (example:
-dog->cat add@L16 yields "cat cat cat cat ...", a repetition collapse). So: change is cheap,
-direction is rare (D39's 7/215 = 3.3% of changed remains the reference), and large-alpha effects
-are breakdown. Artifact: step4/x9b_alpha_sweep.json.
+4. ALPHA SWEEP (P3/x9b: 2800 greedy generations, held-out captions, add/ablate/swap at L16/L24;
+artifact raw/step4/x9b_alpha_sweep.json, n=100 per point).
+Dose-response: ablate alpha 0.5/1/2/4 -> 7/16/24/34% at L16 and 6/15/21/31% at L24; swap ->
+7/12/24/39% at L16 (swap steepest) and 2/10/19/35% at L24 (swap@L24 reaches 35% at alpha 4).
+The add grid was designed in k units and runs entirely at k-normalized alpha ~= 27-2348
+(per-pair alpha = k*norm/v_norm; median per cell 28-902 at L16, 64-2035 at L24; raw row range
+26.8-2348.2; its summary "k=1" label is really alpha ~= 28 at L16, 64 at L24 - report alpha,
+never the k label; corrected 2026-10-19 from the archived JSON, superseding the earlier
+"27-1035 / 58 at L24" transcription); combined with D39's add grid (alpha 1.34-14.68, 10-80%
+change) the change-rate curve is monotone. Concept-directedness: the stored per-row flags
+reproduce an independent word-boundary recomputation 2800/2800 (the flag IS that raw
+presence check - it counts the high-alpha repetition collapses as "directed"); within the sane
+window (alpha <= 4) the archived flags give ablate 5/200 and swap 12/200 directed (3.2%/8.1% of
+changed), versus the 0.5-3% (1-2/200, 0-6/200) of D39's stricter validated mining on the earlier
+run, whose per-generation output was not archived; at alpha >= 27 the add "directed" rows are
+dominated by degeneration, not injection (example: dog->cat add@L16 yields "cat cat cat cat ...",
+a repetition collapse). So: change is cheap, direction is rare (D39's 7/215 = 3.3% of changed
+remains the validated reference), and large-alpha effects are breakdown. Artifact:
+step4/x9b_alpha_sweep.json (also raw/step4/x7_x9.json for the earlier X9 run).
 
 Campaign status: P1 done (bias+clamp validated; per-layer gating open), P2 done (saturation;
 target_mask=text refit queued), P3 done (dose-response + degeneration boundary), P4 = this entry.

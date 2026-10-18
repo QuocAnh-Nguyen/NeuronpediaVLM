@@ -3,30 +3,67 @@
     "figB1_dose_response": {
       "file": "figures/figB1_dose_response.png",
       "sources": [
-        "DECISIONS.md D40 P3 (x9b alpha sweep: 2800 greedy generations, add/ablate/swap at L16/L24; raw JSON not archived under results/raw)",
-        "DECISIONS.md D39 (directionality mining of X9's 215 changed generations)"
+        "raw/step4/x9b_alpha_sweep.json (the x9b sweep: 2800 generations, n=100 per point; synced from the box 2026-10-08T21:28:52Z, md5 a3d7a85c...)",
+        "raw/step4/x7_x9.json (the earlier X9 run: 1400 generations, 215 changed = 15.4%)",
+        "DECISIONS.md D39 (validated directionality mining of the 215 changed generations)",
+        "DECISIONS.md D40 P3 (alpha-normalization rule; earlier transcription, superseded by the archived JSON)"
       ],
       "key_numbers": {
-        "ablate_change_rate_pct_L16_alpha_0.5_1_2_4": [
+        "ablate_change_rate_pct_L16": [
           7,
           16,
           24,
           34
         ],
-        "swap_change_rate_pct_L16_alpha_0.5_1_2_4": [
+        "ablate_change_rate_pct_L24": [
+          6,
+          15,
+          21,
+          31
+        ],
+        "swap_change_rate_pct_L16": [
           7,
           12,
           24,
           39
         ],
-        "swap_change_rate_pct_L24_alpha_4": 35,
-        "add_grid_alpha_range_D40": [
-          27,
-          1035
+        "swap_change_rate_pct_L24": [
+          2,
+          10,
+          19,
+          35
         ],
-        "add_grid_alpha_range_D39": [
-          1.34,
-          14.68
+        "add_change_rate_pct_L16": [
+          82,
+          97,
+          100,
+          100,
+          100,
+          100
+        ],
+        "add_change_rate_pct_L24": [
+          89,
+          100,
+          100,
+          100,
+          100,
+          100
+        ],
+        "add_directed_raw_pct_L16": [
+          38,
+          47,
+          44,
+          20,
+          40,
+          60
+        ],
+        "add_alpha_median_range": [
+          28.2,
+          2035.0
+        ],
+        "add_alpha_full_range_all_rows": [
+          26.78,
+          2348.2
         ],
         "concept_directed_of_changed": {
           "n_directed": 7,
@@ -38,7 +75,7 @@
           14
         ]
       },
-      "finding": "Caption change is cheap (7-39% of generations at alpha 0.5-4, monotone in alpha) but concept-DIRECTED change is rare (7/215 = 3.3% of changed generations, needing alpha 5-14x the residual norm); alpha >= 27 breaks down into repetition degeneration, not injection."
+      "finding": "Caption change is cheap and monotone in alpha (ablate 7-34%, swap 7-39% at alpha 0.5-4; n=100/point) while concept-DIRECTED change is rare (D39 validated: 7/215 = 3.3% of the earlier run's changed generations, needing alpha 5-14x); the x9b add grid runs at k-normalized alpha ~27-2348, entirely in the degeneration zone, and its raw word-presence directed flag (20-60% of changed) counts repetition collapse as directed - the validated 3.3% line is the honest figure."
     },
     "figB2_cure_test": {
       "file": "figures/figB2_cure_test.png",
