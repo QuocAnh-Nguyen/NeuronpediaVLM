@@ -1522,3 +1522,33 @@ the figure and its metrics row regenerate deterministically from the two vendore
 +completed in ~9 h. Committed artifacts: /ephemeral/vlm-lens/llava-1.5-7b-hf-pope-matched
 +(three masks + provenance) and step70/dj_attribution.txt + step70/bias-matched/bias-text.pt.
 +
+
++D50 ADDENDUM 3 (2026-10-19 23:30Z) - E2: re-basing the microscope on the TASK lens costs
++nothing and BUYS the mechanism curve (POPE random, 1200-question subset, llava-1.5-7b).
++
++COMMITMENT STRUCTURE IS LENS-INDEPENDENT: raw task lens L<=7 0.43 / L>=22 0.39; raw
++caption lens L<=7 0.43 / L>=22 0.39 (identical distributions). The D48-style commitment
++histogram is a within-lens contrast and survives the 122% lens swap - confirming that the
++D40-D48 structural findings are instrument-independent, while every ABSOLUTE number is not.
++
++THE CALIBRATED GAP CURVE ON THE TASK LENS IS THE CLEANEST MECHANISM READOUT WE HAVE:
++  L0-L10: p_yes(img)=0.93-0.97, free=0.91-0.96, gap ~+0.01   (both saturated at prior-yes)
++  L15:     p_yes=0.614  free=0.863  gap=-0.249              (evidence starts pulling down)
++  L20:     p_yes=0.434  free=0.913  gap=-0.479   <-- PEAK  (image vs image-free separation)
++  L25:     p_yes=0.419  free=0.730  gap=-0.310
++  L30:     p_yes=0.588  free=0.784  gap=-0.196              (converging to the final answer)
++The language prior sits at ~0.9 "yes" throughout the band while the image evidence holds
++the answer at ~0.42; the maximum separation is exactly the x22 top1-onset layer (L20). This
++is the mechanistic statement of hallucination: prior-push vs evidence-pull, separable per
++question and measurable in the workspace band.
++
++ERROR PREDICTION, FINALLY WITH AN EDGE: on the task lens with calibration, mid-band
++lens CONFIDENCE at L18 predicts the model errors at AUC 0.905 vs the model own margin
++0.888 - the lens beats the model. (Raw task lens: L19 0.805; caption lens calibrated D49:
++L19 0.762 vs margin 0.874 - no edge.) Two conditions mattered: (a) the affine calibration,
++and (b) the format-matched lens. This is the quantitative version of "the workspace knows
++before the output regime does".
++
++ARTIFACTS: step70/x24_matched_raw.json + x24_matched_calib.json; the matched task lens at
++/ephemeral/vlm-lens/llava-1.5-7b-hf-pope-matched + step70/bias-matched/bias-text.pt.
++
