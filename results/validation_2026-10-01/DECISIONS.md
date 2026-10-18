@@ -1471,3 +1471,54 @@ headline superseded with pointers) and H1 is reframed accordingly.
 
 TOOLING: figures_hallucination.py gains figB6 (overlay of the two runs, thin dashed = n=24);
 the figure and its metrics row regenerate deterministically from the two vendored JSONs.
+
+## D50 CONCLUSION (2026-10-19 20:40Z) - the matched-sample attribution lands: the
+## task effect is FORMAT, not the image set
++
++THE CONTROL (E1, done). Two POPE-answer lenses, both n~100, both on llava-1.5-7b,
++both dim-batch 4, text mask, same pipeline:
++* matched-POPE   - the CAPTION corpus own 100 images, reformatted as 99 yes/no
++  questions (1 per image: a present-object yes + a popular-absent no).
++* POPE-500       - the original stream.  500 DIFFERENT COCO images, 100 answers.
++Relative |dJ| vs the caption lens (merged, the same 100 images, text mask):
++
++  caption vs matched-POPE (same 100 images, format only) : mean 1.2242, band 0.5394
++  caption vs POPE-500     (500 diff images, format+dset) : mean 1.1923, band 0.5101
++
++The image-set axis contributes NOTHING: holding the images fixed and changing only the
++prompt format moves J by 122%, while changing 400 of the 100 images moves it slightly
++LESS (119%). The entire D49 "task effect" is the PREDICTION FORMAT - captioning
++(long conditional description) vs yes/no VQA (short answer token) - not the domain, the
++vocabulary, or the images.
++
++The per-layer decay profile replicates exactly on the matched pair: 2.62 (L0), 2.57,
++1.80, 1.26, 0.80, 0.58, 0.47, 0.385 (L28). Task-specificity is an INPUT-side (early-layer)
++phenomenon; the workspace band and motor layers are format-agnostic at the 0.3-0.5 level.
++
++Calibration of the matched task lens is at least as strong as the caption-lens calibration
++(mid-band top1: L19 0.183->0.721, L23 0.212->0.620, L27 0.413->0.695; fitted scale now
++EXCEEDS 1 at L30 (1.173) vs 0.94 on the caption lens - the two tasks also differ in the
++final-layer logit scale). The affine is doing the same work for the task lens, confirming
++it is a general property of the J-lens readout, not a caption-corpus artifact.
++
++FITTING RECOMMENDATIONS (answer to "how to fit the lens better"):
++1. MATCH THE FORMAT, not the domain: fit on the prompt shape/prediction objective you
++   will analyze. A caption-fitted lens is the wrong instrument for POPE yes/no readouts
++   even though the images are identical.
++2. Do NOT spend on the sample-count axis: n=100 vs n=99 moved dJ by 3% here (1.2242 vs
++   1.1923 is within the format effect); the D48 budget axis was 5-16% and inert for the
++   workspace properties. n~100 is sufficient; spend the compute on format coverage and
++   image diversity for generality.
++3. Because the band/motor layers are format-agnostic, a MIXED-format corpus is the right
++   default for a general-purpose lens (it averages away the input-side task signal while
++   the readout layers converge anyway) - and a format-matched refit is the right choice
++   when a single task must be measured precisely.
++4. The affine calibration is mandatory for any absolute readout claim (2-4x mid-band
++   top1); it is not optional polish.
++
++OPS: the run moved to /ephemeral (4.8T free) after the shared /data filled twice from
++other tenants; the resume-capable supervisor carried 11/99 samples across the move and
++the whole matched corpus (99 samples, ~10 min/sample under tenant GPU contention)
++completed in ~9 h. Committed artifacts: /ephemeral/vlm-lens/llava-1.5-7b-hf-pope-matched
++(three masks + provenance) and step70/dj_attribution.txt + step70/bias-matched/bias-text.pt.
++
