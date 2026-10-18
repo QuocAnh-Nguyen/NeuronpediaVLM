@@ -1411,3 +1411,15 @@ text positions throughout. Artifacts: step12 (11 JSONs); commits f9e2d96, 0f78b1
 +matched-lens refit at target = n_layers-2 tests whether the conditioning gain is real for
 +us (measured by the same calibrated fidelity table).
 +
+
++D50 ADDENDUM 2 (2026-10-18 06:15Z) - the task-delta PROFILE: per-layer relative |dJ|
++(caption vs POPE-500, text mask) decays monotonically with depth: 2.63 (L0), 2.63, 1.70,
++1.20, 0.76, 0.55, 0.44, 0.36 (L28) - the task-specificity of the Jacobian is an
++INPUT-side phenomenon. Early-layer transport is what the task reshapes (attention/routing
++patterns at the input), while the output-side (band and motor layers) converges to nearly
++the same linearization across tasks. Consequence for fitting: the cheap way to adapt a lens
++to a new task is NOT a full refit - the late-layer J's are already task-agnostic at the
++0.3-0.5 level; only the early layers carry the task signal. (Also: this is why the D48
++band-level workspace properties survived the caption-vs-POPE lens swap in the microscope
++arms - the band is the converged region.)
++
