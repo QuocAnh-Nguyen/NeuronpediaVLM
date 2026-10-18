@@ -327,9 +327,16 @@ def parse_args() -> argparse.Namespace:
                              "final layer (x16 fallback convention)")
     parser.add_argument("--mask", default="text",
                         help="which lens-<mask>.pt and bias-<mask>.pt to use")
-    parser.add_argument("--bias-dir", default=DEFAULT_BIAS_DIR,
-                        help="directory holding bias-<mask>.pt (bias/scale, optional "
-                             "temp/logit_bias applied inside every calibrated readout)")
+    parser.add_argument(
+        "--bias-dir", default=DEFAULT_BIAS_DIR,
+        help="directory holding bias-<mask>.pt (bias/scale, optional "
+             "temp/logit_bias applied inside every calibrated readout)"
+    )
+    parser.add_argument("--probe-transport", action="store_true",
+                        help="probe the J_l-TRANSPORTED residual rows (lens.transport) "
+                             "instead of the raw h_l rows; tests whether the transport "
+                             "preserves register content (default: raw rows, the D49 "
+                             "numbers unchanged)")
     parser.add_argument(
         "--manifest", default=DEFAULT_MANIFEST,
         help="caption manifest (the 256-token-budget 7b fit corpus): its first "
@@ -1085,6 +1092,19 @@ def chair_aggregate(rows: list[dict[str, Any]]) -> dict[str, Any]:
     return aggregated
 
 
+def _transport_rows(rows: torch.Tensor, lens: Any, layer: int) -> torch.Tensor:
+    """``lens.transport(rows, layer)`` with the identity-lens passthrough.
+
+    The fitted-lens path applies the layer's J; an identity/fallback lens has no
+    Jacobian for the layer and the rows pass through unchanged (the probe then
+    measures the raw residual, recorded as such in the output notes).
+    """
+    jacobians = getattr(lens, "jacobians", None)
+    if not jacobians or layer not in jacobians:
+        return rows
+    return lens.transport(rows.float(), layer)
+
+
 # ------------------------------------------------------------------ arm a+b: registers
 
 
@@ -1248,6 +1268,8 @@ def run_registers(args: argparse.Namespace, ws: RegisterWorkspace) -> RegisterCo
                 rows = residuals[layer][positions] if positions else torch.zeros(
                     0, model.d_model
                 )
+                if args.probe_transport and rows.numel():
+                    rows = _transport_rows(rows, ws.lens, layer)
                 ctx.probe_features[(layer, pos_class)].append(rows.clone())
             if register_positions:
                 ctx.class_rate_pools[(layer, "register")].append(
