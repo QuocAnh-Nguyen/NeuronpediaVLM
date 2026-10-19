@@ -93,19 +93,10 @@ for _path in (str(REPO / "src"), str(CODE)):
         sys.path.insert(0, _path)
 
 import torch  # noqa: E402
-
-import vlm_lens  # noqa: E402, F401  # installs the vendored jlens path: must precede jlens
-from jlens.hooks import ActivationRecorder  # noqa: E402
-from jlens.lens import JacobianLens  # noqa: E402
-
-from vlm_lens.data.captions import DEFAULT_QUESTIONS  # noqa: E402
-from vlm_lens.data.manifest import manifest_meta, read_manifest  # noqa: E402
-from vlm_lens.artifacts import load_lens_set  # noqa: E402
-from vlm_lens.interventions import ResidualEdit, ResidualEditor  # noqa: E402
-from vlm_lens.models.llava import MultimodalBatch  # noqa: E402
-
 import vlm_registry as registry  # noqa: E402
 import x23_vlm_workspace as x23  # noqa: E402
+from jlens.hooks import ActivationRecorder  # noqa: E402
+from jlens.lens import JacobianLens  # noqa: E402
 from x13_cure_test import (  # noqa: E402
     detect_mentions,
     image_id_of,
@@ -119,6 +110,13 @@ from x14_workspace_probe import (  # noqa: E402
 )
 from x18_pope_handoff import select_yes_no_ids  # noqa: E402
 from x21_verbal_report import lens_fingerprint  # noqa: E402
+
+import vlm_lens  # noqa: E402, F401  # installs the vendored jlens path: must precede jlens
+from vlm_lens.artifacts import load_lens_set  # noqa: E402
+from vlm_lens.data.captions import DEFAULT_QUESTIONS  # noqa: E402
+from vlm_lens.data.manifest import manifest_meta, read_manifest  # noqa: E402
+from vlm_lens.interventions import ResidualEdit, ResidualEditor  # noqa: E402
+from vlm_lens.models.llava import MultimodalBatch  # noqa: E402
 
 #: Any registry-built lens model (``LlavaLensModel`` for the llava kinds,
 #: ``Qwen2VLLensModel`` for qwen2vl -- same public surface), so the annotations
