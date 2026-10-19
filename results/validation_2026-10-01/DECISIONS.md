@@ -1552,3 +1552,50 @@ the figure and its metrics row regenerate deterministically from the two vendore
 +ARTIFACTS: step70/x24_matched_raw.json + x24_matched_calib.json; the matched task lens at
 +/ephemeral/vlm-lens/llava-1.5-7b-hf-pope-matched + step70/bias-matched/bias-text.pt.
 +
+
++D50 ADDENDUM 4 / CLOSE (2026-10-19 06:30Z) - E5: the penultimate target does NOT help
++(clean negative), and the complete fitting-recommendation set.
++
++E5 (target layer, llava-1.5-7b, POPE-matched corpus, dim-batch 4, same calibration
++procedure): calibrated mid-band fidelity is slightly WORSE at the penultimate target:
++  L19 top1 0.587 (penult) vs 0.721 (final)   KL 6.17 vs 5.50
++  L23 top1 0.612 vs 0.620                    KL 5.47 vs 4.20
++  L27 top1 0.664 vs 0.695                    KL 3.56 vs 2.24
++The final layer (L31) remains the right gradient target for this model - the reference
++implementation docstring "in some cases, targeting the penultimate layer can give a
++better-conditioned J_l" does not apply to llava-1.5-7b with a 100-sample corpus. Recorded
++so we do not retry it: artifacts at /ephemeral/vlm-lens/llava-1.5-7b-hf-pope-matched-penul,
++calibration in step70/bias-penul.
++
++=======================================================================================
++THE J-LENS FITTING PLAYBOOK (this program conclusions, all measured on llava-1.5-7b)
++=======================================================================================
++1. CALIBRATION IS MANDATORY. Per-layer logit-space (scale, bias) via distillation to the
++   model own next-token distribution. Mid-band top1 0.02 -> 0.61 (L20) and 0.18 -> 0.72
++   (L19, task lens); hold-out CE roughly halves. Any absolute readout claim without it is
++   miscalibration-limited. The fitted scale <1 everywhere (0.12-1.17) confirms the raw
++   W_U(J_l h) has a systematically wrong logit temperature - it is a real property of the
++   transport, not an estimator bug (the vendored estimator has no missing normalization).
++2. MATCH THE FORMAT. The Jacobian task effect is 122% and it is the PROMPT/PREDICTION
++   FORMAT, not the image set (a same-100-image caption->POPE reformat moves J 1.224; a
++   500-different-image POPE corpus moves it 1.192). Fit the lens on the prompt shape you
++   will analyze; do not expect a caption lens to measure yes/no readouts.
++3. DO NOT SPEND ON SAMPLE COUNT. n=100 vs n=99 on the same images moved dJ by 3%.
++   n~100 per corpus is sufficient; the D48 caption-budget axis (5-16% dJ) is inert for
++   the workspace properties. Put compute into FORMAT and IMAGE coverage.
++4. KEEP THE FINAL TARGET LAYER. E5: penultimate is slightly worse (L19 top1 0.587 vs
++   0.721). dim-batch 3-4 with resume and OMP_NUM_THREADS=8 on a contended box.
++5. STRUCTURAL FINDINGS ARE LENS-INDEPENDENT; ABSOLUTE NUMBERS ARE NOT. Commitment
++   histograms, band onsets, stickiness z and ignition widths survive the 122% lens swap
++   (they are within-lens contrasts); object rates, P_yes and every absolute readout do not.
++6. THE UNEMBED, NOT THE LENS, LIMITS WHAT THE WORKSPACE CAN SAY. Registers are
++   unembed-blind yet probe-decodable, and the J transport PRESERVES their content
++   (probe AUC +0.02 through the band). No lens refit will verbalize them; a supplementary
++   trained probe readout head is the tool - and the J-space is a legitimate carrier for one.
++
++Mechanism headline this program: the language prior sits at ~0.9 "yes" through the whole
++workspace band while the image evidence holds the answer at ~0.42, with the maximum
++separation (gap -0.48) exactly at the top1-onset layer L20; and with calibration plus a
++format-matched lens the mid-band confidence predicts the model errors at AUC 0.905 vs the
++model own margin 0.888 - the workspace knows before the output regime does.
++
