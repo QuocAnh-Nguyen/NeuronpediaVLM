@@ -1599,3 +1599,17 @@ the figure and its metrics row regenerate deterministically from the two vendore
 +format-matched lens the mid-band confidence predicts the model errors at AUC 0.905 vs the
 +model own margin 0.888 - the workspace knows before the output regime does.
 +
+
++D50 CLOSING NOTE (2026-10-19 07:00Z) - ARTIFACT LOCATIONS. The shared box filled /data twice
++from other tenants mid-round, so the E1/E5 fit outputs live on the box-local /ephemeral volume
++(4.8T free) and will not survive a box rebuild:
++  /ephemeral/vlm-lens/llava-1.5-7b-hf-pope-matched/artifacts/  (lens-{text,image,all}.pt + provenance)
++  /ephemeral/vlm-lens/llava-1.5-7b-hf-pope-matched-penul/artifacts/  (the E5 target=L30 lens)
++  /data/anhnq/vlm-lens-out/validation/step70/  (dj_attribution.txt, x24_matched_{raw,calib}.json,
++     bias-matched/bias-text.pt, bias-penul/bias-text.pt)
++The matched corpus manifest (what reproduces them): step60/pope_matched_100.jsonl (99 samples,
++the caption corpus own 100 images, one yes/no question each) built from the COCO instances
++annotations; copy both to a durable volume before any box replacement. All code is in-repo
++(results/validation_2026-10-01/code/{build_pope,x24_pope_microscope,x25_mitigation_microscope,
++x26_register_probe}.py, src/vlm_lens/calibrate.py, scripts/fit_calibration.py, fit_llava.py).
++
